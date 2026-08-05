@@ -1,0 +1,24 @@
+{% load static common_tags %}
+
+<!-- Advance Billing — Master Premium Loading Screen Component -->
+<div id="app-loader" class="app-loader-overlay">
+    <!-- Subtle Radial Background Glow -->
+    <div class="loader-bg-glow"></div>
+
+    <!-- Center Content -->
+    <div class="loader-content-wrapper">
+        <!-- Logo Badge with Soft Breathing Animation -->
+        <div class="loader-logo-container">
+            {% include "common/logo.html" with style="width: 56px; height: 56px; color: var(--color-accent, #FF8C1A);" %}
+        </div>
+
+        <!-- Product Branding -->
+        <h1 class="loader-title">{{ APP_NAME|default:"Advance Billing" }}</h1>
+        <p class="loader-tagline">{{ APP_TAGLINE|default:"GST Billing Made Simple" }}</p>
+
+        <!-- Receipt Print Progress Bar (No Spinners) -->
+        <div class="loader-progress-track">
+            <div class="loader-progress-bar"></div>
+        </div>
+    </div>
+</div>

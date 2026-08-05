@@ -1,0 +1,114 @@
+/*
+ * static/css/auth.css
+ * Advance Billing — Authentication Pages Styles
+ */
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background decoration for auth pages */
+.auth-layout::before {
+  content: '';
+  position: absolute;
+  top: -20vh;
+  left: -20vw;
+  width: 70vw;
+  height: 70vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--palette-accent-400-rgb, 255,153,51), 0.08) 0%, rgba(10,10,15,0) 70%);
+  z-index: var(--z-below);
+}
+
+.auth-layout::after {
+  content: '';
+  position: absolute;
+  bottom: -20vh;
+  right: -20vw;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--palette-accent-400-rgb, 255,153,51), 0.05) 0%, rgba(10,10,15,0) 70%);
+  z-index: var(--z-below);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+  z-index: var(--z-base);
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: var(--space-8);
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  font-size: var(--text-2xl);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.auth-logo svg {
+  color: var(--color-accent);
+}
+
+.auth-card {
+  padding: var(--space-8);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.auth-title {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-2);
+}
+
+.auth-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.auth-footer {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.auth-footer a {
+  font-weight: var(--font-medium);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: var(--space-6) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.auth-divider::before { margin-right: var(--space-3); }
+.auth-divider::after { margin-left: var(--space-3); }

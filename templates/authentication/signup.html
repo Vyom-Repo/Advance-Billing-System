@@ -1,0 +1,81 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block layout %}
+<div class="auth-layout">
+    <div class="auth-container animate-fade-in" style="max-width: 500px;">
+        
+        <a href="{% url 'landing' %}" class="auth-logo">
+            {% include "common/logo.html" with style="width: 32px; height: 32px; color: var(--color-accent);" %}
+            <span>{{ APP_NAME }}</span>
+        </a>
+
+        <div class="card card-glass auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">Create your account</h1>
+                <p class="auth-subtitle">Start generating GST invoices in minutes</p>
+            </div>
+
+            <form method="post" action="{% url 'auth:signup' %}">
+                {% csrf_token %}
+                
+                <div class="grid-2">
+                    <div class="form-group" style="margin-bottom: var(--space-4);">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-group" style="margin-bottom: var(--space-4);">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--space-4);">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address <span class="required">*</span></label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.email.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-hint">We'll use this for your organization setup.</div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--space-4);">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password <span class="required">*</span></label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.password1.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--space-6);">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password <span class="required">*</span></label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.password2.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-divider">or</div>
+
+            <div class="auth-footer">
+                Already have an account? <a href="{% url 'auth:login' %}">Sign in</a>
+            </div>
+        </div>
+        
+        <p class="text-center text-muted" style="font-size: var(--text-xs); margin-top: var(--space-6);">
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+        </p>
+    </div>
+</div>
+{% endblock layout %}

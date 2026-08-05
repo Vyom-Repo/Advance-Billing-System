@@ -1,0 +1,45 @@
+{% load common_tags %}
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="{% url 'dashboard:index' %}" class="sidebar-logo">
+            {% include "common/logo.html" with style="width: 24px; height: 24px; color: var(--color-accent);" %}
+            <span>{{ APP_NAME }}</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        <!-- Main Navigation -->
+        <a href="{% url 'dashboard:index' %}" class="nav-item {% active_link request 'dashboard:index' %}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <div class="nav-section">Sales</div>
+        <a href="{% url 'billing:index' %}" class="nav-item {% active_link request 'billing:index' %}">
+            <i data-lucide="file-text"></i>
+            <span>Invoices</span>
+        </a>
+        <a href="{% url 'customers:index' %}" class="nav-item {% active_link request 'customers:index' %}">
+            <i data-lucide="users"></i>
+            <span>Customers</span>
+        </a>
+
+        <div class="nav-section">Inventory</div>
+        <a href="{% url 'products:index' %}" class="nav-item {% active_link request 'products:index' %}">
+            <i data-lucide="package"></i>
+            <span>Products & Services</span>
+        </a>
+
+        <div class="nav-section">Configuration</div>
+        <a href="{% url 'organization:index' %}" class="nav-item {% active_link request 'organization:index' %}">
+            <i data-lucide="building-2"></i>
+            <span>Organization</span>
+        </a>
+        <a href="{% url 'settings_app:index' %}" class="nav-item {% active_link request 'settings_app:index' %}">
+            <i data-lucide="settings"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>

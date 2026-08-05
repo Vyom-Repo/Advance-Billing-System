@@ -1,0 +1,306 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock %}
+
+{% block layout %}
+<!-- Navbar -->
+<nav class="glass-navbar" id="navbar">
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <a href="#" class="sidebar-logo" style="color: var(--color-text-primary); text-decoration: none; display: flex; align-items: center; gap: var(--space-2);">
+            {% include "common/logo.html" with style="width: 24px; height: 24px; color: var(--color-accent);" %}
+            <span style="font-family: var(--font-display); font-weight: var(--font-bold);">{{ APP_NAME }}</span>
+        </a>
+        
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="{% url 'auth:login' %}" class="btn btn-ghost">Log in</a>
+            <a href="{% url 'auth:signup' %}" class="btn btn-primary" style="padding: var(--space-2) var(--space-5); border-radius: var(--radius-full);">Start Free</a>
+        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" style="display: none; color: var(--color-text-primary);">
+            <i data-lucide="menu"></i>
+        </button>
+    </div>
+</nav>
+<style>
+    @media (max-width: 768px) {
+        #mobile-menu-btn { display: block !important; }
+    }
+</style>
+
+<main style="padding-top: var(--topbar-height);">
+    <!-- Hero Section -->
+    <section class="hero container animate-on-scroll">
+        <div class="ambient-cyan-bloom"></div>
+        <div class="section-tag animate-on-scroll">⚡ Modern <span class="text-gradient-shimmer">GST Billing</span> Engine</div>
+        
+        <h1 class="hero-title animate-on-scroll delay-100">
+            GST <span class="text-gradient-shimmer">Billing</span> Made <span class="text-gradient-shimmer">Simple</span><br>
+            For Growing <span class="text-gradient-shimmer">Indian</span> Businesses
+        </h1>
+        
+        <p class="hero-subtitle animate-on-scroll delay-200" style="max-width: 680px; font-size: var(--text-lg); line-height: 1.6;">
+            Generate compliant GST <span style="color: #ffffff; font-weight: 500;">Invoices</span>, manage clients, and trigger instant <span style="color: #ffffff; font-weight: 500;">Automation</span> without the weight of legacy ERP software.
+        </p>
+        
+        <div class="hero-actions animate-on-scroll delay-300">
+            <a href="{% url 'auth:signup' %}" class="btn btn-primary btn-xl" style="border-radius: var(--radius-full); font-size: var(--text-md); padding: var(--space-4) var(--space-10);">
+                Start Billing Free <i data-lucide="arrow-right" style="width: 20px; height: 20px;"></i>
+            </a>
+        </div>
+        
+        <!-- Trust Badges -->
+        <div class="trust-badges animate-on-scroll delay-400">
+            <div class="trust-badge" style="background: rgba(255, 255, 255, 0.03); padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid rgba(255, 157, 46, 0.2);">
+                <i data-lucide="check-circle-2" style="color: var(--palette-accent-300);"></i> <strong>GST Ready</strong>
+            </div>
+            <div class="trust-badge" style="background: rgba(255, 255, 255, 0.03); padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid rgba(255, 157, 46, 0.2);">
+                <i data-lucide="file-text" style="color: var(--palette-accent-300);"></i> <strong>PDF Invoices</strong>
+            </div>
+            <div class="trust-badge" style="background: rgba(255, 255, 255, 0.03); padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid rgba(255, 157, 46, 0.2);">
+                <i data-lucide="cloud" style="color: var(--palette-accent-300);"></i> <strong>Secure Cloud</strong>
+            </div>
+            <div class="trust-badge" style="background: rgba(255, 255, 255, 0.03); padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); border: 1px solid rgba(255, 157, 46, 0.2);">
+                <i data-lucide="zap" style="color: var(--palette-accent-300);"></i> <strong>Instant Setup</strong>
+            </div>
+        </div>
+        
+        <!-- App Preview Mockup (Linear/Vercel Style SaaS UI Showcase) -->
+        <div class="template-preview animate-on-scroll delay-400" style="background: transparent; margin-top: var(--space-12);">
+            <div class="invoice-mockup">
+                <!-- SaaS Dark Dashboard Frame UI -->
+                <div style="display: flex; height: calc(100% - 32px); width: 100%; text-align: left;">
+                    <!-- App Navigation Sidebar Mock -->
+                    <div style="width: 220px; height: 100%; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(10, 10, 15, 0.6); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4);">
+                        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                            <div style="width: 24px; height: 24px; border-radius: 6px; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; color: #000;">⚡</div>
+                            <span style="font-weight: 700; font-size: 14px; color: #fff;">Advance Billing</span>
+                        </div>
+                        
+                        <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em;">Main Navigation</div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: var(--space-1);">
+                            <div style="padding: 8px 12px; background: rgba(255, 140, 26, 0.15); border-radius: var(--radius-md); color: var(--palette-accent-300); font-weight: 600; font-size: 13px; border: 1px solid rgba(255, 140, 26, 0.3);">📊 Dashboard</div>
+                            <div style="padding: 8px 12px; color: var(--color-text-secondary); font-size: 13px;">📑 Invoices</div>
+                            <div style="padding: 8px 12px; color: var(--color-text-secondary); font-size: 13px;">👥 Customers</div>
+                            <div style="padding: 8px 12px; color: var(--color-text-secondary); font-size: 13px;">📦 Products & Services</div>
+                            <div style="padding: 8px 12px; color: var(--color-text-secondary); font-size: 13px;">⚙️ Settings</div>
+                        </div>
+                    </div>
+                    
+                    <!-- App Workspace Area Mock -->
+                    <div style="flex: 1; padding: var(--space-6); background: rgba(13, 13, 20, 0.4); display: flex; flex-direction: column; gap: var(--space-5);">
+                        <!-- Workspace Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="font-size: 18px; color: #fff; font-weight: 700;">Revenue Dashboard</h3>
+                                <p style="font-size: 12px; color: var(--color-text-muted);">Real-time GST Sales & Invoice Tracking</p>
+                            </div>
+                            <div style="padding: 8px 16px; background: var(--gradient-accent); border-radius: var(--radius-full); color: #000; font-weight: 700; font-size: 12px; box-shadow: 0 0 20px rgba(255, 140, 26, 0.4);">
+                                + Create New Invoice
+                            </div>
+                        </div>
+                        
+                        <!-- Metric Cards Row -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+                            <div style="background: rgba(26, 26, 40, 0.7); border: 1px solid rgba(255,255,255,0.08); padding: var(--space-4); border-radius: var(--radius-lg);">
+                                <div style="font-size: 11px; color: var(--color-text-muted);">TOTAL REVENUE</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px;">₹ 4,85,200.00</div>
+                                <div style="font-size: 11px; color: #22c55e; margin-top: 2px;">↑ +18.4% vs last month</div>
+                            </div>
+                            <div style="background: rgba(26, 26, 40, 0.7); border: 1px solid rgba(255,255,255,0.08); padding: var(--space-4); border-radius: var(--radius-lg);">
+                                <div style="font-size: 11px; color: var(--color-text-muted);">GST COLLECTED (CGST+SGST)</div>
+                                <div style="font-size: 20px; font-weight: 800; color: var(--palette-accent-300); margin-top: 4px;">₹ 87,336.00</div>
+                                <div style="font-size: 11px; color: var(--palette-accent-100); margin-top: 2px;">Automated 18% Rule</div>
+                            </div>
+                            <div style="background: rgba(26, 26, 40, 0.7); border: 1px solid rgba(255,255,255,0.08); padding: var(--space-4); border-radius: var(--radius-lg);">
+                                <div style="font-size: 11px; color: var(--color-text-muted);">PAID INVOICES</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px;">142 Invoices</div>
+                                <div style="font-size: 11px; color: #3b82f6; margin-top: 2px;">100% Verified</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Invoices Table Wireframe -->
+                        <div style="background: rgba(20, 20, 32, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); padding: var(--space-4); flex: 1;">
+                            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: var(--space-3);">Recent GST Invoices</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; font-size: 12px; align-items: center;">
+                                    <span style="color: #fff; font-weight: 600;">#INV-2026-089</span>
+                                    <span style="color: var(--color-text-secondary);">Tata Consultancy Services</span>
+                                    <span style="color: var(--palette-accent-200); font-weight: 700;">₹ 1,24,000</span>
+                                    <span style="padding: 2px 8px; background: rgba(34, 197, 94, 0.2); color: #22c55e; border-radius: 99px; font-size: 10px; font-weight: 700;">PAID</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; font-size: 12px; align-items: center;">
+                                    <span style="color: #fff; font-weight: 600;">#INV-2026-088</span>
+                                    <span style="color: var(--color-text-secondary);">Reliance Retail Ltd</span>
+                                    <span style="color: var(--palette-accent-200); font-weight: 700;">₹ 68,500</span>
+                                    <span style="padding: 2px 8px; background: rgba(34, 197, 94, 0.2); color: #22c55e; border-radius: 99px; font-size: 10px; font-weight: 700;">PAID</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features container animate-on-scroll">
+        <div class="section-header">
+            <h2 class="section-title">Everything you need to run your billing</h2>
+            <p class="text-secondary" style="max-width: 600px; margin: 0 auto;">We intentionally excluded inventory and accounting to give you the fastest, easiest billing experience possible.</p>
+        </div>
+        
+        <div class="grid-3">
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="calculator"></i></div>
+                <h3 class="feature-title">Automatic GST</h3>
+                <p class="feature-desc">CGST, SGST, and IGST are calculated automatically based on state rules.</p>
+            </div>
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="printer"></i></div>
+                <h3 class="feature-title">One-Click Print</h3>
+                <p class="feature-desc">Optimized A4 templates designed to print perfectly straight from your browser.</p>
+            </div>
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="users"></i></div>
+                <h3 class="feature-title">Customer Management</h3>
+                <p class="feature-desc">Save customer details and GST numbers for instant recall on future invoices.</p>
+            </div>
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="palette"></i></div>
+                <h3 class="feature-title">Professional Designs</h3>
+                <p class="feature-desc">Choose from multiple beautiful templates or upload your own letterhead.</p>
+            </div>
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="download-cloud"></i></div>
+                <h3 class="feature-title">Monthly Backups</h3>
+                <p class="feature-desc">Your data is safe. Download full backups anytime or get them via email.</p>
+            </div>
+            <div class="card card-padded feature-card card-hover">
+                <div class="feature-icon"><i data-lucide="smartphone"></i></div>
+                <h3 class="feature-title">Mobile Friendly</h3>
+                <p class="feature-desc">Create invoices on the go. The entire application works perfectly on mobile devices.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="steps animate-on-scroll">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">From signup to invoice in 2 minutes</h2>
+            </div>
+            
+            <div class="step-grid">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <h4 style="margin-bottom: var(--space-2);">Sign Up</h4>
+                    <p class="text-sm text-secondary">Create your free account.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <h4 style="margin-bottom: var(--space-2);">Add Details</h4>
+                    <p class="text-sm text-secondary">Enter your GSTIN and business name.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <h4 style="margin-bottom: var(--space-2);">Add Products</h4>
+                    <p class="text-sm text-secondary">Save items with HSN codes and prices.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <h4 style="margin-bottom: var(--space-2);">Create Invoice</h4>
+                    <p class="text-sm text-secondary">Select customer and items. GST calculates automatically.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">5</div>
+                    <h4 style="margin-bottom: var(--space-2);">Print</h4>
+                    <p class="text-sm text-secondary">Print or download the PDF instantly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="faq container animate-on-scroll">
+        <div class="section-header">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">
+                    Does it support inventory management?
+                    <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    No. Advance Billing is intentionally designed to be a pure billing platform. By removing complex inventory and accounting modules, we keep the software extremely simple, fast, and easy to use for shop owners and freelancers.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Is my data secure?
+                    <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes. We use industry-standard encryption, secure connections (HTTPS), and isolated database architecture. You can also download a complete backup of your business data at any time.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Can I use my own letterhead?
+                    <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes. You can choose to use our standard professional invoice headers, or upload your pre-printed business letterhead design.
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo" style="display: flex; align-items: center; gap: var(--space-2);">
+                    {% include "common/logo.html" with style="width: 28px; height: 28px; color: var(--color-accent);" %}
+                    <span>{{ APP_NAME }}</span>
+                </div>
+                <p class="footer-desc">{{ APP_TAGLINE }}</p>
+            </div>
+            <div>
+                <h4 class="footer-title">Product</h4>
+                <ul class="footer-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="{% url 'auth:login' %}">Log In</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; {% now "Y" %} {{ APP_NAME }}. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+{% show_messages %}
+{% endblock layout %}
+
+{% block extra_js %}
+<script src="{% static 'js/landing.js' %}"></script>
+{% endblock %}

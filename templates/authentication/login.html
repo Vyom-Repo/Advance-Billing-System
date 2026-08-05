@@ -1,0 +1,71 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block layout %}
+<div class="auth-layout">
+    <div class="auth-container animate-fade-in">
+        
+        <a href="{% url 'landing' %}" class="auth-logo">
+            {% include "common/logo.html" with style="width: 32px; height: 32px; color: var(--color-accent);" %}
+            <span>{{ APP_NAME }}</span>
+        </a>
+
+        <div class="card card-glass auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">Welcome back</h1>
+                <p class="auth-subtitle">Sign in to your account to continue</p>
+            </div>
+
+            {% if messages %}
+                <div style="margin-bottom: var(--space-4);">
+                    {% for message in messages %}
+                        <div class="alert {% if message.level_tag == 'error' %}alert-error{% else %}alert-info{% endif %}" style="padding: var(--space-3); font-size: var(--text-xs);">
+                            <div class="alert__icon">
+                                {% if message.level_tag == 'error' %}<i data-lucide="alert-circle" style="width:16px;height:16px;"></i>{% else %}<i data-lucide="info" style="width:16px;height:16px;"></i>{% endif %}
+                            </div>
+                            <div class="alert__content">{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'auth:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: var(--space-4);">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--space-6);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <a href="{% url 'auth:forgot_password' %}" style="font-size: var(--text-xs); font-weight: var(--font-medium);">Forgot password?</a>
+                    </div>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="form-error-message"><i data-lucide="alert-circle"></i> {{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="auth-divider">or</div>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="{% url 'auth:signup' %}">Sign up for free</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock layout %}

@@ -1,0 +1,54 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <!-- Minimal Topbar for utilities -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+            <div class="topbar-right">
+                <a href="{% url 'dashboard:index' %}" class="btn btn-ghost btn-sm">
+                    <i data-lucide="arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="page-content" style="display: flex; align-items: center; justify-content: center;">
+            <div class="card card-padded text-center" style="max-width: 500px; width: 100%;">
+                <div class="feature-icon mx-auto" style="margin-bottom: var(--space-6);">
+                    <i data-lucide="hammer"></i>
+                </div>
+                
+                <h1 class="page-title" style="margin-bottom: var(--space-2);">
+                    {{ module_name }} is Coming Soon
+                </h1>
+                
+                <p class="text-secondary" style="margin-bottom: var(--space-6);">
+                    {{ module_description }}<br>
+                    Expected in {{ expected_version }}.
+                </p>
+                
+                <div class="badge badge-accent">Under Construction</div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% show_messages %}
+{% endblock layout %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

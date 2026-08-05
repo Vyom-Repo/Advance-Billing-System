@@ -1,0 +1,32 @@
+{% if messages %}
+<div class="flash-messages animate-slide-up">
+    {% for message in messages %}
+        <div class="alert 
+            {% if message.level_tag == 'success' %}alert-success
+            {% elif message.level_tag == 'error' %}alert-error
+            {% elif message.level_tag == 'warning' %}alert-warning
+            {% else %}alert-info{% endif %}">
+            
+            <div class="alert__icon">
+                {% if message.level_tag == 'success' %}
+                    <i data-lucide="check-circle"></i>
+                {% elif message.level_tag == 'error' %}
+                    <i data-lucide="alert-circle"></i>
+                {% elif message.level_tag == 'warning' %}
+                    <i data-lucide="alert-triangle"></i>
+                {% else %}
+                    <i data-lucide="info"></i>
+                {% endif %}
+            </div>
+            
+            <div class="alert__content">
+                {{ message }}
+            </div>
+            
+            <button type="button" class="alert__close" aria-label="Close">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

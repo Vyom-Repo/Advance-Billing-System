@@ -1,0 +1,302 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<style>
+    .verification-card {
+        position: relative;
+        z-index: 2;
+        transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+    .verification-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 140, 26, 0.12);
+        color: var(--color-accent);
+        border: 1px solid rgba(255, 140, 26, 0.25);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 14px;
+        border-radius: var(--radius-full, 9999px);
+        margin-bottom: var(--space-4);
+    }
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--color-accent);
+        box-shadow: 0 0 8px var(--color-accent);
+    }
+    .email-container {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--radius-md, 10px);
+        padding: 12px 16px;
+        margin: 16px 0 20px 0;
+        color: #FFFFFF;
+        font-weight: 600;
+        font-family: var(--font-mono, monospace);
+        font-size: 14px;
+        word-break: break-all;
+    }
+    
+    /* Secondary Action Button: Resend Email */
+    .resend-secondary-btn {
+        height: 44px;
+        width: 100%;
+        border-radius: var(--radius-md, 8px);
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+    }
+    .resend-secondary-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--color-accent);
+        color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 140, 26, 0.15);
+    }
+    .resend-secondary-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        color: rgba(255, 255, 255, 0.95);
+        border-color: rgba(255, 255, 255, 0.10);
+    }
+
+    /* Spinning Icon Animation while sending */
+    @keyframes iconSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spin-icon {
+        animation: iconSpin 1s linear infinite;
+    }
+
+    /* Tertiary Link: Return to Sign In */
+    .return-signin-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #FFFFFF;
+        font-weight: 500;
+        font-size: 14px;
+        text-decoration: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: color 200ms ease, text-decoration 200ms ease;
+        margin-top: 4px;
+    }
+    .return-signin-link:hover {
+        color: var(--color-accent);
+        text-decoration: underline;
+    }
+
+    /* Divider */
+    .section-divider {
+        margin: 22px 0 18px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #111827;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 140, 26, 0.4);
+        border-radius: 8px;
+        padding: 12px 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 300ms ease, transform 300ms ease;
+    }
+    .toast-notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="auth-layout" style="position: relative; overflow: hidden;">
+    <!-- Subtle saffron radial glow in bottom-right corner -->
+    <div style="position: absolute; bottom: 0; right: 0; width: 450px; height: 450px; background: radial-gradient(circle at bottom right, rgba(255, 140, 26, 0.08) 0%, transparent 65%); pointer-events: none; z-index: 1;"></div>
+
+    <div class="auth-container animate-fade-in text-center" style="position: relative; z-index: 2; max-width: 480px;">
+
+        {% show_messages %}
+
+        <div class="card card-glass auth-card verification-card">
+            <!-- Official Rupee Receipt Logo -->
+            <div style="margin-bottom: var(--space-4); display: flex; justify-content: center;">
+                {% include "common/logo.html" with style="width: 64px; height: 64px; color: var(--color-accent);" %}
+            </div>
+
+            <!-- Verification Status Badge -->
+            <div>
+                <span class="status-pill">
+                    <span class="status-dot"></span> Verification Pending
+                </span>
+            </div>
+            
+            <h1 class="auth-title" style="margin-bottom: var(--space-2);">Check your email</h1>
+
+            <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">
+                We've sent a verification email to
+            </p>
+            
+            <!-- User Email Container -->
+            <div class="email-container">
+                {{ email|default:"your registered email address" }}
+            </div>
+            
+            <p class="text-secondary" style="margin-bottom: var(--space-6); font-size: 13px; line-height: 1.6;">
+                Please open your inbox and click the verification link to activate your Advance Billing account. If you don't see it within a minute, check your Spam or Promotions folder.
+            </p>
+            
+            <!-- Primary Action: Open Email App -->
+            <a href="mailto:" target="_blank" class="btn btn-primary btn-full btn-lg" style="margin-bottom: var(--space-4); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+                <i data-lucide="mail" style="width: 20px; height: 20px;"></i> Open Email App
+            </a>
+
+            <!-- Divider -->
+            <div class="section-divider"></div>
+            
+            <!-- Secondary Action: Resend Verification Email -->
+            <form id="resend-form" action="{% url 'auth:resend_verification' %}" method="post" style="margin-bottom: 14px;">
+                {% csrf_token %}
+                <button id="resend-btn" type="submit" disabled class="resend-secondary-btn">
+                    <i id="resend-icon" data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    <span id="resend-timer-text">Resend available in 00:60</span>
+                </button>
+            </form>
+            
+            <!-- Tertiary Action: Return to Sign In -->
+            <div>
+                <a href="{% url 'auth:login' %}" class="return-signin-link">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Return to Sign In
+                </a>
+            </div>
+            
+            <!-- Structured Help Section -->
+            <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid rgba(255, 255, 255, 0.10); text-align: left; font-size: 13px; color: var(--color-text-muted);">
+                <div style="font-weight: 600; color: var(--color-text-secondary); margin-bottom: 8px;">Didn't receive the email?</div>
+                <ul style="margin: 0 0 16px 0; padding-left: 18px; line-height: 1.7; color: var(--color-text-muted);">
+                    <li>Check your Spam or Promotions folder.</li>
+                    <li>Wait a minute before requesting another email.</li>
+                    <li>Make sure you entered the correct email address.</li>
+                </ul>
+                <div style="border-top: 1px dashed rgba(255, 255, 255, 0.10); padding-top: 10px; text-align: center; font-size: 12px;">
+                    Need Help? <a href="mailto:advancebillingbyvyom@gmail.com" style="color: var(--color-accent); text-decoration: none; font-weight: 500;">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Success Toast Container -->
+<div id="toast-notification" class="toast-notification">
+    <i data-lucide="check-circle-2" style="color: #10B981; width: 20px; height: 20px;"></i>
+    <span id="toast-message">Verification email sent successfully.</span>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var resendBtn = document.getElementById('resend-btn');
+    var resendIcon = document.getElementById('resend-icon');
+    var timerText = document.getElementById('resend-timer-text');
+    var resendForm = document.getElementById('resend-form');
+    var toast = document.getElementById('toast-notification');
+    var toastMessage = document.getElementById('toast-message');
+    var countdown = 60;
+    var timerId = null;
+
+    function showToast(message) {
+        if (toastMessage) toastMessage.textContent = message;
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+    }
+
+    function startTimer() {
+        countdown = 60;
+        resendBtn.disabled = true;
+        if (resendIcon) resendIcon.classList.remove('spin-icon');
+        if (timerId) clearInterval(timerId);
+
+        timerId = setInterval(function() {
+            countdown--;
+            if (countdown < 10) {
+                timerText.textContent = 'Resend available in 00:0' + countdown;
+            } else {
+                timerText.textContent = 'Resend available in 00:' + countdown;
+            }
+
+            if (countdown <= 0) {
+                clearInterval(timerId);
+                resendBtn.disabled = false;
+                timerText.textContent = 'Resend Verification Email';
+            }
+        }, 1000);
+    }
+
+    // Start 60s countdown on page load
+    startTimer();
+
+    // AJAX Form Submission
+    if (resendForm) {
+        resendForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (resendBtn.disabled) return;
+
+            resendBtn.disabled = true;
+            if (resendIcon) resendIcon.classList.add('spin-icon');
+            timerText.textContent = 'Sending...';
+
+            var formData = new FormData(resendForm);
+            fetch(resendForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                showToast(data.message || 'Verification email sent successfully.');
+                startTimer();
+            })
+            .catch(function(err) {
+                showToast('Verification email sent successfully.');
+                startTimer();
+            });
+        });
+    }
+});
+</script>
+{% endblock layout %}

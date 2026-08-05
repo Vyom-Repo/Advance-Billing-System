@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_theme|default:'bhagwa' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page_title %}{{ page_title }}{% else %}{{ APP_NAME }} — {{ APP_TAGLINE }}{% endif %}</title>
+    
+    {% if meta_description %}
+    <meta name="description" content="{{ meta_description }}">
+    {% endif %}
+
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicon.svg' %}">
+
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/design_system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    <!-- Master Premium Loading Screen -->
+    {% include "common/loader.html" %}
+
+    {% block layout %}{% endblock %}
+
+    <!-- Global Flash Messages Wrapper -->
+    <div id="flash-messages-wrapper"></div>
+
+    <!-- Global JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
