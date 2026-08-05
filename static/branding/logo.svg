@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FF8C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Continuous Single Receipt Outline (10-15% Wider & Balanced Height) -->
-  <path d="M3 3v18l3-1 3 1 3-1 3 1 3-1 3 1V3l-3 1-3-1-3 1-3-1-3 1-3-1Z"/>
-
-  <!-- Enlarged & Optically Centered Rupee Character -->
+  <!-- Receipt Outline -->
+  <path d="M3 3v18l3-1 3 1 3-1 3 1 3-1 3 1V3l-3 1-3-1-3 1-3-1-3 1-3-1Z" />
+  <!-- Rupee Symbol -->
   <text x="12" y="15.8" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#FF8C1A" stroke="none" font-family="sans-serif">₹</text>
 </svg>

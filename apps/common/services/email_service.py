@@ -12,6 +12,41 @@ from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 
 
+class EmailBranding:
+    """
+    Advance Billing Email Branding
+
+    Development:
+    - Premium HTML text branding
+    - No logo images
+    - No CID attachments
+    - No MIME attachments
+
+    Production:
+    - Public HTTPS PNG logo
+    - Automatic environment detection via SITE_URL
+    - Zero code changes required after deployment
+
+    This architecture is considered FINAL unless email branding requirements change.
+    """
+
+    @classmethod
+    def get_logo_context(cls) -> dict[str, str]:
+        site_url = getattr(settings, "SITE_URL", "").rstrip("/")
+
+        # Production check: Must use https:// and not be localhost/127.0.0.1
+        is_production = (
+            site_url.startswith("https://")
+            and "127.0.0.1" not in site_url
+            and "localhost" not in site_url
+        )
+
+        if is_production:
+            return {"logo_src": f"{site_url}/static/branding/logo-email.png"}
+
+        return {"logo_src": ""}
+
+
 class EmailService:
     """
     Centralized email service for Advance Billing.
@@ -41,8 +76,9 @@ class EmailService:
             "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
             "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
             "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple"),
+            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
         }
+        context.update(EmailBranding.get_logo_context())
 
         try:
             html_content = render_to_string("emails/verification_email.html", context)
@@ -84,8 +120,9 @@ class EmailService:
             "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
             "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
             "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple"),
+            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
         }
+        context.update(EmailBranding.get_logo_context())
 
         try:
             html_content = render_to_string("emails/password_reset_email.html", context)
