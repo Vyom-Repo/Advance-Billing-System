@@ -1,0 +1,741 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Premium Settings Layout */
+    .settings-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-32);
+        animation: fadeIn 0.4s var(--transition-base);
+    }
+
+    .settings-header {
+        margin-bottom: var(--space-10);
+    }
+    
+    .settings-title {
+        font-family: var(--font-display);
+        font-size: var(--text-3xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+        letter-spacing: -0.02em;
+    }
+    
+    .settings-subtitle {
+        font-size: var(--text-base);
+        color: var(--color-text-secondary);
+    }
+
+    /* Settings Sections */
+    .settings-section {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: var(--space-8);
+        padding: var(--space-10) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .settings-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .section-meta {
+        padding-right: var(--space-6);
+    }
+    
+    .section-meta h3 {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+    }
+
+    .section-meta h3 i {
+        color: var(--color-text-muted);
+    }
+    
+    .section-meta p {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        line-height: var(--leading-relaxed);
+    }
+
+    /* Cards */
+    .settings-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow var(--transition-base);
+    }
+    
+    .settings-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: var(--space-6);
+    }
+    
+    .form-label {
+        display: block;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--text-base);
+        font-family: var(--font-body);
+        transition: all var(--transition-base);
+        -webkit-appearance: none;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 2px var(--color-accent-subtle);
+    }
+
+    /* Grid Layouts for inputs */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+    /* Segmented Control (Cyan Theme) */
+    .segmented-control {
+        display: flex;
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: 4px;
+        position: relative;
+    }
+    
+    .segmented-control label {
+        flex: 1;
+        text-align: center;
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+        transition: color var(--transition-base);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .segmented-control input[type="radio"] { display: none; }
+    .segmented-control input[type="radio"]:checked + label { color: var(--color-accent); }
+    
+    .segmented-slider {
+        position: absolute;
+        top: 4px; bottom: 4px;
+        width: calc(50% - 4px);
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        transition: transform var(--transition-slow);
+        z-index: 1;
+        box-shadow: var(--shadow-sm), 0 0 8px var(--color-accent-subtle);
+    }
+
+    /* Upload Area */
+    .logo-upload-area {
+        display: flex;
+        gap: var(--space-6);
+        align-items: center;
+    }
+    
+    .logo-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius-lg);
+        background: var(--color-bg-input);
+        border: 1px dashed var(--color-border-strong);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    
+    .logo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .logo-actions {
+        flex: 1;
+    }
+
+    /* Danger Zone */
+    .danger-zone {
+        border-color: var(--color-error-border);
+        background: rgba(239, 68, 68, 0.02);
+    }
+
+    .btn-danger {
+        background: var(--color-error-bg);
+        color: var(--color-error);
+        border: 1px solid var(--color-error-border);
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-md);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .btn-danger:hover {
+        background: var(--color-error);
+        color: #fff;
+    }
+
+    /* Sticky Action Bar */
+    .sticky-action-bar {
+        position: fixed;
+        bottom: var(--space-8);
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        padding: var(--space-4) var(--space-6);
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-lg), 0 20px 40px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        z-index: var(--z-sticky);
+        opacity: 0;
+        transition: transform var(--transition-slow), opacity var(--transition-slow);
+    }
+    
+    .sticky-action-bar.visible {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    .unsaved-text {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-warning);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .btn-primary {
+        background: var(--gradient-accent);
+        color: #fff;
+        border: none;
+        padding: var(--space-2) var(--space-6);
+        border-radius: var(--radius-full);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
+        cursor: pointer;
+        box-shadow: var(--shadow-glow);
+        transition: all var(--transition-base);
+    }
+
+    .btn-primary:hover {
+        background: var(--gradient-accent-hover);
+        box-shadow: var(--shadow-glow-hover);
+        transform: translateY(-1px);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: var(--color-text-primary);
+        border: 1px solid var(--color-border-strong);
+        padding: var(--space-2) var(--space-6);
+        border-radius: var(--radius-full);
+        font-weight: var(--font-medium);
+        font-size: var(--text-sm);
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+    
+    .btn-outline:hover {
+        background: var(--color-bg-raised);
+    }
+
+    /* Meta text at bottom */
+    .page-footer-meta {
+        text-align: center;
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+        margin-top: var(--space-10);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .settings-section {
+            grid-template-columns: 1fr;
+            gap: var(--space-4);
+            padding: var(--space-6) 0;
+        }
+        .grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="topbar-title" style="display: flex; align-items: center; gap: var(--space-2);">
+                    <i data-lucide="building-2" style="color: var(--color-text-muted); width: 18px; height: 18px;"></i>
+                    <span style="color: var(--color-text-muted); font-weight: var(--font-medium);">Configuration</span>
+                    <span style="color: var(--color-border-strong); margin: 0 4px;">/</span>
+                    <span style="color: var(--color-text-primary);">Organization Settings</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <form id="org-settings-form" method="post" enctype="multipart/form-data" class="settings-container">
+                {% csrf_token %}
+            
+            <div class="settings-header">
+                <h1 class="settings-title">Company Profile</h1>
+                <p class="settings-subtitle">Manage your organization's identity, billing information, and branding.</p>
+            </div>
+
+            <!-- Business Profile -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="building"></i> Business Profile</h3>
+                    <p>The core identity of your company as it appears across your application.</p>
+                </div>
+                <div class="settings-card">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Business Name <span style="color: var(--color-error)">*</span></label>
+                            <input type="text" name="business_name" class="form-control" value="{{ form.business_name.value|default:'' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Legal Business Name</label>
+                            <input type="text" name="legal_business_name" class="form-control" value="{{ form.legal_business_name.value|default:'' }}" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GST Information -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="file-text"></i> GST Information</h3>
+                    <p>Tax registration details used to generate legally compliant tax invoices.</p>
+                </div>
+                <div class="settings-card" data-theme="cyan">
+                    <div class="form-group">
+                        <label class="form-label">GST Registered?</label>
+                        <div class="segmented-control" style="max-width: 300px;">
+                            <div class="segmented-slider" id="gst-slider"></div>
+                            <input type="radio" id="gst_yes" name="is_gst_registered" value="True" {% if form.is_gst_registered.value %}checked{% endif %}>
+                            <label for="gst_yes">Yes</label>
+                            
+                            <input type="radio" id="gst_no" name="is_gst_registered" value="False" {% if not form.is_gst_registered.value %}checked{% endif %}>
+                            <label for="gst_no">No</label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="gstin-container" style="{% if not form.is_gst_registered.value %}display: none;{% endif %}">
+                        <label class="form-label">GSTIN</label>
+                        <input type="text" name="gstin" id="id_gstin" class="form-control" value="{{ form.gstin.value|default:'' }}" placeholder="15-character GSTIN">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Details -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="mail"></i> Contact Details</h3>
+                    <p>Where your customers can reach out regarding billing and support inquiries.</p>
+                </div>
+                <div class="settings-card">
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Business Email <span style="color: var(--color-error)">*</span></label>
+                            <input type="email" name="business_email" class="form-control" value="{{ form.business_email.value|default:'' }}" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control" value="{{ form.phone_number.value|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Address -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="map-pin"></i> Address</h3>
+                    <p>Your primary operating address printed on all official documents.</p>
+                </div>
+                <div class="settings-card">
+                    <div class="form-group">
+                        <label class="form-label">Address Line 1 <span style="color: var(--color-error)">*</span></label>
+                        <input type="text" name="address_line_1" class="form-control" value="{{ form.address_line_1.value|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Address Line 2</label>
+                        <input type="text" name="address_line_2" class="form-control" value="{{ form.address_line_2.value|default:'' }}">
+                    </div>
+                    <div class="grid-2" style="margin-bottom: var(--space-4);">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">City <span style="color: var(--color-error)">*</span></label>
+                            <input type="text" name="city" class="form-control" value="{{ form.city.value|default:'' }}" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">State <span style="color: var(--color-error)">*</span></label>
+                            <input type="text" name="state" class="form-control" value="{{ form.state.value|default:'' }}" required>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Pincode <span style="color: var(--color-error)">*</span></label>
+                            <input type="text" name="pincode" class="form-control" value="{{ form.pincode.value|default:'' }}" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Country <span style="color: var(--color-error)">*</span></label>
+                            <input type="text" name="country" class="form-control" value="{{ form.country.value|default:'India' }}" required>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Branding -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="image"></i> Branding</h3>
+                    <p>Personalize your invoices with your company logo and brand colors.</p>
+                </div>
+                <div class="settings-card">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Company Logo</label>
+                        <div class="logo-upload-area">
+                            <div class="logo-preview">
+                                {% if object.logo %}
+                                    <img src="{{ object.logo.url }}" alt="Logo" id="logo-img-preview">
+                                {% else %}
+                                    <i data-lucide="image" style="color: var(--color-text-muted); width: 32px; height: 32px;" id="logo-placeholder-icon"></i>
+                                    <img src="" alt="Logo" id="logo-img-preview" style="display: none;">
+                                {% endif %}
+                            </div>
+                            <div class="logo-actions">
+                                <input type="file" name="logo" id="logo-input" accept="image/png, image/jpeg, image/svg+xml" style="display: none;">
+                                <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                    <button type="button" class="btn-outline" onclick="document.getElementById('logo-input').click()">Replace Logo</button>
+                                    <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-logo">Remove</button>
+                                </div>
+                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended size: 500x500px. Supported formats: PNG, JPG, SVG.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Danger Zone -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3 style="color: var(--color-error);"><i data-lucide="alert-triangle" style="color: var(--color-error);"></i> Danger Zone</h3>
+                    <p>Irreversible and destructive actions for this organization.</p>
+                </div>
+                <div class="settings-card danger-zone">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: var(--font-medium); color: var(--color-text-primary); margin-bottom: 4px;">Delete Organization</div>
+                            <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">Permanently delete this organization and all its data.</div>
+                        </div>
+                        <button type="button" class="btn-danger" onclick="document.getElementById('delete-modal').classList.add('active')">Delete Organization</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="page-footer-meta">
+                Organization created on {{ object.created_at|date:"M d, Y" }}. Last updated {{ object.updated_at|date:"M d, Y" }}.
+            </div>
+
+            <!-- Sticky Action Bar -->
+            <div class="sticky-action-bar" id="sticky-bar">
+                <div class="unsaved-text"><i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Unsaved changes</div>
+                <div style="display: flex; gap: var(--space-3);">
+                    <button type="button" class="btn-outline" id="btn-discard">Discard</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </div>
+
+        </form>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal-content" id="delete-modal-content">
+            <div style="display: flex; gap: var(--space-4); margin-bottom: var(--space-6);">
+                <div style="background: var(--color-error-bg); color: var(--color-error); width: 48px; height: 48px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-2); color: var(--color-text-primary);">Delete Organization</h3>
+                    <p style="color: var(--color-text-secondary); font-size: var(--text-sm); line-height: var(--leading-relaxed); margin-bottom: var(--space-4);">
+                        You are about to permanently delete<br>
+                        <strong style="color: var(--color-text-primary); font-size: var(--text-base);">{{ object.business_name }}</strong>
+                    </p>
+                    
+                    <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-2);">This action will remove:</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 var(--space-6) 0; color: var(--color-text-secondary); font-size: var(--text-sm);">
+                        <li style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);"><i data-lucide="check" style="width: 14px; height: 14px; color: var(--color-error);"></i> Business Profile</li>
+                        <li style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);"><i data-lucide="check" style="width: 14px; height: 14px; color: var(--color-error);"></i> GST Information</li>
+                        <li style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);"><i data-lucide="check" style="width: 14px; height: 14px; color: var(--color-error);"></i> Address</li>
+                        <li style="display: flex; align-items: center; gap: var(--space-2);"><i data-lucide="check" style="width: 14px; height: 14px; color: var(--color-error);"></i> Branding</li>
+                    </ul>
+                    
+                    <p style="color: var(--color-error); font-size: var(--text-sm); font-weight: var(--font-medium); margin-bottom: var(--space-4);">This cannot be undone.</p>
+                    
+                    <div style="background: var(--color-bg-input); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                        <label class="form-label" style="font-size: var(--text-sm); margin-bottom: var(--space-2);">
+                            Type <strong>{{ object.business_name }}</strong> to continue.
+                        </label>
+                        <input type="text" id="delete-confirm-input" class="form-control" placeholder="{{ object.business_name }}" style="margin-bottom: 0;">
+                    </div>
+                </div>
+            </div>
+            
+            <form id="delete-org-form" method="post" action="{% url 'organization:delete' %}" style="display: flex; gap: var(--space-3); justify-content: flex-end; padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+                {% csrf_token %}
+                <button type="button" class="btn-outline" onclick="document.getElementById('delete-modal').classList.remove('active')">Cancel</button>
+                <button type="submit" id="btn-delete-confirm" class="btn-danger" style="background: var(--color-error); color: #fff; opacity: 0.5; pointer-events: none;">Delete Organization</button>
+            </form>
+            
+            <!-- Success State -->
+            <div id="delete-success-state" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-8) 0;">
+                <div style="background: var(--color-success-bg); color: var(--color-success); width: 64px; height: 64px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-4);">
+                    <i data-lucide="check" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 style="font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--font-semibold); color: var(--color-text-primary); margin-bottom: var(--space-2);">Organization deleted successfully</h3>
+                <p style="color: var(--color-text-secondary); font-size: var(--text-sm);">Redirecting to setup...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Sticky action bar logic
+        const form = document.getElementById('org-settings-form');
+        const stickyBar = document.getElementById('sticky-bar');
+        const btnDiscard = document.getElementById('btn-discard');
+        
+        let initialFormState = new FormData(form);
+        
+        form.addEventListener('input', () => {
+            stickyBar.classList.add('visible');
+        });
+        
+        form.addEventListener('change', () => {
+            stickyBar.classList.add('visible');
+        });
+        
+        btnDiscard.addEventListener('click', () => {
+            form.reset();
+            stickyBar.classList.remove('visible');
+            updateSlider(); // Reset slider position
+            
+            // Reset GST container visibility
+            const gstinContainer = document.getElementById('gstin-container');
+            const gstInput = document.getElementById('id_gstin');
+            if (document.getElementById('gst_yes').checked) {
+                gstinContainer.style.display = 'block';
+                gstInput.setAttribute('required', 'required');
+            } else {
+                gstinContainer.style.display = 'none';
+                gstInput.removeAttribute('required');
+            }
+        });
+
+        // GST Slider Logic
+        const gstRadios = document.querySelectorAll('input[name="is_gst_registered"]');
+        const slider = document.getElementById('gst-slider');
+        
+        function updateSlider() {
+            if (document.getElementById('gst_yes').checked) {
+                slider.style.transform = 'translateX(0)';
+            } else {
+                slider.style.transform = 'translateX(calc(100% + 4px))';
+            }
+        }
+        
+        gstRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateSlider();
+                const gstinContainer = document.getElementById('gstin-container');
+                const gstInput = document.getElementById('id_gstin');
+                if (e.target.value === 'True') {
+                    gstinContainer.style.display = 'block';
+                    gstInput.setAttribute('required', 'required');
+                } else {
+                    gstinContainer.style.display = 'none';
+                    gstInput.removeAttribute('required');
+                }
+            });
+        });
+        updateSlider();
+
+        // Logo Upload Preview
+        const logoInput = document.getElementById('logo-input');
+        const logoPreviewImg = document.getElementById('logo-img-preview');
+        const logoPlaceholder = document.getElementById('logo-placeholder-icon');
+        const btnRemoveLogo = document.getElementById('btn-remove-logo');
+
+        logoInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreviewImg.src = e.target.result;
+                    logoPreviewImg.style.display = 'block';
+                    if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+                }
+                reader.readAsDataURL(this.files[0]);
+                stickyBar.classList.add('visible');
+            }
+        });
+
+        btnRemoveLogo.addEventListener('click', function() {
+            logoInput.value = ''; // clear file
+            logoPreviewImg.src = '';
+            logoPreviewImg.style.display = 'none';
+            if (logoPlaceholder) logoPlaceholder.style.display = 'block';
+            stickyBar.classList.add('visible');
+        });
+
+        // Delete Modal Logic
+        const deleteInput = document.getElementById('delete-confirm-input');
+        const btnDeleteConfirm = document.getElementById('btn-delete-confirm');
+        const expectedName = "{{ object.business_name|escapejs }}";
+        
+        if (deleteInput && btnDeleteConfirm) {
+            deleteInput.addEventListener('input', (e) => {
+                if (e.target.value === expectedName) {
+                    btnDeleteConfirm.style.opacity = '1';
+                    btnDeleteConfirm.style.pointerEvents = 'auto';
+                } else {
+                    btnDeleteConfirm.style.opacity = '0.5';
+                    btnDeleteConfirm.style.pointerEvents = 'none';
+                }
+            });
+        }
+        
+        const deleteForm = document.getElementById('delete-org-form');
+        const deleteModalContent = document.getElementById('delete-modal-content');
+        
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show redirecting state immediately
+                btnDeleteConfirm.innerHTML = '<i data-lucide="loader" class="spin"></i> Deleting...';
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Hide all current modal children except the success state
+                        Array.from(deleteModalContent.children).forEach(child => {
+                            if (child.id !== 'delete-success-state') {
+                                child.style.display = 'none';
+                            }
+                        });
+                        
+                        document.getElementById('delete-success-state').style.display = 'flex';
+                        lucide.createIcons();
+                        
+                        // Wait 1.5 seconds then redirect
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 1500);
+                    }
+                });
+            });
+        }
+
+        lucide.createIcons();
+    });
+</script>
+
+<style>
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-base);
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        width: 100%;
+        max-width: 500px;
+        padding: var(--space-6);
+        box-shadow: var(--shadow-xl);
+        transform: scale(0.95) translateY(10px);
+        transition: all var(--transition-base);
+    }
+    .modal-overlay.active .modal-content {
+        transform: scale(1) translateY(0);
+    }
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}

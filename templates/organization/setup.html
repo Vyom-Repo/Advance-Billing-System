@@ -1,0 +1,896 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       AMBIENT BACKGROUND
+       ============================================================ */
+    .onboarding-page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: var(--space-16) var(--space-6);
+        background: var(--color-bg-base);
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Ambient Lighting - Reduced opacity as requested */
+    .onboarding-page::before,
+    .onboarding-page::after {
+        content: '';
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        border-radius: var(--radius-full);
+        filter: blur(120px);
+        z-index: var(--z-below);
+        pointer-events: none;
+    }
+
+    .onboarding-page::before {
+        top: -100px;
+        left: -100px;
+        background: var(--ambient-saffron);
+        opacity: 0.3; /* Reduced by ~60% */
+    }
+
+    .onboarding-page::after {
+        bottom: -100px;
+        right: -100px;
+        background: var(--ambient-cyan);
+        opacity: 0.3;
+    }
+
+    /* ============================================================
+       HERO SECTION
+       ============================================================ */
+    .onboarding-hero {
+        text-align: center;
+        margin-bottom: var(--space-10);
+        animation: slideDown 0.6s var(--transition-slower);
+        position: relative;
+        z-index: var(--z-base);
+    }
+    
+    .hero-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 100px;
+        background: var(--ambient-saffron);
+        filter: blur(100px);
+        opacity: 0.4;
+        z-index: -1;
+    }
+
+    .onboarding-hero h1 {
+        font-family: var(--font-display);
+        font-size: var(--text-4xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-4);
+        line-height: var(--leading-tight);
+        letter-spacing: -0.02em;
+    }
+    
+    .gradient-text {
+        background: var(--gradient-accent);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+
+    .onboarding-hero p {
+        font-size: var(--text-lg);
+        color: var(--color-text-secondary);
+        max-width: 500px;
+        margin: 0 auto var(--space-6);
+        line-height: var(--leading-relaxed);
+    }
+
+    /* Trust Strip */
+    .trust-strip {
+        display: flex;
+        gap: var(--space-4);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .trust-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-full);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .trust-badge i {
+        color: var(--color-accent);
+    }
+
+    /* ============================================================
+       MAIN WIZARD CARD
+       ============================================================ */
+    .wizard-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        width: 100%;
+        max-width: 700px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        z-index: var(--z-base);
+        transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .wizard-card:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    /* ============================================================
+       PREMIUM TAB NAVIGATION
+       ============================================================ */
+    .wizard-header {
+        padding: var(--space-6) var(--space-10) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .wizard-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--space-6);
+    }
+
+    .step-count {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+    }
+
+    .mini-progress-track {
+        width: 120px;
+        height: 4px;
+        background: var(--color-bg-input);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+    }
+
+    .mini-progress-fill {
+        height: 100%;
+        background: var(--color-accent);
+        width: 25%;
+        transition: width var(--transition-slow);
+    }
+
+    .wizard-tabs {
+        display: flex;
+        gap: var(--space-8);
+        position: relative;
+    }
+
+    .wizard-tab {
+        padding-bottom: var(--space-4);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-muted);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        transition: color var(--transition-base);
+    }
+
+    .wizard-tab::after {
+        content: '';
+        position: absolute;
+        bottom: -1px; /* Overlap border */
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--color-accent);
+        transform: scaleX(0);
+        transition: transform var(--transition-base);
+        transform-origin: left;
+    }
+
+    .wizard-tab.active {
+        color: var(--color-text-primary);
+    }
+
+    .wizard-tab.active::after {
+        transform: scaleX(1);
+    }
+
+    .wizard-tab.completed {
+        color: var(--color-accent);
+    }
+
+    /* ============================================================
+       STEP CONTENT
+       ============================================================ */
+    .wizard-body {
+        padding: var(--space-10);
+    }
+
+    .step-content {
+        display: none;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity var(--transition-slow), transform var(--transition-slow);
+    }
+    
+    .step-content.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .section-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -4px;
+        width: 40px;
+        height: 3px;
+        /* Kept Saffron for heading underline as requested */
+        background: var(--palette-accent-400); 
+        border-radius: var(--radius-full);
+    }
+
+    .section-subtitle {
+        color: var(--color-text-secondary);
+        font-size: var(--text-base);
+        margin-bottom: var(--space-8);
+        margin-top: var(--space-4);
+    }
+
+    /* ============================================================
+       FORMS & INPUTS
+       ============================================================ */
+    .form-group {
+        margin-bottom: var(--space-6);
+    }
+    
+    .form-label {
+        display: block;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--text-base);
+        font-family: var(--font-body);
+        transition: all var(--transition-base);
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        /* Uses Saffron naturally here since no data-theme applied to forms */
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 2px var(--color-accent-subtle);
+    }
+    
+    .form-control::placeholder {
+        color: var(--color-text-muted);
+    }
+
+    /* ============================================================
+       PREMIUM SEGMENTED CONTROL (CYAN THEME)
+       ============================================================ */
+    .segmented-control {
+        display: flex;
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: 4px;
+        position: relative;
+    }
+    
+    .segmented-control label {
+        flex: 1;
+        text-align: center;
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: var(--text-base);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+        transition: color var(--transition-base);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .segmented-control input[type="radio"] {
+        display: none;
+    }
+    
+    .segmented-control input[type="radio"]:checked + label {
+        color: var(--color-accent);
+    }
+    
+    .segmented-slider {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        width: calc(50% - 4px);
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        transition: transform var(--transition-slow);
+        z-index: 1;
+        box-shadow: var(--shadow-sm), 0 0 8px var(--color-accent-subtle);
+    }
+
+    /* ============================================================
+       GST VALIDATION CARD
+       ============================================================ */
+    .gst-validation-card {
+        display: none;
+        margin-top: var(--space-4);
+        padding: var(--space-4);
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        animation: slideDown 0.3s var(--transition-slower);
+        transition: all var(--transition-base);
+    }
+    
+    .gst-validation-card.valid {
+        display: block;
+        background: var(--color-success-bg);
+        border-color: var(--color-success-border);
+    }
+    
+    .gst-validation-card.invalid {
+        display: block;
+        background: var(--color-error-bg);
+        border-color: var(--color-error-border);
+    }
+    
+    .gst-status-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: var(--font-semibold);
+        margin-bottom: var(--space-3);
+    }
+    
+    .valid .gst-status-header { color: var(--color-success); }
+    .invalid .gst-status-header { color: var(--color-error); }
+    
+    .gst-details {
+        display: flex;
+        gap: var(--space-8);
+    }
+    
+    .gst-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+    
+    .gst-detail-label {
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+    }
+    
+    .gst-detail-value {
+        font-size: var(--text-base);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+    }
+
+    /* ============================================================
+       WIZARD ACTIONS (FOOTER)
+       ============================================================ */
+    .wizard-actions {
+        padding: var(--space-6) var(--space-10);
+        background: rgba(0, 0, 0, 0.2);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom-left-radius: var(--radius-xl);
+        border-bottom-right-radius: var(--radius-xl);
+    }
+    
+    .btn-next {
+        /* Saffron primary button */
+        background: var(--gradient-accent);
+        color: #fff;
+        border: none;
+        padding: var(--space-3) var(--space-8);
+        border-radius: var(--radius-md);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        margin-left: auto;
+        box-shadow: var(--shadow-glow);
+    }
+    
+    .btn-next:hover {
+        background: var(--gradient-accent-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow-hover);
+    }
+    
+    .btn-next i {
+        transition: transform var(--transition-base);
+    }
+    
+    .btn-next:hover i {
+        transform: translateX(4px);
+    }
+    
+    .btn-prev {
+        background: transparent;
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border-strong);
+        padding: var(--space-3) var(--space-6);
+        border-radius: var(--radius-md);
+        font-weight: var(--font-medium);
+        font-size: var(--text-base);
+        display: none; /* toggled via JS */
+        align-items: center;
+        gap: var(--space-2);
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+    
+    .btn-prev:hover {
+        background: var(--color-bg-raised);
+        color: var(--color-text-primary);
+    }
+
+    /* Upload Box */
+    .upload-box {
+        border: 1px dashed var(--color-border-strong);
+        padding: var(--space-8);
+        border-radius: var(--radius-md);
+        text-align: center;
+        background: var(--color-bg-input);
+        transition: all var(--transition-base);
+    }
+
+    .upload-box:hover {
+        border-color: var(--color-accent);
+        background: var(--color-bg-raised);
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .wizard-body, .wizard-header, .wizard-actions {
+            padding: var(--space-6) var(--space-4);
+        }
+        .trust-strip {
+            flex-direction: column;
+            align-items: center;
+        }
+        .wizard-tabs {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 2px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body_class %}onboarding-page{% endblock %}
+
+{% block layout %}
+    <div class="onboarding-hero">
+        <div class="hero-glow"></div>
+        {% if org_deleted %}
+            <h1>Welcome <span class="gradient-text">back.</span></h1>
+            <p>Let's create your organization to continue using Advance Billing.</p>
+        {% else %}
+            <h1>Welcome to <span class="gradient-text">Advance Billing</span></h1>
+            <p>Let's get your organization set up so you can start issuing professional GST invoices.</p>
+        {% endif %}
+        
+        <div class="trust-strip" data-theme="emerald">
+            <div class="trust-badge">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> 2-minute setup
+            </div>
+            <div class="trust-badge">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> You can edit everything later
+            </div>
+        </div>
+    </div>
+
+    <form id="organization-setup-form" method="post" enctype="multipart/form-data" class="wizard-card">
+        {% csrf_token %}
+        
+        <!-- Premium Horizontal Tab Navigation -->
+        <div class="wizard-header" data-theme="light-blue">
+            <div class="wizard-meta">
+                <span class="step-count">Step <span id="current-step-num">1</span> of 4</span>
+                <div class="mini-progress-track">
+                    <div class="mini-progress-fill" id="mini-progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="wizard-tabs">
+                <div class="wizard-tab active" id="tab-nav-1">Business</div>
+                <div class="wizard-tab" id="tab-nav-2">Contact</div>
+                <div class="wizard-tab" id="tab-nav-3">Address</div>
+                <div class="wizard-tab" id="tab-nav-4">Branding</div>
+            </div>
+        </div>
+
+        <div class="wizard-body">
+            <!-- Step 1: Business Info -->
+            <div class="step-content active" id="step-1">
+                <h2 class="section-title">Business Information</h2>
+                <p class="section-subtitle">Tell us about your company and GST registration status.</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Business Name <span style="color: var(--color-error)">*</span></label>
+                    <input type="text" name="business_name" class="form-control" required placeholder="e.g. Vyom Enterprises">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">GST Registered? <span style="color: var(--color-error)">*</span></label>
+                    <div class="segmented-control" data-theme="cyan">
+                        <div class="segmented-slider" id="gst-slider"></div>
+                        <input type="radio" id="gst_yes" name="is_gst_registered" value="True" required>
+                        <label for="gst_yes">Yes, Registered</label>
+                        
+                        <input type="radio" id="gst_no" name="is_gst_registered" value="False" checked required>
+                        <label for="gst_no">No, Not Registered</label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="gstin-container" style="display: none; margin-top: var(--space-6);">
+                    <label class="form-label">GSTIN <span style="color: var(--color-error)">*</span></label>
+                    <input type="text" name="gstin" id="id_gstin" class="form-control" placeholder="e.g. 24ABCDE1234F1Z5">
+                    
+                    <div class="gst-validation-card" id="gst-validation-card">
+                        <div class="gst-status-header" id="gst-status-text">
+                        </div>
+                        <div class="gst-details">
+                            <div class="gst-detail-item">
+                                <span class="gst-detail-label">State</span>
+                                <span class="gst-detail-value" id="gst-state">-</span>
+                            </div>
+                            <div class="gst-detail-item">
+                                <span class="gst-detail-label">PAN</span>
+                                <span class="gst-detail-value" id="gst-pan">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Contact Info -->
+            <div class="step-content" id="step-2">
+                <h2 class="section-title">Contact Details</h2>
+                <p class="section-subtitle">How should your clients reach out to you?</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Business Email <span style="color: var(--color-error)">*</span></label>
+                    <input type="email" name="business_email" class="form-control" required value="{{ form.business_email.value|default:'' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control" placeholder="e.g. +91 98765 43210">
+                </div>
+            </div>
+
+            <!-- Step 3: Address -->
+            <div class="step-content" id="step-3">
+                <h2 class="section-title">Business Address</h2>
+                <p class="section-subtitle">This address will appear on your professional invoices.</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Address Line 1 <span style="color: var(--color-error)">*</span></label>
+                    <input type="text" name="address_line_1" class="form-control" required placeholder="Office/Building Name, Street">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" name="address_line_2" class="form-control" placeholder="Landmark, Area (Optional)">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-4);">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">City <span style="color: var(--color-error)">*</span></label>
+                        <input type="text" name="city" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">State <span style="color: var(--color-error)">*</span></label>
+                        <input type="text" name="state" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-4);">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Pincode <span style="color: var(--color-error)">*</span></label>
+                        <input type="text" name="pincode" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Country <span style="color: var(--color-error)">*</span></label>
+                        <input type="text" name="country" class="form-control" value="India" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Branding -->
+            <div class="step-content" id="step-4">
+                <h2 class="section-title">Branding</h2>
+                <p class="section-subtitle">Upload your logo to personalize your invoices.</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Company Logo (Optional)</label>
+                    <div class="upload-box" data-theme="cyan">
+                        <i data-lucide="image" style="width: 32px; height: 32px; color: var(--color-text-muted); margin-bottom: var(--space-4);"></i>
+                        <input type="file" name="logo" class="form-control" accept="image/*" style="border: none; background: transparent; padding: 0;">
+                        <p style="color: var(--color-text-muted); margin-top: var(--space-2); font-size: var(--text-sm);">JPEG, PNG up to 2MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wizard-actions">
+            <button type="button" class="btn-prev" id="btn-prev">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back
+            </button>
+            <button type="button" class="btn-next" id="btn-next">
+                Continue <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+            </button>
+            <button type="submit" class="btn-next" id="btn-submit" style="display: none;">
+                Complete Setup <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+            </button>
+        </div>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnSubmit = document.getElementById('btn-submit');
+        const progressFill = document.getElementById('mini-progress-fill');
+        const currentStepNum = document.getElementById('current-step-num');
+        
+        // Segmented Control Slider Logic
+        const gstRadios = document.querySelectorAll('input[name="is_gst_registered"]');
+        const slider = document.getElementById('gst-slider');
+        
+        function updateSlider() {
+            if (document.getElementById('gst_yes').checked) {
+                slider.style.transform = 'translateX(0)';
+            } else {
+                slider.style.transform = 'translateX(calc(100% + 4px))';
+            }
+        }
+        
+        gstRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateSlider();
+                
+                const gstinContainer = document.getElementById('gstin-container');
+                const gstinInput = document.getElementById('id_gstin');
+                const gstCard = document.getElementById('gst-validation-card');
+                
+                if (e.target.value === 'True') {
+                    gstinContainer.style.display = 'block';
+                    gstinInput.setAttribute('required', 'required');
+                    
+                    if(gstinInput.value) {
+                        gstinInput.dispatchEvent(new Event('input'));
+                    }
+                } else {
+                    gstinContainer.style.display = 'none';
+                    gstinInput.removeAttribute('required');
+                    gstinInput.value = '';
+                    gstCard.className = 'gst-validation-card';
+                }
+            });
+        });
+        
+        updateSlider();
+        
+        function updateUI() {
+            // Steps visibility
+            document.querySelectorAll('.step-content').forEach((el, index) => {
+                if (index + 1 === currentStep) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+            
+            // Tabs update
+            document.querySelectorAll('.wizard-tab').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                
+                // Extract pure text label without icon
+                let labelText = el.textContent.trim();
+                
+                if (index + 1 === currentStep) {
+                    el.classList.add('active');
+                    el.innerHTML = labelText;
+                } else if (index + 1 < currentStep) {
+                    el.classList.add('completed');
+                    el.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px; margin-right: 4px;"></i> ${labelText}`;
+                } else {
+                    el.innerHTML = labelText;
+                }
+            });
+            
+            // Mini progress bar update
+            const progressPercentage = (currentStep / totalSteps) * 100;
+            progressFill.style.width = `${progressPercentage}%`;
+            currentStepNum.textContent = currentStep;
+            
+            lucide.createIcons();
+            
+            // Buttons
+            if (currentStep > 1) {
+                btnPrev.style.display = 'inline-flex';
+            } else {
+                btnPrev.style.display = 'none';
+            }
+            
+            if (currentStep === totalSteps) {
+                btnNext.style.display = 'none';
+                btnSubmit.style.display = 'inline-flex';
+            } else {
+                btnNext.style.display = 'inline-flex';
+                btnSubmit.style.display = 'none';
+            }
+        }
+        
+        function validateCurrentStep() {
+            const stepEl = document.getElementById(`step-${currentStep}`);
+            const inputs = stepEl.querySelectorAll('input[required]');
+            let valid = true;
+            
+            inputs.forEach(input => {
+                input.setCustomValidity(''); 
+                if (!input.checkValidity()) valid = false;
+            });
+            
+            if (currentStep === 1 && document.getElementById('gst_yes').checked) {
+                const gstinInput = document.getElementById('id_gstin');
+                if (!gstinInput.value || gstinInput.value.length !== 15) {
+                    gstinInput.setCustomValidity('Invalid GSTIN format');
+                    valid = false;
+                }
+            }
+            
+            if (!valid) {
+                const firstInvalid = [...inputs].find(i => !i.checkValidity());
+                if(firstInvalid) firstInvalid.reportValidity();
+            }
+            
+            return valid;
+        }
+        
+        btnNext.addEventListener('click', () => {
+            if (validateCurrentStep() && currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            }
+        });
+        
+        btnPrev.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        });
+        
+        document.getElementById('organization-setup-form').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                if(currentStep < totalSteps) btnNext.click();
+                else btnSubmit.click();
+            }
+        });
+        
+        // Local GST Validation Map
+        const stateCodes = {
+            "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab", "04": "Chandigarh",
+            "05": "Uttarakhand", "06": "Haryana", "07": "Delhi", "08": "Rajasthan", "09": "Uttar Pradesh",
+            "10": "Bihar", "11": "Sikkim", "12": "Arunachal Pradesh", "13": "Nagaland", "14": "Manipur",
+            "15": "Mizoram", "16": "Tripura", "17": "Meghalaya", "18": "Assam", "19": "West Bengal",
+            "20": "Jharkhand", "21": "Odisha", "22": "Chhattisgarh", "23": "Madhya Pradesh", "24": "Gujarat",
+            "25": "Daman and Diu", "26": "Dadra and Nagar Haveli", "27": "Maharashtra", "28": "Andhra Pradesh (Old)",
+            "29": "Karnataka", "30": "Goa", "31": "Lakshadweep", "32": "Kerala", "33": "Tamil Nadu",
+            "34": "Puducherry", "35": "Andaman and Nicobar Islands", "36": "Telangana", "37": "Andhra Pradesh",
+            "38": "Ladakh", "97": "Other Territory"
+        };
+        
+        const gstinInput = document.getElementById('id_gstin');
+        const gstCard = document.getElementById('gst-validation-card');
+        
+        gstinInput.addEventListener('input', (e) => {
+            let val = e.target.value.toUpperCase();
+            e.target.value = val;
+            e.target.setCustomValidity('');
+            
+            if (val.length === 15) {
+                const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
+                if (regex.test(val)) {
+                    gstCard.className = 'gst-validation-card valid';
+                    document.getElementById('gst-status-text').innerHTML = '<i data-lucide="check-circle" style="width: 18px; height: 18px;"></i> Valid GSTIN Format';
+                    
+                    const stateCode = val.substring(0, 2);
+                    const pan = val.substring(2, 12);
+                    
+                    document.getElementById('gst-state').textContent = stateCodes[stateCode] || 'Unknown';
+                    document.getElementById('gst-pan').textContent = pan;
+                } else {
+                    gstCard.className = 'gst-validation-card invalid';
+                    document.getElementById('gst-status-text').innerHTML = '<i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i> Invalid GSTIN Format';
+                    document.getElementById('gst-state').textContent = '-';
+                    document.getElementById('gst-pan').textContent = '-';
+                    e.target.setCustomValidity('Invalid GSTIN format');
+                }
+                lucide.createIcons();
+            } else if (val.length > 0) {
+                gstCard.className = 'gst-validation-card';
+                document.getElementById('gst-status-text').innerHTML = '<i data-lucide="info" style="width: 18px; height: 18px;"></i> Enter full 15-character GSTIN';
+                document.getElementById('gst-state').textContent = '-';
+                document.getElementById('gst-pan').textContent = '-';
+                lucide.createIcons();
+            } else {
+                gstCard.className = 'gst-validation-card';
+            }
+        });
+        
+        updateUI();
+    });
+</script>
+{% endblock %}

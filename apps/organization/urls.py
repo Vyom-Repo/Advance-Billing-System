@@ -5,5 +5,7 @@ from . import views
 app_name = "organization"
 
 urlpatterns = [
-    path("", views.OrganizationComingSoon.as_view(), name="index"),
+    path("setup/", views.OrganizationSetupView.as_view(), name="setup"),
+    path("delete/", views.OrganizationDeleteView.as_view(), name="delete"),
+    path("", views.OrganizationDetailView.as_view(), name="index"),
 ]

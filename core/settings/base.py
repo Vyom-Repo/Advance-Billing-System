@@ -160,6 +160,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "csp.middleware.CSPMiddleware",                         # Content Security Policy
+    "apps.organization.middleware.RequireOrganizationMiddleware", # Require Organization
 ]
 
 # =============================================================================
@@ -186,6 +187,7 @@ TEMPLATES = [
                 # Custom context processors
                 "apps.common.context_processors.theme_context",
                 "apps.common.context_processors.app_context",
+                "apps.organization.context_processors.organization_context",
             ],
         },
     },

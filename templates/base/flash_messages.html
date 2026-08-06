@@ -1,32 +1,186 @@
 {% if messages %}
-<div class="flash-messages animate-slide-up">
+<style>
+    /* Global Toast System */
+    .toast-container {
+        position: fixed;
+        top: 88px; /* Below the topbar/new invoice button */
+        right: var(--space-6);
+        z-index: var(--z-toast);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        pointer-events: none;
+    }
+
+    .premium-toast {
+        width: 360px;
+        background: var(--color-bg-surface);
+        border-radius: 18px;
+        box-shadow: var(--shadow-lg);
+        pointer-events: auto;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+        padding: var(--space-4);
+        gap: var(--space-4);
+        animation: toastSlideIn 0.5s var(--transition-slower) forwards;
+        transform-origin: top right;
+    }
+
+    .premium-toast.hiding {
+        animation: toastFadeOut 0.4s var(--transition-base) forwards;
+    }
+
+    /* Semantic borders and accents */
+    .toast-success { border: 1px solid var(--color-success-border); }
+    .toast-error { border: 1px solid var(--color-error-border); }
+    .toast-warning { border: 1px solid var(--color-warning-border); }
+    .toast-info { border: 1px solid var(--color-info-border); }
+
+    .toast-icon {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .toast-success .toast-icon { background: var(--color-success-bg); color: var(--color-success); }
+    .toast-error .toast-icon { background: var(--color-error-bg); color: var(--color-error); }
+    .toast-warning .toast-icon { background: var(--color-warning-bg); color: var(--color-warning); }
+    .toast-info .toast-icon { background: var(--color-info-bg); color: var(--color-info); }
+
+    .toast-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .toast-title {
+        font-family: var(--font-display);
+        font-size: var(--text-base);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        text-transform: capitalize;
+    }
+
+    .toast-desc {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        line-height: var(--leading-snug);
+    }
+
+    .toast-close {
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: var(--radius-sm);
+        opacity: 0;
+        transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .premium-toast:hover .toast-close {
+        opacity: 1;
+    }
+
+    .toast-close:hover {
+        background: var(--color-bg-raised);
+        color: var(--color-text-primary);
+    }
+
+    /* Progress bar */
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        transform-origin: left;
+        animation: toastProgress 5s linear forwards;
+    }
+
+    .toast-success .toast-progress { background: var(--color-success); }
+    .toast-error .toast-progress { background: var(--color-error); }
+    .toast-warning .toast-progress { background: var(--color-warning); }
+    .toast-info .toast-progress { background: var(--color-info); }
+
+    @keyframes toastSlideIn {
+        from { opacity: 0; transform: translateX(40px) scale(0.95); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    @keyframes toastFadeOut {
+        from { opacity: 1; transform: translateX(0) scale(1); }
+        to { opacity: 0; transform: translateX(20px) scale(0.95); }
+    }
+
+    @keyframes toastProgress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+</style>
+
+<div class="toast-container" id="global-toast-container">
     {% for message in messages %}
-        <div class="alert 
-            {% if message.level_tag == 'success' %}alert-success
-            {% elif message.level_tag == 'error' %}alert-error
-            {% elif message.level_tag == 'warning' %}alert-warning
-            {% else %}alert-info{% endif %}">
+        <div class="premium-toast toast-{{ message.level_tag|default:'info' }}" data-toast>
             
-            <div class="alert__icon">
+            <div class="toast-icon">
                 {% if message.level_tag == 'success' %}
-                    <i data-lucide="check-circle"></i>
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                 {% elif message.level_tag == 'error' %}
-                    <i data-lucide="alert-circle"></i>
+                    <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
                 {% elif message.level_tag == 'warning' %}
-                    <i data-lucide="alert-triangle"></i>
+                    <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
                 {% else %}
-                    <i data-lucide="info"></i>
+                    <i data-lucide="info" style="width: 18px; height: 18px;"></i>
                 {% endif %}
             </div>
             
-            <div class="alert__content">
-                {{ message }}
+            <div class="toast-content">
+                <span class="toast-title">{{ message.level_tag|default:'Notification' }}</span>
+                <span class="toast-desc">{{ message }}</span>
             </div>
             
-            <button type="button" class="alert__close" aria-label="Close">
+            <button type="button" class="toast-close" aria-label="Close" onclick="dismissToast(this)">
                 <i data-lucide="x" style="width: 16px; height: 16px;"></i>
             </button>
+            
+            <div class="toast-progress"></div>
         </div>
     {% endfor %}
 </div>
+
+<script>
+    function dismissToast(btn) {
+        const toast = btn.closest('.premium-toast');
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 400); // Wait for fade out animation
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Auto-dismiss after 5s matches animation
+        const toasts = document.querySelectorAll('.premium-toast');
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    toast.classList.add('hiding');
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 5000);
+        });
+    });
+</script>
 {% endif %}
