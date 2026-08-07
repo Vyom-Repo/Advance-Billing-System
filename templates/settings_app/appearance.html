@@ -1,0 +1,115 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Appearance{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <div class="settings-card-header">
+        <h3 class="settings-card-title">Theme</h3>
+        <p class="settings-card-description">Personalize the look and feel of your workspace.</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+            {% for theme in available_themes %}
+            <label class="theme-card {% if theme.id == current_theme %}active{% endif %}" style="cursor: pointer; display: block; border: 2px solid {% if theme.id == current_theme %}var(--color-accent){% else %}var(--color-border){% endif %}; border-radius: var(--radius-lg); padding: var(--space-4); background: var(--color-bg-surface); transition: all var(--transition-base);">
+                <input type="radio" name="theme_id" value="{{ theme.id }}" {% if theme.id == current_theme %}checked{% endif %} style="display: none;">
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3);">
+                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ theme.name }}</div>
+                    {% if theme.id == current_theme %}
+                    <i data-lucide="check-circle-2" style="color: var(--color-accent); width: 18px; height: 18px;"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Theme Preview Mini-UI -->
+                <div style="height: 60px; background: var(--color-bg-card); border-radius: var(--radius-md); border: 1px solid var(--color-border); padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+                    <!-- Fake Topbar -->
+                    <div style="height: 8px; width: 100%; background: var(--color-bg-input); border-radius: 4px;"></div>
+                    <!-- Fake Content -->
+                    <div style="display: flex; gap: 6px; flex: 1;">
+                        <div style="width: 20%; background: var(--color-bg-input); border-radius: 4px;"></div>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                            <div style="height: 12px; width: 40%; background: var(--color-bg-input); border-radius: 4px;"></div>
+                            <!-- Theme specific accent color preview block -->
+                            <div style="flex: 1; background: 
+                                {% if theme.id == 'bhagwa' %}#ff6b00{% elif theme.id == 'cyan' %}#06b6d4{% elif theme.id == 'light-blue' %}#0ea5e9{% elif theme.id == 'emerald' %}#10b981{% elif theme.id == 'purple' %}#8b5cf6{% else %}var(--color-accent){% endif %}; opacity: 0.8; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <button type="submit" class="btn btn-primary btn-lg" style="border-radius: var(--radius-full);" id="apply-theme-btn" disabled>Apply Theme</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const themeInputs = document.querySelectorAll('input[name="theme_id"]');
+    const applyBtn = document.getElementById('apply-theme-btn');
+    const currentSavedTheme = "{{ current_theme }}";
+    
+    // Create a mapping of theme names
+    const themeNames = {
+        {% for theme in available_themes %}
+        "{{ theme.id }}": "{{ theme.name }}",
+        {% endfor %}
+    };
+
+    themeInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            const selectedTheme = e.target.value;
+            
+            // 1. Live Preview
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+            
+            // 2. Active State CSS Update
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('active');
+                card.style.borderColor = 'var(--color-border)';
+                const icon = card.querySelector('.lucide-check-circle-2');
+                if(icon) icon.remove();
+            });
+            
+            const activeCard = e.target.closest('.theme-card');
+            activeCard.classList.add('active');
+            activeCard.style.borderColor = 'var(--color-accent)';
+            
+            // Add checkmark dynamically
+            const headerDiv = activeCard.querySelector('div[style*="justify-content: space-between"]');
+            if(headerDiv && !headerDiv.querySelector('.lucide-check-circle-2')) {
+                const iconHTML = `<i data-lucide="check-circle-2" class="lucide-check-circle-2" style="color: var(--color-accent); width: 18px; height: 18px;"></i>`;
+                headerDiv.insertAdjacentHTML('beforeend', iconHTML);
+                if(typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+            
+            // 3. Button State Update
+            if (selectedTheme === currentSavedTheme) {
+                applyBtn.disabled = true;
+                applyBtn.innerText = 'Apply Theme';
+            } else {
+                applyBtn.disabled = false;
+                applyBtn.innerText = 'Apply ' + themeNames[selectedTheme] + ' Theme';
+            }
+        });
+    });
+    
+    // 4. Form Submission Animation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+        applyBtn.innerText = 'Saving...';
+        applyBtn.style.opacity = '0.75';
+        applyBtn.style.pointerEvents = 'none';
+        
+        // Let the form submit naturally
+    });
+});
+</script>
+{% endblock %}

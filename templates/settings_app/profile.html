@@ -1,0 +1,227 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Profile{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <!-- Premium Profile Header -->
+    <div style="padding: var(--space-8) var(--space-6); display: flex; gap: var(--space-6); align-items: flex-start; border-bottom: 1px solid var(--color-border);">
+        <!-- Large Initial Avatar -->
+        <div style="width: 96px; height: 96px; background: var(--gradient-accent); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; color: #0a0a0f; font-size: 36px; font-weight: var(--font-bold); font-family: var(--font-display); box-shadow: var(--shadow-glow);">
+            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+        </div>
+        
+        <div style="flex: 1; padding-top: var(--space-2);">
+            <!-- Name & Verification -->
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                <h1 style="font-weight: var(--font-bold); font-size: var(--text-2xl); color: var(--color-text-primary); margin: 0; line-height: 1;">{{ request.user.get_full_name|default:request.user.email }}</h1>
+                {% if request.user.is_active %}
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: var(--radius-full); background: var(--color-success); color: white; box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);" title="Verified Account">
+                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Badges -->
+            <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-3);">
+                <div class="badge badge-accent">
+                    <i data-lucide="shield" style="width: 12px; height: 12px;"></i> Administrator
+                </div>
+                {% if org_name and org_name != "None" %}
+                <div class="badge badge-muted">
+                    <i data-lucide="briefcase" style="width: 12px; height: 12px;"></i> {{ org_name }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Email & Join Date -->
+            <div style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-1);">{{ request.user.email }}</div>
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Member since {{ request.user.date_joined|date:"F Y" }}</div>
+        </div>
+    </div>
+    
+    <!-- Profile Form -->
+    <div style="padding: var(--space-6);">
+        <h3 class="settings-card-title" style="margin-bottom: var(--space-6);">Personal Information</h3>
+        
+        <form method="post" id="profile-form">
+            {% csrf_token %}
+            
+            <div class="grid-2" style="gap: var(--space-6); margin-bottom: var(--space-6);">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.first_name.id_for_label }}">First Name <span class="required">*</span></label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                    <div class="form-error-message">{{ form.first_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.last_name.id_for_label }}">Last Name <span class="required">*</span></label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                    <div class="form-error-message">{{ form.last_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Read Only Email -->
+            <div class="form-group" style="margin-bottom: var(--space-8);">
+                <label class="form-label">Email Address</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--color-bg-raised); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                    <div style="color: var(--color-text-secondary); font-size: var(--text-sm);">{{ request.user.email }}</div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="openEmailModal()">Change Email</button>
+                </div>
+                <div class="form-hint" style="margin-top: var(--space-2);">Your email address is used for billing notifications and login.</div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; padding-top: var(--space-6); border-top: 1px solid var(--color-border);">
+                <button type="submit" class="btn btn-primary" id="save-profile-btn" disabled>Save Profile</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Account Information Card -->
+<div class="settings-card" style="margin-top: var(--space-6);">
+    <div class="settings-card-header">
+        <h3 class="settings-card-title">Account Information</h3>
+    </div>
+    <div class="settings-card-body" style="padding: 0;">
+        <table class="data-table" style="width: 100%;">
+            <tbody>
+                <tr>
+                    <td style="width: 30%; color: var(--color-text-muted); font-size: var(--text-sm);">User ID</td>
+                    <td style="font-family: monospace; font-size: var(--text-sm);">usr_{{ request.user.id|stringformat:"06d" }}</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--color-text-muted); font-size: var(--text-sm);">Organization</td>
+                    <td style="font-size: var(--text-sm);">{{ org_name|default:"Not Setup" }}</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--color-text-muted); font-size: var(--text-sm);">Role</td>
+                    <td style="font-size: var(--text-sm);">Administrator</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--color-text-muted); font-size: var(--text-sm);">Account Created</td>
+                    <td style="font-size: var(--text-sm);">{{ request.user.date_joined|date:"M j, Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--color-text-muted); font-size: var(--text-sm);">Last Login</td>
+                    <td style="font-size: var(--text-sm);">{{ request.user.last_login|date:"M j, Y H:i"|default:"Never" }}</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--color-text-muted); font-size: var(--text-sm);">Email Verification</td>
+                    <td style="font-size: var(--text-sm);">
+                        {% if request.user.is_active %}
+                        <span class="badge badge-success">Verified</span>
+                        {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Change Email Modal -->
+<div id="email-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card card-padded" style="width: 100%; max-width: 440px; box-shadow: 0 24px 48px rgba(0,0,0,0.4); animation: slideUpFade 0.3s ease-out;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+            <h3 class="card-title">Change Email Address</h3>
+            <button type="button" class="btn btn-ghost" style="padding: var(--space-1);" onclick="closeEmailModal()">
+                <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+            </button>
+        </div>
+        
+        <p class="text-secondary text-sm" style="margin-bottom: var(--space-6);">
+            We will send a 6-digit verification code to your new email address. You must verify it before the change takes effect.
+        </p>
+        
+        <form method="post" action="{% url 'settings_app:change_email' %}" id="change-email-form">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: var(--space-6);">
+                <label class="form-label" for="new_email">New Email Address <span class="required">*</span></label>
+                <input type="email" name="new_email" id="new_email" class="form-input" required placeholder="name@company.com">
+            </div>
+            
+            <div style="display: flex; gap: var(--space-3); justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="send-otp-btn">Send Code</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+// Smart Change Detection
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("profile-form");
+    const saveBtn = document.getElementById("save-profile-btn");
+    
+    // Store original values
+    const originalValues = {
+        firstName: document.getElementById("{{ form.first_name.id_for_label }}").value,
+        lastName: document.getElementById("{{ form.last_name.id_for_label }}").value
+    };
+    
+    // Listen for changes
+    form.addEventListener("input", function() {
+        const currentFirstName = document.getElementById("{{ form.first_name.id_for_label }}").value;
+        const currentLastName = document.getElementById("{{ form.last_name.id_for_label }}").value;
+        
+        // Enable if changed and valid
+        if ((currentFirstName !== originalValues.firstName || currentLastName !== originalValues.lastName) 
+            && currentFirstName.trim() !== "" && currentLastName.trim() !== "") {
+            saveBtn.disabled = false;
+        } else {
+            saveBtn.disabled = true;
+        }
+    });
+    
+    // Form submission animation
+    form.addEventListener("submit", function() {
+        if (!saveBtn.disabled) {
+            saveBtn.innerHTML = '<i data-lucide="loader-2" class="spinner"></i> Saving...';
+            saveBtn.disabled = true; // Prevent double submit
+        }
+    });
+    
+    // Modal submission animation
+    const emailForm = document.getElementById("change-email-form");
+    const emailBtn = document.getElementById("send-otp-btn");
+    emailForm.addEventListener("submit", function() {
+        emailBtn.innerHTML = '<i data-lucide="loader-2" class="spinner"></i> Sending...';
+        emailBtn.disabled = true;
+    });
+});
+
+// Modal Controls
+function openEmailModal() {
+    const modal = document.getElementById("email-modal");
+    modal.style.display = "flex";
+    document.getElementById("new_email").focus();
+}
+
+function closeEmailModal() {
+    const modal = document.getElementById("email-modal");
+    modal.style.display = "none";
+    document.getElementById("new_email").value = "";
+}
+
+// Close modal on outside click
+document.getElementById("email-modal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        closeEmailModal();
+    }
+});
+</script>
+{% endblock %}

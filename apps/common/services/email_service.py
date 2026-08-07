@@ -142,3 +142,47 @@ class EmailService:
         except Exception as e:
             logger.error("Failed to send password reset email to %s: %s", recipient_email, str(e), exc_info=True)
             return False
+
+    @classmethod
+    def send_otp_email(cls, user, otp_code: str) -> bool:
+        """
+        Sends a responsive HTML OTP email to a user.
+        """
+        subject = "Your Advance Billing Verification Code"
+        recipient_email = user.email
+
+        first_name = ""
+        if hasattr(user, "first_name") and user.first_name:
+            first_name = user.first_name
+        else:
+            first_name = recipient_email.split("@")[0]
+
+        context = {
+            "user": user,
+            "first_name": first_name.capitalize(),
+            "otp_code": otp_code,
+            "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
+            "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
+            "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
+            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
+        }
+        context.update(EmailBranding.get_logo_context())
+
+        try:
+            html_content = render_to_string("emails/otp_email.html", context)
+            text_content = strip_tags(html_content)
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[recipient_email],
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=False)
+
+            logger.info("OTP email successfully sent to: %s", recipient_email)
+            return True
+        except Exception as e:
+            logger.error("Failed to send OTP email to %s: %s", recipient_email, str(e), exc_info=True)
+            return False

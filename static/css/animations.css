@@ -197,7 +197,7 @@
   bottom: 0;
   left: -50%;
   width: 50%;
-  background: linear-gradient(90deg, #FF7A00 0%, #FF8C1A 50%, #FFB347 100%);
+  background: var(--gradient-accent-shimmer);
   border-radius: var(--radius-full, 9999px);
   box-shadow: 0 0 10px rgba(255, 140, 26, 0.6);
   animation: receiptPrintSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;

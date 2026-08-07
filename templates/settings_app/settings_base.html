@@ -1,0 +1,211 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: var(--space-8);
+        margin-top: var(--space-6);
+        align-items: start;
+    }
+    
+    @media (max-width: 768px) {
+        .settings-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Settings Sidebar Navigation */
+    .settings-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+    
+    .settings-nav-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-md);
+        color: var(--color-text-secondary);
+        font-weight: var(--font-medium);
+        transition: all var(--transition-base);
+    }
+    
+    .settings-nav-item:hover {
+        background: var(--color-bg-hover);
+        color: var(--color-text-primary);
+    }
+    
+    .settings-nav-item.active {
+        background: var(--color-accent-bg);
+        color: var(--color-accent);
+    }
+    
+    .settings-nav-item i {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Settings Content Card */
+    .settings-card {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .settings-card-header {
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .settings-card-title {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-1);
+    }
+    
+    .settings-card-description {
+        color: var(--color-text-secondary);
+        font-size: var(--text-sm);
+    }
+</style>
+{% block settings_css %}{% endblock %}
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="topbar-title">Settings</h2>
+            </div>
+            
+            <div class="topbar-right">
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn">
+                        <div class="avatar avatar-sm">
+                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+                        </div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events: none;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
+                                <i data-lucide="log-out"></i> Sign Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="page-content animate-fade-in">
+            <div class="page-header" style="margin-bottom: 0;">
+                <div>
+                    <h1 class="page-title">{% block settings_title %}Settings{% endblock %}</h1>
+                    <p class="text-secondary">Manage your account and application preferences.</p>
+                </div>
+            </div>
+            
+            <div class="settings-layout">
+                <!-- Left Sidebar Navigation -->
+                <nav class="settings-sidebar">
+                    <a href="{% url 'settings_app:profile' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                        <i data-lucide="user"></i> Profile
+                    </a>
+                    <a href="{% url 'settings_app:security' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'security' %}active{% endif %}">
+                        <i data-lucide="shield"></i> Security
+                    </a>
+                    <a href="{% url 'settings_app:appearance' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'appearance' %}active{% endif %}">
+                        <i data-lucide="palette"></i> Appearance
+                    </a>
+                    <a href="{% url 'settings_app:system' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'system' %}active{% endif %}">
+                        <i data-lucide="info"></i> System Information
+                    </a>
+                    
+                    <div style="height: 1px; background: var(--color-border); margin: var(--space-4) 0;"></div>
+                    <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 var(--space-4) var(--space-2); font-weight: var(--font-semibold);">Workspace</div>
+                    
+                    <a href="{% url 'settings_app:invoice_preferences' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'invoice_preferences' %}active{% endif %}">
+                        <i data-lucide="file-text"></i> Invoice Preferences
+                    </a>
+                    <a href="{% url 'settings_app:pdf_printing' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'pdf_printing' %}active{% endif %}">
+                        <i data-lucide="printer"></i> PDF & Printing
+                    </a>
+                    <a href="{% url 'settings_app:notifications' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+                        <i data-lucide="bell"></i> Notifications
+                    </a>
+                    
+                    <div style="height: 1px; background: var(--color-border); margin: var(--space-4) 0;"></div>
+                    <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 var(--space-4) var(--space-2); font-weight: var(--font-semibold);">Danger Zone</div>
+                    
+                    <a href="{% url 'settings_app:data_management' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'data_management' %}active{% endif %}">
+                        <i data-lucide="database"></i> Data Management
+                    </a>
+                    <a href="{% url 'settings_app:delete_account' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'delete_account' %}active{% endif %}" style="color: var(--color-error);">
+                        <i data-lucide="trash-2"></i> Delete Account
+                    </a>
+                </nav>
+                
+                <!-- Right Content Area -->
+                <div class="settings-content">
+                    {% block settings_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% include "base/flash_messages.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Toggle user dropdown
+        const userBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-menu-dropdown');
+        if (userBtn && userDropdown) {
+            userBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('active');
+                }
+            });
+        }
+        
+        lucide.createIcons();
+    });
+</script>
+{% block settings_js %}{% endblock %}
+{% endblock %}

@@ -127,19 +127,46 @@
   --color-accent:           var(--palette-accent-400);
   --color-accent-hover:     var(--palette-accent-300);
   --color-accent-muted:     var(--palette-accent-700);
-  --color-accent-subtle:    rgba(255, 140, 26, 0.12);
+  --color-accent-subtle:    color-mix(in srgb, var(--color-accent) 12%, transparent);
   --color-accent-text:      var(--palette-accent-100);
-  --color-accent-border:    rgba(255, 140, 26, 0.35);
+  --color-accent-border:    color-mix(in srgb, var(--color-accent) 35%, transparent);
   
-  /* Multi-stop Cinematic Saffron Gradients */
-  --gradient-accent:        linear-gradient(135deg, #FF7A00 0%, #FF8C1A 25%, #FF9D2E 50%, #FFB347 75%, #FFD166 100%);
-  --gradient-accent-hover:  linear-gradient(135deg, #FF8C1A 0%, #FF9D2E 30%, #FFB347 70%, #FFE099 100%);
-  --gradient-accent-shimmer: linear-gradient(90deg, #FF7A00 0%, #FFD166 25%, #FFFFFF 50%, #FFD166 75%, #FF7A00 100%);
-  --gradient-glass-border:  linear-gradient(135deg, rgba(255, 157, 46, 0.6) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(0, 200, 240, 0.4) 100%);
+  /* Brand Constants */
+  --color-brand-saffron:    #ff7a00;
+
+  /* Multi-stop Cinematic Gradients */
+  --gradient-accent:        linear-gradient(135deg, var(--palette-accent-500) 0%, var(--palette-accent-400) 25%, var(--palette-accent-300) 50%, var(--palette-accent-200) 75%, var(--palette-accent-100) 100%);
+  --gradient-accent-hover:  linear-gradient(135deg, var(--palette-accent-400) 0%, var(--palette-accent-300) 30%, var(--palette-accent-200) 70%, var(--palette-accent-50) 100%);
+  --gradient-accent-shimmer: linear-gradient(90deg, var(--palette-accent-500) 0%, var(--palette-accent-100) 25%, #FFFFFF 50%, var(--palette-accent-100) 75%, var(--palette-accent-500) 100%);
+  --gradient-glass-border:  linear-gradient(135deg, color-mix(in srgb, var(--palette-accent-300) 60%, transparent) 0%, rgba(255, 255, 255, 0.15) 50%, color-mix(in srgb, var(--color-accent) 40%, transparent) 100%);
 
   /* Ambient Glows */
   --ambient-cyan:           rgba(0, 200, 240, 0.12);
   --ambient-saffron:        rgba(255, 122, 0, 0.18);
+  --ambient-accent:         color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+/* ============================================================
+   BRAND IDENTITY LOCK
+   Forces any container to strictly use the Saffron palette
+   regardless of the global theme.
+   ============================================================ */
+.theme-brand {
+  --color-accent:           var(--palette-accent-400);
+  --color-accent-hover:     var(--palette-accent-300);
+  --color-accent-muted:     var(--palette-accent-700);
+  --color-accent-subtle:    color-mix(in srgb, var(--palette-accent-400) 12%, transparent);
+  --color-accent-text:      var(--palette-accent-100);
+  --color-accent-border:    color-mix(in srgb, var(--palette-accent-400) 35%, transparent);
+  
+  --gradient-accent:        linear-gradient(135deg, var(--palette-accent-500) 0%, var(--palette-accent-400) 25%, var(--palette-accent-300) 50%, var(--palette-accent-200) 75%, var(--palette-accent-100) 100%);
+  --gradient-accent-hover:  linear-gradient(135deg, var(--palette-accent-400) 0%, var(--palette-accent-300) 30%, var(--palette-accent-200) 70%, var(--palette-accent-50) 100%);
+  
+  --shadow-glow:            0 8px 32px color-mix(in srgb, var(--palette-accent-400) 35%, transparent);
+  --shadow-glow-hover:      0 16px 56px color-mix(in srgb, var(--palette-accent-400) 55%, transparent), 0 0 20px color-mix(in srgb, var(--palette-accent-100) 40%, transparent);
+}
+
+:root {
 
   /* ---- Backgrounds ---- */
   --color-bg-base:          #0a0a0f;   /* Page background — near-black */
@@ -252,9 +279,9 @@
   --shadow-md:    0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
   --shadow-lg:    0 12px 32px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.3);
   --shadow-xl:    0 24px 64px rgba(0,0,0,0.7), 0 12px 24px rgba(0,0,0,0.4);
-  --shadow-glow:  0 8px 32px rgba(255, 140, 26, 0.35); /* Deep Saffron Glow */
-  --shadow-glow-hover: 0 16px 56px rgba(255, 140, 26, 0.55), 0 0 20px rgba(255, 209, 102, 0.4);
-  --shadow-neon: 0 0 60px rgba(255, 122, 0, 0.3), 0 0 100px rgba(0, 200, 240, 0.15);
+  --shadow-glow:  0 8px 32px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --shadow-glow-hover: 0 16px 56px color-mix(in srgb, var(--color-accent) 55%, transparent), 0 0 20px color-mix(in srgb, var(--palette-accent-100) 40%, transparent);
+  --shadow-neon: 0 0 60px color-mix(in srgb, var(--color-accent) 30%, transparent), 0 0 100px color-mix(in srgb, var(--palette-accent-200) 15%, transparent);
   --shadow-accent: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px var(--color-accent-border);
 
   /* ============================================================
@@ -287,4 +314,16 @@
   --topbar-height:        64px;
   --content-max-width:    1280px;
   --container-padding:    var(--space-6);
+}
+
+/* ============================================================
+   GLOBAL THEME TRANSITIONS
+   ============================================================ */
+body, .sidebar, .topbar, .card, button, a, .badge, input, select, textarea, .theme-card, .btn-primary, .alert {
+  transition: background-color var(--transition-base),
+              border-color var(--transition-base),
+              box-shadow var(--transition-base),
+              color var(--transition-base),
+              fill var(--transition-base),
+              stroke var(--transition-base);
 }

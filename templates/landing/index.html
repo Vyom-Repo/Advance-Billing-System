@@ -6,11 +6,12 @@
 {% endblock %}
 
 {% block layout %}
+<div class="theme-brand">
 <!-- Navbar -->
 <nav class="glass-navbar" id="navbar">
     <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
         <a href="#" class="sidebar-logo" style="color: var(--color-text-primary); text-decoration: none; display: flex; align-items: center; gap: var(--space-2);">
-            {% include "common/logo.html" with style="width: 24px; height: 24px; color: var(--color-accent);" %}
+            {% include "common/logo.html" with style="width: 24px; height: 24px; color: var(--color-brand-saffron, #FF7A00);" %}
             <span style="font-family: var(--font-display); font-weight: var(--font-bold);">{{ APP_NAME }}</span>
         </a>
         
@@ -271,7 +272,7 @@
         <div class="footer-grid">
             <div>
                 <div class="footer-logo" style="display: flex; align-items: center; gap: var(--space-2);">
-                    {% include "common/logo.html" with style="width: 28px; height: 28px; color: var(--color-accent);" %}
+                    {% include "common/logo.html" with style="width: 28px; height: 28px; color: var(--color-brand-saffron, #FF7A00);" %}
                     <span>{{ APP_NAME }}</span>
                 </div>
                 <p class="footer-desc">{{ APP_TAGLINE }}</p>
@@ -297,6 +298,7 @@
         </div>
     </div>
 </footer>
+</div>
 
 {% show_messages %}
 {% endblock layout %}

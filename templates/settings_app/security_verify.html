@@ -1,0 +1,26 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Security Verification{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <div class="settings-card-header">
+        <h3 class="settings-card-title">Verify Security Change</h3>
+        <p class="settings-card-description">We sent a 6-digit code to {{ request.user.email }}. Please enter it below to confirm your password change.</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group" style="max-width: 300px;">
+            <label class="form-label" for="otp_code">6-Digit OTP Code</label>
+            <input type="text" name="otp_code" id="otp_code" class="form-input" placeholder="123456" maxlength="6" autocomplete="off" required style="font-family: monospace; font-size: 20px; letter-spacing: 4px; text-align: center;">
+        </div>
+        
+        <div style="display: flex; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <a href="{% url 'settings_app:security' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-full">Verify & Update Password</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Invoice Preferences{% endblock %}
+
+{% block settings_content %}
+<form method="post" id="invoice-preferences-form">
+    {% csrf_token %}
+    
+    <!-- Card 1: Invoice Numbering -->
+    <div class="settings-card" style="margin-bottom: var(--space-6);">
+        <div class="settings-card-header">
+            <h3 class="settings-card-title">Invoice Numbering</h3>
+            <p class="settings-card-description">Define the format for your invoice numbers. This will auto-increment for each new invoice.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4);">
+            <div>
+                <label class="form-label" for="{{ form.invoice_prefix.id_for_label }}">Invoice Prefix (Optional)</label>
+                {{ form.invoice_prefix }}
+                <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">e.g., INV, BILL, TAX</div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.starting_number.id_for_label }}">Starting Number</label>
+                {{ form.starting_number }}
+                <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">e.g., 1, 1001</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); background: var(--color-bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--color-border); margin-bottom: var(--space-4);">
+            <div>
+                <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Include Financial Year</div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">Adds the current financial year to the invoice number (e.g., 2026-27).</div>
+            </div>
+            <label class="toggle-switch">
+                {{ form.include_financial_year }}
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <!-- Live Preview -->
+        <div style="padding: var(--space-4); background: var(--color-accent-subtle); border-radius: var(--radius-lg); border: 1px dashed var(--color-accent); display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: var(--text-sm); color: var(--color-accent); font-weight: var(--font-medium);">Live Preview</div>
+            <div id="invoice-number-preview" style="font-family: var(--font-mono); font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-text-primary);">INV-0001</div>
+        </div>
+    </div>
+    
+    <!-- Card 2: Payment Terms -->
+    <div class="settings-card" style="margin-bottom: var(--space-6);">
+        <div class="settings-card-header">
+            <h3 class="settings-card-title">Default Payment Terms</h3>
+            <p class="settings-card-description">Set the default payment due date for new invoices. You can always change this while creating an invoice.</p>
+        </div>
+        
+        <div style="margin-bottom: var(--space-4);">
+            <label class="form-label" for="{{ form.default_payment_terms.id_for_label }}">Payment Terms</label>
+            {{ form.default_payment_terms }}
+        </div>
+        
+        <div id="custom-days-container" style="display: none;">
+            <label class="form-label" for="{{ form.custom_payment_days.id_for_label }}">Custom Days</label>
+            {{ form.custom_payment_days }}
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">Enter the number of days until payment is due.</div>
+        </div>
+    </div>
+    
+    <!-- Card 3: Invoice Content -->
+    <div class="settings-card" style="margin-bottom: var(--space-6);">
+        <div class="settings-card-header">
+            <h3 class="settings-card-title">Default Invoice Content</h3>
+            <p class="settings-card-description">Provide reusable content that automatically appears in every invoice.</p>
+        </div>
+        
+        <div style="margin-bottom: var(--space-4);">
+            <label class="form-label" for="{{ form.default_notes.id_for_label }}">Default Notes</label>
+            {{ form.default_notes }}
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">Notes to customer, e.g., "Thank you for your business."</div>
+        </div>
+        
+        <div>
+            <label class="form-label" for="{{ form.default_terms.id_for_label }}">Default Terms & Conditions</label>
+            {{ form.default_terms }}
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1);">Standard terms applied to all invoices.</div>
+        </div>
+    </div>
+    
+    <!-- Card 4: Currency & Rounding -->
+    <div class="settings-card" style="margin-bottom: var(--space-6);">
+        <div class="settings-card-header">
+            <h3 class="settings-card-title">Currency & Rounding</h3>
+            <p class="settings-card-description">Configure how monetary values are formatted on your invoices.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+            <div>
+                <label class="form-label" for="{{ form.default_currency.id_for_label }}">Default Currency</label>
+                {{ form.default_currency }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.decimal_places.id_for_label }}">Decimal Places</label>
+                {{ form.decimal_places }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.rounding_method.id_for_label }}">Rounding Method</label>
+                {{ form.rounding_method }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Card 5: Invoice Defaults -->
+    <div class="settings-card" style="margin-bottom: var(--space-6);">
+        <div class="settings-card-header">
+            <h3 class="settings-card-title">Invoice Defaults</h3>
+            <p class="settings-card-description">Configure the default status and behavior when creating new invoices.</p>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); background: var(--color-bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+            <div>
+                <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Create Invoice as Draft by Default</div>
+                <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">New invoices will be saved as drafts instead of finalized immediately.</div>
+            </div>
+            <label class="toggle-switch">
+                {{ form.draft_by_default }}
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: flex-end; padding-top: var(--space-4); margin-bottom: var(--space-8);">
+        <button type="submit" class="btn btn-primary btn-lg" style="border-radius: var(--radius-full);" id="save-preferences-btn">Save Preferences</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block settings_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Live Preview Logic
+    const prefixInput = document.getElementById('{{ form.invoice_prefix.id_for_label }}');
+    const startingNumberInput = document.getElementById('{{ form.starting_number.id_for_label }}');
+    const financialYearToggle = document.getElementById('{{ form.include_financial_year.id_for_label }}');
+    const previewElement = document.getElementById('invoice-number-preview');
+    
+    function updatePreview() {
+        const prefix = prefixInput.value.trim();
+        let numStr = startingNumberInput.value.trim() || "1";
+        // Pad the number to at least 4 digits
+        if(numStr.length < 4) {
+            numStr = numStr.padStart(4, '0');
+        }
+        
+        const includeFy = financialYearToggle.checked;
+        const fyStr = "2026-27"; // Hardcoded for preview purposes
+        
+        let parts = [];
+        if (prefix) parts.push(prefix);
+        if (includeFy) parts.push(fyStr);
+        parts.push(numStr);
+        
+        previewElement.innerText = parts.join('-');
+    }
+    
+    prefixInput.addEventListener('input', updatePreview);
+    startingNumberInput.addEventListener('input', updatePreview);
+    financialYearToggle.addEventListener('change', updatePreview);
+    
+    // Initial preview render
+    updatePreview();
+    
+    // 2. Custom Payment Days Toggle
+    const paymentTermsSelect = document.getElementById('{{ form.default_payment_terms.id_for_label }}');
+    const customDaysContainer = document.getElementById('custom-days-container');
+    
+    function toggleCustomDays() {
+        if (paymentTermsSelect.value === 'Custom') {
+            customDaysContainer.style.display = 'block';
+        } else {
+            customDaysContainer.style.display = 'none';
+        }
+    }
+    
+    paymentTermsSelect.addEventListener('change', toggleCustomDays);
+    toggleCustomDays(); // Initial run
+    
+    // 3. Form Submission Feedback
+    const form = document.getElementById('invoice-preferences-form');
+    const saveBtn = document.getElementById('save-preferences-btn');
+    
+    form.addEventListener('submit', (e) => {
+        // Prevent default temporarily to show the "Saved ✓" UX
+        e.preventDefault();
+        
+        saveBtn.innerText = 'Saving...';
+        saveBtn.style.opacity = '0.75';
+        saveBtn.style.pointerEvents = 'none';
+        
+        // Simulate a slight delay to show "Saved ✓" before actual submit
+        setTimeout(() => {
+            saveBtn.innerText = 'Saved ✓';
+            saveBtn.style.backgroundColor = 'var(--color-success)';
+            saveBtn.style.borderColor = 'var(--color-success)';
+            saveBtn.style.opacity = '1';
+            
+            setTimeout(() => {
+                form.submit();
+            }, 400); // Wait a tiny bit to let the user see "Saved"
+        }, 300);
+    });
+});
+</script>
+{% endblock %}

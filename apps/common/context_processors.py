@@ -19,16 +19,17 @@ from django.http import HttpRequest
 def theme_context(request: HttpRequest) -> dict[str, Any]:
     """
     Injects theme configuration into all templates.
-
-    Templates can use:
-        {{ current_theme }}         - active theme ID (e.g. "bhagwa")
-        {{ available_themes }}      - list of all theme dicts
-        {{ default_theme }}         - the default theme ID
-
-    The active theme is read from the session or falls back to DEFAULT_THEME.
-    Users can switch themes later through a settings view that writes to session.
     """
-    current_theme = request.session.get("theme", settings.DEFAULT_THEME)
+    current_theme = settings.DEFAULT_THEME
+    
+    if request.user.is_authenticated:
+        try:
+            current_theme = request.user.preference.theme
+        except Exception:
+            # Fallback to session if preference object doesn't exist yet
+            current_theme = request.session.get("theme", settings.DEFAULT_THEME)
+    else:
+        current_theme = request.session.get("theme", settings.DEFAULT_THEME)
 
     return {
         "current_theme": current_theme,

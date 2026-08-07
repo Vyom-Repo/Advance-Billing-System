@@ -180,7 +180,7 @@
 
 /* Avatar with subtle saffron gradient */
 .user-menu-btn .avatar {
-  background: linear-gradient(135deg, #FF8C1A 0%, #FFB347 100%);
+  background: var(--gradient-accent);
   color: #FFFFFF;
   font-weight: var(--font-semibold);
 }

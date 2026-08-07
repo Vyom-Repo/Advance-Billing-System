@@ -1,0 +1,53 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Security{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <div class="settings-card-header">
+        <h3 class="settings-card-title">Change Password</h3>
+        <p class="settings-card-description">Update your password to keep your account secure.</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div style="background: var(--color-error-bg); color: var(--color-error); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-4); font-size: var(--text-sm);">
+            {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label class="form-label" for="{{ form.old_password.id_for_label }}">Current Password</label>
+            {{ form.old_password }}
+            {% if form.old_password.errors %}
+            <div style="color: var(--color-error); font-size: var(--text-sm); margin-top: 4px;">{{ form.old_password.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="{{ form.new_password1.id_for_label }}">New Password</label>
+            {{ form.new_password1 }}
+            {% if form.new_password1.errors %}
+            <div style="color: var(--color-error); font-size: var(--text-sm); margin-top: 4px;">{{ form.new_password1.errors.0 }}</div>
+            {% endif %}
+            <div style="color: var(--color-text-muted); font-size: var(--text-xs); margin-top: 4px;">
+                Must be at least 8 characters long and cannot be too similar to your personal information.
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="{{ form.new_password2.id_for_label }}">Confirm New Password</label>
+            {{ form.new_password2 }}
+            {% if form.new_password2.errors %}
+            <div style="color: var(--color-error); font-size: var(--text-sm); margin-top: 4px;">{{ form.new_password2.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <button type="submit" class="btn btn-primary">Update Password</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}System Information{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <div class="settings-card-header">
+        <h3 class="settings-card-title">System Information</h3>
+        <p class="settings-card-description">Read-only details about your current application environment.</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4);">
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="building" style="width: 14px; height: 14px;"></i> Organization</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ org_name }}</div>
+        </div>
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="activity" style="width: 14px; height: 14px;"></i> Organization Status</div>
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <div style="width: 8px; height: 8px; border-radius: var(--radius-full); background: {% if org_status == 'Active' %}var(--color-success){% else %}var(--color-warning){% endif %};"></div>
+                <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ org_status }}</div>
+            </div>
+        </div>
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="credit-card" style="width: 14px; height: 14px;"></i> Current Plan</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ current_plan }}</div>
+        </div>
+
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="user" style="width: 14px; height: 14px;"></i> Logged User</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ logged_user }}</div>
+        </div>
+
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> Profile Status</div>
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <div style="width: 8px; height: 8px; border-radius: var(--radius-full); background: {% if is_verified %}var(--color-success){% else %}var(--color-warning){% endif %};"></div>
+                <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{% if is_verified %}Verified{% else %}Unverified{% endif %}</div>
+            </div>
+        </div>
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="calendar" style="width: 14px; height: 14px;"></i> Account Created</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ date_joined|date:"M d, Y" }}</div>
+        </div>
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 14px; height: 14px;"></i> Last Login</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ last_login|timesince }} ago</div>
+        </div>
+        
+        <div style="background: var(--color-bg-surface); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); display: flex; align-items: center; gap: 6px;"><i data-lucide="tag" style="width: 14px; height: 14px;"></i> Version</div>
+            <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Advance Billing v{{ app_version }}</div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

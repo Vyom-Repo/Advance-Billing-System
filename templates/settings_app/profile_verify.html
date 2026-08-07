@@ -1,0 +1,145 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Verify Email Change{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card" style="max-width: 500px; margin: 0 auto;">
+    <div class="settings-card-header" style="text-align: center; padding: var(--space-8) var(--space-6) var(--space-6) var(--space-6); border-bottom: none;">
+        <div style="width: 56px; height: 56px; background: var(--color-accent-subtle); color: var(--color-accent); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+            <i data-lucide="mail" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="settings-card-title" style="font-size: var(--text-xl); margin-bottom: var(--space-2);">Verify your new email</h3>
+        <p class="settings-card-description" style="font-size: var(--text-sm);">
+            We sent a 6-digit verification code to<br>
+            <strong style="color: var(--color-text-primary);">{{ request.session.pending_email }}</strong>
+        </p>
+    </div>
+    
+    <div class="settings-card-body" style="padding: 0 var(--space-8) var(--space-8) var(--space-8);">
+        <form method="post" id="verify-form">
+            {% csrf_token %}
+            
+            <!-- Hidden input that actually submits the OTP -->
+            <input type="hidden" name="otp_code" id="otp_code" required>
+            
+            <!-- 6-Box UI -->
+            <div style="display: flex; gap: var(--space-2); justify-content: center; margin-bottom: var(--space-8);">
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code" required>
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-box form-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <button type="submit" class="btn btn-primary btn-full" id="verify-btn" disabled>Verify Email</button>
+                <a href="{% url 'settings_app:profile' %}" class="btn btn-ghost btn-full">Cancel</a>
+            </div>
+            
+            <!-- Resend Timer -->
+            <div style="text-align: center; margin-top: var(--space-6); font-size: var(--text-xs); color: var(--color-text-muted);">
+                Didn't receive the code? <span id="resend-timer">Wait 30s</span>
+                <a href="#" id="resend-link" style="display: none; font-weight: 500;">Resend Code</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.otp-box {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: var(--font-bold);
+    font-family: monospace;
+    border-radius: var(--radius-md);
+    padding: 0;
+}
+.otp-box:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(var(--palette-accent-400), 0.15);
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const boxes = document.querySelectorAll('.otp-box');
+    const hiddenInput = document.getElementById('otp_code');
+    const verifyBtn = document.getElementById('verify-btn');
+    
+    // Auto-focus first box
+    boxes[0].focus();
+    
+    function updateHiddenInput() {
+        let val = '';
+        boxes.forEach(b => val += b.value);
+        hiddenInput.value = val;
+        verifyBtn.disabled = val.length !== 6;
+    }
+    
+    boxes.forEach((box, index) => {
+        // Handle input
+        box.addEventListener('input', function(e) {
+            // Only allow numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            if (this.value && index < boxes.length - 1) {
+                boxes[index + 1].focus();
+            }
+            updateHiddenInput();
+        });
+        
+        // Handle backspace
+        box.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && index > 0) {
+                boxes[index - 1].focus();
+                boxes[index - 1].value = ''; // Optional: clear previous
+            }
+        });
+        
+        // Handle paste
+        box.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+            if (pastedData) {
+                for (let i = 0; i < pastedData.length; i++) {
+                    if (boxes[index + i]) {
+                        boxes[index + i].value = pastedData[i];
+                    }
+                }
+                if (index + pastedData.length < boxes.length) {
+                    boxes[index + pastedData.length].focus();
+                } else {
+                    boxes[boxes.length - 1].focus();
+                }
+                updateHiddenInput();
+            }
+        });
+    });
+    
+    // Form submission
+    document.getElementById('verify-form').addEventListener('submit', function() {
+        verifyBtn.innerHTML = '<i data-lucide="loader-2" class="spinner"></i> Verifying...';
+        // DO NOT disable button immediately or form won't submit in some browsers, let native submit happen
+    });
+    
+    // Resend Timer Simulation
+    let timeLeft = 30;
+    const timerSpan = document.getElementById('resend-timer');
+    const resendLink = document.getElementById('resend-link');
+    
+    const interval = setInterval(function() {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            timerSpan.style.display = 'none';
+            resendLink.style.display = 'inline';
+        } else {
+            timerSpan.textContent = `Wait ${timeLeft}s`;
+        }
+    }, 1000);
+});
+</script>
+{% endblock %}
