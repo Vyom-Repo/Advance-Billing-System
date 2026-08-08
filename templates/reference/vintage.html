@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .invoice-container {
+            width: 800px;
+            border: 2px solid #000;
+            box-sizing: border-box;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .header-top .title {
+            color: #1a4f8b;
+            text-align: center;
+            flex-grow: 1;
+            font-size: 13px;
+        }
+
+        .section-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .col-logo {
+            width: 120px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tata-logo {
+            font-size: 24px;
+            color: #1a4f8b;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tata-icon {
+            width: 50px;
+            height: 50px;
+            background: #1a4f8b;
+            border-radius: 50%;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        /* Simple CSS representation of logo */
+        .tata-icon::before,
+        .tata-icon::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+        }
+
+        .tata-icon::before {
+            top: 15px;
+            left: 22px;
+            width: 6px;
+            height: 20px;
+        }
+
+        .tata-icon::after {
+            top: 15px;
+            left: 10px;
+            width: 30px;
+            height: 6px;
+        }
+
+        .col-company {
+            width: 280px;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+
+        .col-invoice-details,
+        .col-shipping-details {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+            flex: 1;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-box {
+            padding: 5px 10px;
+            flex: 1;
+            border-right: 1px solid #000;
+        }
+
+        .detail-box:last-child {
+            border-right: none;
+        }
+
+        .col-customer {
+            width: 400px;
+            padding: 10px;
+            border-right: 1px solid #000;
+            box-sizing: border-box;
+        }
+
+        .col-shipping {
+            width: 400px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .items-table td {
+            border-top: none;
+            border-bottom: none;
+            height: 200px;
+            /* Force height to match space */
+        }
+
+        .items-table tr.last-item td {
+            border-bottom: 1px solid #000;
+        }
+
+        .totals-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .totals-left {
+            flex-grow: 1;
+            padding: 5px;
+            border-right: 1px solid #000;
+        }
+
+        .totals-right {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .totals-right-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            border-bottom: 1px solid #000;
+        }
+
+        .totals-right-row:last-child {
+            border-bottom: none;
+        }
+
+        .amount-words {
+            padding: 5px;
+            border-bottom: 1px solid #000;
+        }
+
+        .bottom-section {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .bank-details {
+            width: 250px;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+
+        .upi-section {
+            width: 150px;
+            padding: 10px;
+            border-right: 1px solid #000;
+            text-align: center;
+        }
+
+        .qr-placeholder {
+            width: 100px;
+            height: 100px;
+            background: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+            margin: 5px auto;
+            border: 2px solid #000;
+        }
+
+        .signature-section {
+            flex-grow: 1;
+            padding: 10px;
+            position: relative;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stamp {
+            width: 120px;
+            height: 120px;
+            border: 2px solid #1a4f8b;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a4f8b;
+            font-weight: bold;
+            font-size: 16px;
+            transform: rotate(-15deg);
+            position: relative;
+        }
+
+        .stamp::before {
+            content: 'TATA MOTORS';
+            position: absolute;
+            top: 15px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1a4f8b;
+        }
+
+        .stamp::after {
+            content: 'SIGNATURE';
+            position: absolute;
+            font-size: 18px;
+        }
+
+        .footer-notes {
+            display: flex;
+        }
+
+        .notes {
+            width: 50%;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+
+        .terms {
+            width: 50%;
+            padding: 10px;
+        }
+
+        .page-footer {
+            padding: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 15px;
+            list-style-type: none;
+        }
+
+        .success-text {
+            color: #28a745;
+            text-align: right;
+            padding: 5px;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .success-text::before {
+            content: '✔';
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-container">
+
+        <!-- Top Header -->
+        <div class="header-top">
+            <div style="width: 200px;"></div>
+            <div class="title">TAX INVOICE</div>
+            <div style="width: 200px; text-align: right; color: #555;">ORIGINAL FOR RECIPIENT</div>
+        </div>
+
+        <!-- Company and Invoice Details -->
+        <div class="section-row">
+            <div class="col-logo">
+                <div class="tata-logo">
+                    <div class="tata-icon"></div>
+                    TATA
+                </div>
+            </div>
+            <div class="col-company">
+                <div class="bold">TATA MOTORS LIMITED</div>
+                <div>GSTIN 27AAACT2727Q1ZW</div>
+                <div>Nigadi, Shsam Road., P'MTHI</div>
+                <div>Pune, MAHARASHTRA, 411015</div>
+                <div>Mobile: 9929093929</div>
+                <div>Email: Swipa@getaniiss.in</div>
+            </div>
+            <div class="col-invoice-details">
+                <div class="detail-row">
+                    <div class="detail-box">
+                        <div class="bold">Invoice #:</div>
+                        <div>INV-1</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="bold">Invoice Date:</div>
+                        <div>17 Jun 2023</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-box">
+                        <div class="bold">Place of Supply:</div>
+                        <div>3B-TELANGANA</div>
+                    </div>
+                    <div class="detail-box">
+                        <div class="bold">Due Date:</div>
+                        <div>17 Jun 2023</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer and Shipping Details -->
+        <div class="section-row">
+            <div class="col-customer">
+                <div class="bold">Customer Details:</div>
+                <div>Natorajan Chandrasekaran</div>
+                <div class="bold" style="margin-top: 5px;">Billing address:</div>
+                <div>Survey 115/I, 158 Rd, Financial District</div>
+                <div>Goch bowli, Nansarangu.da</div>
+                <div>Hyderabad, TELANGANA, 500032</div>
+                <div>Ph: 9990000329</div>
+            </div>
+            <div class="col-shipping">
+                <div class="bold">Shipping address:</div>
+                <div>Survey 115/I, 150 Rd, Financial District</div>
+                <div>Goch bowli, Nansarangu.da</div>
+                <div>Hyderabad, TELANGANA, 500032</div>
+            </div>
+        </div>
+
+        <!-- Main Items Table -->
+        <table class="items-table" style="border: none; border-bottom: 1px solid #000;">
+            <thead>
+                <tr>
+                    <th style="width: 20px;">#</th>
+                    <th style="text-align: left;">Item</th>
+                    <th>HSN/SAC</th>
+                    <th class="text-right">Rate / Unit</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right">Taxable Value</th>
+                    <th class="text-right">Tax Amount</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Tata Nexon</td>
+                    <td class="text-center">87032200</td>
+                    <td class="text-right">5,05,000.00</td>
+                    <td class="text-right">1</td>
+                    <td class="text-right">5,05,000.00</td>
+                    <td class="text-right">90,900.00<br>(15%)</td>
+                    <td class="text-right">5,95,900.00</td>
+                </tr>
+                <tr class="last-item">
+                    <td>2</td>
+                    <td>
+                        Car accessories Kit
+                        <ul style="margin-top: 5px; color: #333;">
+                            <li>1. Item - Car cover</li>
+                            <li>2. Item - Cleaning spray</li>
+                        </ul>
+                    </td>
+                    <td class="text-center">87089900</td>
+                    <td class="text-right">2,117.80</td>
+                    <td class="text-right">1</td>
+                    <td class="text-right">2,117.80</td>
+                    <td class="text-right">381.20 (18%)</td>
+                    <td class="text-right">2,498.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals Section -->
+        <div class="totals-row">
+            <div class="totals-left">Total litem / Qty : 2 / 2.000</div>
+            <div class="totals-right" style="width: 400px; padding: 0;">
+                <div class="totals-right-row">
+                    <span class="bold">Taxable Amount</span>
+                    <span>₹ 5,07,117.80</span>
+                </div>
+                <div class="totals-right-row">
+                    <span class="bold">IGST 18.0%</span>
+                    <span>₹ 91,281.20</span>
+                </div>
+                <div class="totals-right-row" style="font-size: 14px;">
+                    <span class="bold">Total</span>
+                    <span class="bold">₹ 5,98,399.00</span>
+                </div>
+            </div>
+        </div>
+        <div class="amount-words">
+            Total amount (in words): INR Five Lakh Ninety Eight Thousand Three Hundred And Ninety Nine Rupees Only.
+        </div>
+
+        <!-- Tax Breakdown Table -->
+        <table style="border: none; border-bottom: 1px solid #000;">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="text-align: left; vertical-align: middle;">HSN/SAC</th>
+                    <th rowspan="2" class="text-right" style="vertical-align: middle;">Taxable Value</th>
+                    <th colspan="2" class="text-center">Integrated Tax</th>
+                    <th rowspan="2" class="text-right" style="vertical-align: middle;">Total Tax Amount</th>
+                </tr>
+                <tr>
+                    <th class="text-center">Rate</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>87032200</td>
+                    <td class="text-right">₹ 5,05,000.00</td>
+                    <td class="text-center">15%</td>
+                    <td class="text-right">₹ 75,750.00</td>
+                    <td class="text-right">₹ 76,067.00</td>
+                </tr>
+                <tr>
+                    <td>87089900</td>
+                    <td class="text-right">₹ 2,117.80</td>
+                    <td class="text-center">15%</td>
+                    <td class="text-right">₹ 317.67</td>
+                    <td class="text-right">₹ 317.67</td>
+                </tr>
+                <tr>
+                    <td class="text-right bold">TOTAL</td>
+                    <td class="text-right bold">₹ 5,07,117.80</td>
+                    <td></td>
+                    <td class="text-right bold">₹ 76,067.67</td>
+                    <td class="text-right bold">₹ 76,067.67</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="success-text">Amount Paid</div>
+
+        <!-- Bottom Section: Bank, QR, Signature -->
+        <div class="bottom-section">
+            <div class="bank-details">
+                <div class="bold" style="margin-bottom: 5px;">Bank Details:</div>
+                <table style="border: none;">
+                    <tr>
+                        <td style="border: none; padding: 2px 5px 2px 0;">Bank:</td>
+                        <td style="border: none; padding: 2px;">YES BANK</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; padding: 2px 5px 2px 0;">Account #:</td>
+                        <td style="border: none; padding: 2px;">88789999222445</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; padding: 2px 5px 2px 0;">IFSC:</td>
+                        <td style="border: none; padding: 2px;">YESB0BN1267</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; padding: 2px 5px 2px 0;">Branch:</td>
+                        <td style="border: none; padding: 2px;">Kockalli</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="upi-section">
+                <div>Pay using UPI</div>
+                <div class="qr-placeholder"></div>
+            </div>
+            <div class="signature-section">
+                <div style="font-size: 10px;">For TATA MOTORS LIMITED</div>
+                <div class="stamp"></div>
+                <div style="font-size: 10px; margin-top: 10px;">Authorized Signatory</div>
+            </div>
+        </div>
+
+        <!-- Notes & Terms -->
+        <div class="footer-notes">
+            <div class="notes">
+                <div class="bold" style="margin-bottom: 5px;">Notes:</div>
+                <div>Thank you for the Business</div>
+            </div>
+            <div class="terms">
+                <div class="bold" style="margin-bottom: 5px;">Terms and Conditions:</div>
+                <ol style="margin: 0; padding-left: 15px; font-size: 10px;">
+                    <li>Goods once sold cannot be taken back or exchanged.</li>
+                    <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                    </li>
+                    <li>Interest @24% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                    <li>Subject to local Jurisdiction.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            Page 1/1 &nbsp;&nbsp;&nbsp; This is a digitally signed document.
+        </div>
+
+    </div>
+
+</body>
+
+</html>

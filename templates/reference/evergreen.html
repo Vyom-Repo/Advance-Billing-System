@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .header-bar {
+            border-bottom: 1px solid #000;
+            padding: 5px 10px;
+            align-items: center;
+        }
+
+        .title {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #1a3673;
+            letter-spacing: 1px;
+        }
+
+        .original-text {
+            flex: 1;
+            text-align: right;
+            color: #555;
+        }
+
+        .empty-space {
+            flex: 1;
+        }
+
+        .company-section {
+            border-bottom: 1px solid #000;
+        }
+
+        .company-details {
+            width: 50%;
+            padding: 10px;
+            border-right: 1px solid #000;
+            display: flex;
+        }
+
+        .logo {
+            width: 60px;
+            margin-right: 10px;
+        }
+
+        .logo svg {
+            width: 50px;
+            height: auto;
+        }
+
+        .company-text strong {
+            font-size: 12px;
+        }
+
+        .company-text p {
+            margin: 2px 0;
+        }
+
+        .invoice-details {
+            width: 50%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .inv-cell {
+            padding: 8px 10px;
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        .inv-cell:nth-child(even) {
+            border-right: none;
+        }
+
+        .inv-cell.no-border-bottom {
+            border-bottom: none;
+        }
+
+        .inv-cell strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .address-section {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .address-box {
+            width: 50%;
+            padding: 10px;
+        }
+
+        .address-box.left {
+            border-right: 1px solid #000;
+        }
+
+        .address-box p {
+            margin: 2px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: right;
+        }
+
+        th {
+            background-color: #fff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        th:nth-child(2),
+        td:nth-child(2) {
+            text-align: left;
+        }
+
+        .items-table th,
+        .items-table td {
+            border-top: none;
+        }
+
+        .items-table tr.last-item td {
+            padding-bottom: 40px;
+        }
+
+        .totals-row td {
+            border-top: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .tax-totals td {
+            border: none;
+            border-right: 1px solid #000;
+            padding: 2px 5px;
+        }
+
+        .tax-totals td:last-child {
+            border-right: none;
+        }
+
+        .amount-words {
+            padding: 5px 10px;
+            border-bottom: 1px solid #000;
+            border-top: 1px solid #000;
+        }
+
+        .tax-table th {
+            font-size: 10px;
+            padding: 4px;
+        }
+
+        .tax-table td {
+            font-size: 10px;
+        }
+
+        .paid-stamp {
+            text-align: right;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+        }
+
+        .paid-stamp span {
+            color: green;
+        }
+
+        .footer-section {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .bank-details {
+            width: 35%;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+
+        .bank-grid {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            row-gap: 4px;
+        }
+
+        .qr-section {
+            width: 30%;
+            padding: 10px;
+            border-right: 1px solid #000;
+            text-align: center;
+        }
+
+        .signature-section {
+            width: 35%;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .seal {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #1a3673;
+            border-radius: 50%;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a3673;
+            font-weight: bold;
+            transform: rotate(-15deg);
+            opacity: 0.8;
+        }
+
+        .notes-terms {
+            display: flex;
+        }
+
+        .notes {
+            width: 50%;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+
+        .terms {
+            width: 50%;
+            padding: 10px;
+        }
+
+        .terms ol {
+            margin: 5px 0 0 0;
+            padding-left: 15px;
+        }
+
+        .terms li {
+            margin-bottom: 3px;
+        }
+
+        .page-footer {
+            padding: 10px 0;
+            font-size: 10px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-box">
+        <!-- Header -->
+        <div class="flex header-bar">
+            <div class="empty-space"></div>
+            <div class="title">TAX INVOICE</div>
+            <div class="original-text">ORIGINAL FOR RECIPIENT</div>
+        </div>
+
+        <!-- Company & Invoice Details -->
+        <div class="flex company-section">
+            <div class="company-details">
+                <div class="logo">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20,20 Q20,80 50,80 Q80,80 80,20" fill="none" stroke="#1a3673" stroke-width="8" />
+                        <path d="M50,80 L50,90" stroke="#1a3673" stroke-width="8" />
+                        <circle cx="20" cy="20" r="5" fill="#1a3673" />
+                        <circle cx="80" cy="20" r="5" fill="#1a3673" />
+                        <circle cx="35" cy="50" r="4" fill="#1a3673" />
+                        <circle cx="65" cy="50" r="4" fill="#1a3673" />
+                        <circle cx="50" cy="65" r="4" fill="#1a3673" />
+                        <text x="50" y="98" font-size="16" font-weight="bold" fill="#1a3673" text-anchor="middle"
+                            font-family="Arial">Unilever</text>
+                    </svg>
+                </div>
+                <div class="company-text">
+                    <strong>Hindustan Unilever</strong>
+                    <p>GSTIN 27AAACT2727Q1ZW</p>
+                    <p>54, Whitefield Main Rd, Palm Meadows, White-<br>field</p>
+                    <p>Bengaluru, KARNATAKA, 560066</p>
+                    <p>Mobile 9977335551</p>
+                </div>
+            </div>
+            <div class="invoice-details">
+                <div class="inv-cell">
+                    <strong>Invoice #:</strong>
+                    INV-11
+                </div>
+                <div class="inv-cell">
+                    <strong>Invoice Date:</strong>
+                    15 Jun 2023
+                </div>
+                <div class="inv-cell no-border-bottom">
+                    <strong>Place of Supply</strong>
+                    20-KARNATAKA
+                </div>
+                <div class="inv-cell no-border-bottom">
+                    <strong>Due Date:</strong>
+                    15 Jun 2023
+                </div>
+            </div>
+        </div>
+
+        <!-- Addresses -->
+        <div class="address-section">
+            <div class="address-box left">
+                <strong>Customer Details:</strong><br>
+                <strong>Hein Schumacher</strong><br>
+                <strong>Billing address:</strong>
+                <p>Marathahalli - Sarjapur Outer Ring Road,</p>
+                <p>Kadubeesanahalli,</p>
+                <p>Bengaluru, KARNATAKA, 560037</p>
+                <p>Ph: 9999999999</p>
+            </div>
+            <div class="address-box">
+                <strong>Shipping address:</strong>
+                <p>Marathahalli - Sarjapur Outer Ring Road,</p>
+                <p>Kadubeesanahalli,</p>
+                <p>Bengaluru, KARNATAKA, 560037</p>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table" style="border-bottom: none;">
+            <thead>
+                <tr>
+                    <th style="width: 3%; border-left: none;">#</th>
+                    <th style="width: 35%;">Item</th>
+                    <th style="width: 12%;">HSN/SAC</th>
+                    <th style="width: 8%;">Tax</th>
+                    <th style="width: 10%;">Qty</th>
+                    <th style="width: 12%;">Rate/Item</th>
+                    <th style="width: 8%;">Per</th>
+                    <th style="width: 12%; border-right: none;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center; border-left: none;">1</td>
+                    <td>Colgate 200 gm</td>
+                    <td style="text-align: center;">33061020</td>
+                    <td style="text-align: center;">18%</td>
+                    <td style="text-align: right;">5 NOS</td>
+                    <td>84.41</td>
+                    <td style="text-align: center;">NOS</td>
+                    <td style="border-right: none;">322.03</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; border-left: none;">2</td>
+                    <td>Surf Excel Easy Wash Detergent Powder 1kg</td>
+                    <td style="text-align: center;">340119</td>
+                    <td style="text-align: center;">18%</td>
+                    <td style="text-align: right;">2 NOS</td>
+                    <td>126.27</td>
+                    <td style="text-align: center;">NOS</td>
+                    <td style="border-right: none;">252.54</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; border-left: none;">3</td>
+                    <td>Dove Soap</td>
+                    <td style="text-align: center;">34011919</td>
+                    <td style="text-align: center;">18%</td>
+                    <td style="text-align: right;">10 NOS</td>
+                    <td>33.05</td>
+                    <td style="text-align: center;">NOS</td>
+                    <td style="border-right: none;">330.51</td>
+                </tr>
+                <tr class="last-item">
+                    <td style="text-align: center; border-left: none;">4</td>
+                    <td>Head & Shoulders Shampoo</td>
+                    <td style="text-align: center;">3304</td>
+                    <td style="text-align: center;">18%</td>
+                    <td style="text-align: right;">5</td>
+                    <td>253.33</td>
+                    <td style="text-align: center;">Nos</td>
+                    <td style="border-right: none;">1,266.65</td>
+                </tr>
+                <tr class="tax-totals">
+                    <td colspan="6" style="text-align: right; font-weight: bold; border-left: none;">Taxable Amount</td>
+                    <td colspan="2" style="border-right: none; text-align: right;">₹2,172.03</td>
+                </tr>
+                <tr class="tax-totals">
+                    <td colspan="6" style="text-align: right; font-weight: bold; border-left: none;">CGST 9.0%</td>
+                    <td colspan="2" style="border-right: none; text-align: right;">₹195.49</td>
+                </tr>
+                <tr class="tax-totals">
+                    <td colspan="6"
+                        style="text-align: right; font-weight: bold; border-left: none; padding-bottom: 10px;">SGST 9.0%
+                    </td>
+                    <td colspan="2" style="border-right: none; text-align: right; padding-bottom: 10px;">₹195.49</td>
+                </tr>
+                <tr class="totals-row">
+                    <td colspan="4" style="text-align: right; border-left: none;">Total</td>
+                    <td style="text-align: right;">22.000</td>
+                    <td colspan="2" style="border-right: none;"></td>
+                    <td style="border-right: none;">₹2,563.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="amount-words">
+            Amount Chargeable (in words): INR Two Thousand, Five Hundred And Sixty-Three Rupees Only. &nbsp;&nbsp;&nbsp;
+            E & O.E.
+        </div>
+
+        <!-- Tax Table -->
+        <table class="tax-table" style="border-top: none; border-bottom: none;">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="border-left: none;">HSN/SAC</th>
+                    <th rowspan="2">Taxable Value</th>
+                    <th colspan="2">Central Tax</th>
+                    <th colspan="2">State Tax</th>
+                    <th rowspan="2" style="border-right: none;">Total Tax Amount</th>
+                </tr>
+                <tr>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: left; border-left: none;">33061020</td>
+                    <td>322.03</td>
+                    <td>9%</td>
+                    <td>28.98</td>
+                    <td>9%</td>
+                    <td>28.98</td>
+                    <td style="border-right: none;">57.97</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left; border-left: none;">340119</td>
+                    <td>252.54</td>
+                    <td>9%</td>
+                    <td>22.73</td>
+                    <td>9%</td>
+                    <td>22.73</td>
+                    <td style="border-right: none;">45.46</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left; border-left: none;">34011919</td>
+                    <td>330.51</td>
+                    <td>9%</td>
+                    <td>29.75</td>
+                    <td>9%</td>
+                    <td>29.75</td>
+                    <td style="border-right: none;">59.49</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left; border-left: none;">3304</td>
+                    <td>1266.65</td>
+                    <td>9%</td>
+                    <td>114.00</td>
+                    <td>9%</td>
+                    <td>114.00</td>
+                    <td style="border-right: none;">228.05</td>
+                </tr>
+                <tr class="totals-row">
+                    <td style="text-align: right; border-left: none;">TOTAL</td>
+                    <td>2,172.03</td>
+                    <td></td>
+                    <td>195.49</td>
+                    <td></td>
+                    <td>195.49</td>
+                    <td style="border-right: none;">390.97</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Footer Details -->
+        <div class="footer-section">
+            <div class="bank-details">
+                <strong>Bank Details:</strong>
+                <div class="bank-grid" style="margin-top: 5px;">
+                    <div>Bank:</div>
+                    <div><strong>YES BANK</strong></div>
+                    <div>Account #:</div>
+                    <div><strong>00708099222445</strong></div>
+                    <div>IFSC:</div>
+                    <div>YESB0000466</div>
+                    <div>Branch:</div>
+                    <div>Kodihalli</div>
+                </div>
+            </div>
+            <div class="qr-section">
+                <strong>Pay using UPI:</strong><br><br>
+                <svg width="80" height="80" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#fff" stroke="#000" />
+                    <rect x="10" y="10" width="20" height="20" fill="#000" />
+                    <rect x="70" y="10" width="20" height="20" fill="#000" />
+                    <rect x="10" y="70" width="20" height="20" fill="#000" />
+                    <!-- Dummy QR pattern -->
+                    <rect x="40" y="10" width="10" height="10" fill="#000" />
+                    <rect x="55" y="25" width="15" height="15" fill="#000" />
+                    <rect x="35" y="45" width="25" height="10" fill="#000" />
+                    <rect x="10" y="40" width="15" height="15" fill="#000" />
+                    <rect x="70" y="50" width="15" height="20" fill="#000" />
+                    <rect x="40" y="70" width="20" height="20" fill="#000" />
+                    <rect x="80" y="80" width="10" height="10" fill="#000" />
+                </svg>
+            </div>
+            <div class="signature-section">
+                <div style="text-align: right; font-size: 10px;">For Hindustan Unilever</div>
+                <div class="seal">
+                    <div style="text-align: center; line-height: 1.2;">
+                        <span style="font-size: 8px;">HINDUSTAN UNILEVER</span><br>
+                        SIGNATURE<br>
+                        <span style="font-size: 8px;">AUTHORIZED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes & Terms -->
+        <div class="notes-terms">
+            <div class="notes">
+                <strong>Notes:</strong><br>
+                Thank you for the Business
+            </div>
+            <div class="terms">
+                <strong>Terms & Conditions:</strong>
+                <ol>
+                    <li>Goods once sold cannot be taken back or exchanged.</li>
+                    <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                    </li>
+                    <li>Interest @24% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                    <li>Subject to local Jurisdiction.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-footer" style="max-width: 800px; margin: 0 auto;">
+        <span>Page 1 / 1</span>
+        <strong>This is a digitally signed document.</strong>
+    </div>
+
+</body>
+
+</html>

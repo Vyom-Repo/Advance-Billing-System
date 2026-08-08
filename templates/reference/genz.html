@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenZ - Tax Invoice</title>
+
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #e9e9e9;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+        }
+
+        body {
+            padding: 18px;
+        }
+
+        .invoice {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            font-size: 8.2px;
+            line-height: 1.18;
+        }
+
+        /* ---------- TOP BRAND BAR ---------- */
+
+        .brand-bar {
+            height: 27mm;
+            background: #3158f5;
+            color: #fff;
+            padding: 5mm 7mm 0;
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+
+        .invoice-label {
+            font-size: 7px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        /* ---------- MAIN CONTENT ---------- */
+
+        .content {
+            padding: 5mm 8mm 4mm;
+        }
+
+        .company-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12mm;
+            padding: 0 2mm 3mm;
+        }
+
+        .company-block {
+            min-height: 19mm;
+        }
+
+        .company-title {
+            font-size: 9px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .small {
+            font-size: 7.2px;
+            line-height: 1.25;
+        }
+
+        .gstin {
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        /* ---------- INVOICE META ---------- */
+
+        .meta-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin: 2mm 0 3mm;
+        }
+
+        .meta-cell {
+            background: #f4f5f8;
+            min-height: 9mm;
+            padding: 3mm 2.5mm;
+            font-size: 7px;
+        }
+
+        .meta-cell strong {
+            font-weight: 700;
+        }
+
+        /* ---------- BILLING ---------- */
+
+        .billing-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+            margin-bottom: 4mm;
+        }
+
+        .billing-box {
+            background: #f4f5f8;
+            min-height: 19mm;
+            padding: 3mm;
+        }
+
+        .section-title {
+            font-size: 7.5px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        /* ---------- ITEMS ---------- */
+
+        .items-table,
+        .tax-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .items-table th {
+            background: #3158f5;
+            color: #fff;
+            border: 1px solid #3158f5;
+            padding: 2.4mm 1.5mm;
+            font-size: 7px;
+            font-weight: 700;
+        }
+
+        .items-table td {
+            border-bottom: 1px solid #d5d5d5;
+            padding: 2mm 1.5mm;
+            vertical-align: top;
+            font-size: 7px;
+        }
+
+        .items-table .num {
+            text-align: center;
+        }
+
+        .items-table .money {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .desc {
+            font-weight: 600;
+        }
+
+        .desc-sub {
+            font-weight: 400;
+            margin-top: 2px;
+            line-height: 1.25;
+        }
+
+        .product-images {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2mm;
+            margin-top: 3mm;
+            max-width: 72mm;
+        }
+
+        .product-card {
+            height: 23mm;
+            border-radius: 2mm;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:nth-child(1) {
+            background: linear-gradient(135deg, #dbe8d0, #77a56e);
+        }
+
+        .product-card:nth-child(2) {
+            background: linear-gradient(135deg, #f4d7d9, #e9b9bf);
+        }
+
+        .product-card:nth-child(3) {
+            background: linear-gradient(135deg, #f0d9df, #d6aebc);
+        }
+
+        .watch {
+            position: absolute;
+            width: 12mm;
+            height: 12mm;
+            border-radius: 50%;
+            background: #151515;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #333;
+        }
+
+        .watch::after {
+            content: "";
+            position: absolute;
+            width: 3mm;
+            height: 3mm;
+            border-radius: 50%;
+            background: #eee;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .phone-strip {
+            display: flex;
+            gap: 2mm;
+            margin-top: 3mm;
+            max-width: 72mm;
+        }
+
+        .phone {
+            width: 16mm;
+            height: 21mm;
+            border-radius: 2mm;
+            background: #222;
+            border: 2px solid #777;
+        }
+
+        .phone:nth-child(2) {
+            background: #111;
+        }
+
+        .phone:nth-child(3) {
+            background: #d5b7a2;
+        }
+
+        .phone:nth-child(4) {
+            background: #ececec;
+        }
+
+        .phone:nth-child(5) {
+            background: #222;
+        }
+
+        /* ---------- TOTAL AREA ---------- */
+
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 62mm;
+            margin-top: 1mm;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+
+        .summary-left {
+            padding: 2mm 2mm;
+        }
+
+        .summary-right {
+            padding: 2mm 2mm;
+            text-align: right;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 1px 0;
+            font-size: 7px;
+        }
+
+        .summary-line.total {
+            background: #3158f5;
+            color: #fff;
+            font-weight: 700;
+            padding: 2mm 2mm;
+            margin-top: 1mm;
+            border-radius: 1mm;
+            font-size: 8px;
+        }
+
+        .summary-line.grand {
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 2mm;
+        }
+
+        /* ---------- BANK / PAYMENT / SIGNATURE ---------- */
+
+        .footer-main {
+            display: grid;
+            grid-template-columns: 1fr 37mm 1fr;
+            border-bottom: 1px solid #999;
+            margin-top: 3mm;
+            min-height: 31mm;
+        }
+
+        .footer-box {
+            padding: 2.5mm;
+            border-right: 1px solid #aaa;
+        }
+
+        .footer-box:last-child {
+            border-right: none;
+        }
+
+        .bank-line {
+            font-size: 6.8px;
+            margin-bottom: 1.3mm;
+        }
+
+        .qr {
+            width: 25mm;
+            height: 25mm;
+            margin: 0 auto;
+            background:
+                linear-gradient(90deg, #111 10%, transparent 10% 20%, #111 20% 30%, transparent 30% 40%, #111 40% 50%, transparent 50% 60%, #111 60% 70%, transparent 70% 80%, #111 80% 90%, transparent 90%),
+                linear-gradient(#111 10%, transparent 10% 20%, #111 20% 30%, transparent 30% 40%, #111 40% 50%, transparent 50% 60%, #111 60% 70%, transparent 70% 80%, #111 80% 90%, transparent 90%);
+            background-size: 5px 5px;
+            border: 2px solid #111;
+        }
+
+        .qr-title {
+            text-align: center;
+            font-size: 6.5px;
+            font-weight: 700;
+            margin-bottom: 1mm;
+        }
+
+        .signature-area {
+            height: 25mm;
+            position: relative;
+        }
+
+        .signature {
+            position: absolute;
+            right: 0;
+            bottom: 3mm;
+            font-family: cursive;
+            font-size: 12px;
+            transform: rotate(-7deg);
+        }
+
+        .signature-label {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            font-size: 6px;
+        }
+
+        /* ---------- BOTTOM ---------- */
+
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8mm;
+            margin-top: 4mm;
+            font-size: 6.5px;
+        }
+
+        .terms-title {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .footer-link {
+            color: #3158f5;
+            text-decoration: underline;
+            margin-top: 8mm;
+            font-size: 6.3px;
+        }
+
+        .page-number {
+            margin-top: 1mm;
+            font-size: 6px;
+            color: #444;
+        }
+
+        @media print {
+
+            html,
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .invoice {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice">
+
+        <!-- BLUE GOOGLE BRAND HEADER -->
+        <div class="brand-bar">
+            <div class="brand-name">Google</div>
+            <div class="invoice-label">TAX INVOICE</div>
+        </div>
+
+        <div class="content">
+
+            <!-- COMPANY / GSTIN -->
+            <div class="company-row">
+                <div class="company-block">
+                    <div class="company-title">Alphabet Inc.</div>
+                    <div class="small">
+                        Google India Pvt. Ltd Tower 2, Rajapusa, Gurugram, Haryana<br>
+                        Gurgaon, HARYANA, 122002
+                    </div>
+                </div>
+
+                <div class="company-block">
+                    <div class="small">
+                        <strong>GSTIN 06CCD3456FFCD22</strong><br>
+                        Mobile +91 99999966661<br>
+                        Email: info@google.com<br>
+                        Website: www.google.com
+                    </div>
+                </div>
+            </div>
+
+            <!-- INVOICE META -->
+            <div class="meta-row">
+                <div class="meta-cell">
+                    <strong>Invoice #:</strong> INV-2
+                </div>
+                <div class="meta-cell">
+                    <strong>Invoice Date:</strong> 28 Dec 2024
+                </div>
+                <div class="meta-cell">
+                    <strong>Due Date:</strong> 28 Dec 2024
+                </div>
+            </div>
+
+            <!-- CUSTOMER / BILLING -->
+            <div class="billing-row">
+                <div class="billing-box">
+                    <div class="section-title">Customer Details:</div>
+                    <div class="small">
+                        Shree Padmanabha<br>
+                        Ph: 9098675431
+                    </div>
+                </div>
+
+                <div class="billing-box">
+                    <div class="section-title">Billing Address:</div>
+                    <div class="small">
+                        2024 Land, Santa Street 205<br>
+                        Rohini<br>
+                        HARYANA<br>
+                        Place of Supply: 06-HARYANA
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEMS -->
+            <table class="items-table">
+                <colgroup>
+                    <col style="width: 5%">
+                    <col style="width: 48%">
+                    <col style="width: 18%">
+                    <col style="width: 11%">
+                    <col style="width: 18%">
+                </colgroup>
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Item</th>
+                        <th>Rate / Item</th>
+                        <th>Qty</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td class="num">1</td>
+                        <td>
+                            <div class="desc">Pixel Watch 3</div>
+                            <div class="desc-sub">
+                                24 hours of battery with always-on display.<br>
+                                Track your performance and 40+ exercises.
+                            </div>
+
+                            <div class="product-images">
+                                <div class="product-card">
+                                    <div class="watch"></div>
+                                </div>
+                                <div class="product-card">
+                                    <div class="watch"></div>
+                                </div>
+                                <div class="product-card">
+                                    <div class="watch"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="money">
+                            ₹21,019.65<br>
+                            <span class="small">26,271.19 (-20%)</span>
+                        </td>
+                        <td class="num">3 PCS</td>
+                        <td class="money">₹63,058.05</td>
+                    </tr>
+
+                    <tr>
+                        <td class="num">2</td>
+                        <td>
+                            <div class="desc">Google Pixel 9 Pro</div>
+                            <div class="desc-sub">
+                                HSN: 85171211<br>
+                                1080 x 2400 OLED at 422 PPI<br>
+                                Up to 100-hour battery life
+                            </div>
+
+                            <div class="phone-strip">
+                                <div class="phone"></div>
+                                <div class="phone"></div>
+                                <div class="phone"></div>
+                                <div class="phone"></div>
+                                <div class="phone"></div>
+                            </div>
+                        </td>
+                        <td class="money">₹97,457.83</td>
+                        <td class="num">1 PCS</td>
+                        <td class="money">₹97,457.83</td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <!-- BANK + SHIPPING + TAXABLE / TOTAL -->
+            <div class="summary">
+
+                <div class="summary-left">
+                    <div class="small">
+                        <strong>Bank Details:</strong><br>
+                        Bank: ICICI Limited<br>
+                        Account #: ICICI33470467993571<br>
+                        IFSC Code: ICIC0000188<br>
+                        Branch: GURGAON<br>
+                        Total amount (in words): One Lakh Ninety, Ninety Thousand...
+                    </div>
+                </div>
+
+                <div class="summary-right">
+                    <div class="summary-line">
+                        <span>Delivery/Shipping Charges</span>
+                        <span>₹846.61</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Taxable Amount</span>
+                        <span>₹1,81,355.88</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>CGST 9.0%</span>
+                        <span>₹16,521.96</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>SGST 9.0%</span>
+                        <span>₹16,521.96</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>Total</span>
+                        <span>₹1,91,399.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Total Discount</span>
+                        <span>₹18,000.00</span>
+                    </div>
+                    <div class="summary-line grand">
+                        <span>Amount Payable</span>
+                        <span>₹1,90,399.00</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BANK / QR / SIGNATURE -->
+            <div class="footer-main">
+
+                <div class="footer-box">
+                    <div class="section-title">Bank Details:</div>
+                    <div class="bank-line"><strong>Bank:</strong> ICICI Limited</div>
+                    <div class="bank-line"><strong>Account #:</strong> ICICI33470467993571</div>
+                    <div class="bank-line"><strong>IFSC Code:</strong> ICIC0000188</div>
+                    <div class="bank-line"><strong>Branch:</strong> GURGAON</div>
+                </div>
+
+                <div class="footer-box">
+                    <div class="qr-title">Pay using UPI</div>
+                    <div class="qr"></div>
+                </div>
+
+                <div class="footer-box">
+                    <div class="signature-area">
+                        <div class="signature">Authorized Sign</div>
+                        <div class="signature-label">Authorized Signatory</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- NOTES / TERMS -->
+            <div class="bottom-row">
+                <div>
+                    <div class="terms-title">Notes:</div>
+                    Thank you for the business.
+                </div>
+
+                <div>
+                    <div class="terms-title">Terms and Conditions:</div>
+                    1. Goods once sold cannot be taken back.<br>
+                    2. We are not responsible for delays caused by third parties.<br>
+                    3. Interest will be charged for delayed payment.
+                </div>
+            </div>
+
+            <div class="footer-link">
+                Swiggy | Simple Invoicing, Billing and Payments | Visit swiggy.com
+            </div>
+
+            <div class="page-number">
+                Page 1 / 1 &nbsp; | &nbsp; This is a digitally signed document.
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - Marico</title>
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: #525659;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .invoice-container {
+            background-color: #ffffff;
+            width: 210mm;
+            /* A4 Width */
+            min-height: 297mm;
+            /* A4 Height */
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: #111;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #1f4e79;
+        }
+
+        .logo-placeholder {
+            width: 60px;
+            height: 40px;
+            background: linear-gradient(135deg, #a8d08d 50%, #2f5597 50%);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .invoice-title p {
+            font-size: 10px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Company Info Section */
+        .company-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .company-details {
+            max-width: 60%;
+        }
+
+        .company-details h2 {
+            color: #1f4e79;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .contact-details {
+            display: grid;
+            grid-template-columns: 60px auto;
+            row-gap: 3px;
+        }
+
+        .contact-details span {
+            font-weight: bold;
+        }
+
+        .gstin {
+            margin-top: 10px;
+        }
+
+        /* Addresses Section */
+        .addresses-container {
+            display: flex;
+            background-color: #f2f2f2;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .address-box {
+            flex: 1;
+            padding-right: 15px;
+        }
+
+        .address-box:last-child {
+            padding-right: 0;
+            border-left: 1px solid #ccc;
+            padding-left: 15px;
+        }
+
+        .address-box-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 80px auto;
+            row-gap: 3px;
+        }
+
+        .detail-grid span:first-child {
+            font-weight: bold;
+        }
+
+        /* Table Section */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+        }
+
+        td {
+            padding: 12px 8px;
+            vertical-align: top;
+            border-bottom: 1px solid #eee;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .hsn-code {
+            color: #666;
+            font-size: 10px;
+        }
+
+        /* Totals Section */
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 150px 80px;
+            row-gap: 5px;
+            text-align: right;
+        }
+
+        .totals-grid .grand-total {
+            font-size: 14px;
+            font-weight: bold;
+            padding-top: 10px;
+            margin-top: 5px;
+            border-top: 1px solid #ccc;
+        }
+
+        /* Summary Row */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Payment & Signatures */
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .payment-info {
+            display: flex;
+            gap: 30px;
+        }
+
+        .qr-code-box h3 {
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .qr-placeholder {
+            width: 80px;
+            height: 80px;
+            background-color: #eee;
+            border: 1px dashed #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .bank-details h3 {
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .bank-grid {
+            display: grid;
+            grid-template-columns: 70px auto;
+            row-gap: 3px;
+        }
+
+        .bank-grid span:first-child {
+            color: #666;
+        }
+
+        .signature-box {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .stamp-placeholder {
+            width: 90px;
+            height: 90px;
+            border: 1px solid #2f5597;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2f5597;
+            font-size: 10px;
+            transform: rotate(-15deg);
+            margin: 10px 0;
+            opacity: 0.7;
+        }
+
+        /* Terms & Notes */
+        .notes-section {
+            margin-bottom: 15px;
+        }
+
+        .notes-section h3 {
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .terms-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 40px;
+        }
+
+        .terms-list li {
+            margin-bottom: 3px;
+        }
+
+        /* Receiver Signature */
+        .receiver-sig {
+            margin-bottom: 30px;
+        }
+
+        /* Footer */
+        .footer {
+            font-size: 10px;
+            color: #555;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <!-- Replace with actual logo image -->
+                <div class="logo-placeholder">M</div>
+                <div class="logo-text">marico</div>
+            </div>
+            <div class="invoice-title">
+                <h1>TAX INVOICE</h1>
+                <p>ORIGINAL FOR RECIPIENT</p>
+            </div>
+        </div>
+
+        <!-- Company Info -->
+        <div class="company-info-row">
+            <div class="company-details">
+                <h2>Marico Limited</h2>
+                <p>7th Floor, Grande Palladium</p>
+                <p>175, CST Road, Kalina</p>
+                <p>Santacruz East, Mumbai, Maharashtra, 400008</p>
+                <p class="gstin"><strong>GSTIN :</strong> 27AAACM3452J12X</p>
+            </div>
+            <div class="contact-details">
+                <span>Phone</span> <span>+91 22 6648 0490</span>
+                <span>Email</span> <span>consumer@marico.com</span>
+                <span>Website</span> <span>www.marico.com</span>
+            </div>
+        </div>
+
+        <!-- Addresses & Details -->
+        <div class="addresses-container">
+            <div class="address-box">
+                <div class="address-box-title">Bill To</div>
+                <p><strong>Rohan Sharma</strong></p>
+                <p>Flat No. 302, Sai Residency</p>
+                <p>Madhapur Main Road</p>
+                <p>Hyderabad, Telangana, 500081</p>
+            </div>
+            <div class="address-box">
+                <div class="address-box-title">Ship To</div>
+                <p><strong>Rohan Sharma</strong></p>
+                <p>Flat No. 302, Sai Residency</p>
+                <p>Madhapur Main Road</p>
+                <p>Hyderabad, Telangana, 500081</p>
+            </div>
+            <div class="address-box">
+                <div class="address-box-title">Details</div>
+                <div class="detail-grid">
+                    <span>Invoice No</span> <span>INV - 1</span>
+                    <span>Invoice Date</span> <span>19 Mar 2026</span>
+                    <span>Due Date</span> <span>19 Mar 2026</span>
+                    <span>Place of Supply</span> <span>TELANGANA</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Description</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-right">Rate</th>
+                    <th class="text-right">Tax</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="item-name">Fiama Shower Gel (Pack of 2)</div>
+                        <div class="hsn-code">HSN 690712</div>
+                    </td>
+                    <td>Premium Skin Care Range</td>
+                    <td class="text-center">2</td>
+                    <td class="text-right">325.00</td>
+                    <td class="text-right">58.50 (18%)</td>
+                    <td class="text-right">767.00</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="item-name">Savlon Hand Sanitizer (500ml)</div>
+                        <div class="hsn-code">HSN 690712</div>
+                    </td>
+                    <td>Disinfectant Liquid</td>
+                    <td class="text-center">1</td>
+                    <td class="text-right">150.00</td>
+                    <td class="text-right">45.00 (18%)</td>
+                    <td class="text-right">225.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals-section">
+            <div class="totals-grid">
+                <div>Delivery Charges</div>
+                <div>100.00</div>
+                <div>CGST (9%)</div>
+                <div>194.50</div>
+                <div>SGST (9%)</div>
+                <div>194.50</div>
+                <div class="grand-total">Total</div>
+                <div class="grand-total">&#8377;1,206.00</div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-row">
+            <div>Total Items / Qty : 2 / 3.000</div>
+            <div>Total amount (in words): INR One thousand two hundred and six rupees only</div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="bottom-section">
+            <div class="payment-info">
+                <div class="qr-code-box">
+                    <h3>Pay using UPI</h3>
+                    <!-- Replace with actual QR Code image -->
+                    <div class="qr-placeholder">QR Code</div>
+                </div>
+                <div class="bank-details">
+                    <h3>Bank Details:</h3>
+                    <div class="bank-grid">
+                        <span>Bank:</span> <strong>HDFC Bank</strong>
+                        <span>Account N:</span> <strong>502000324587801</strong>
+                        <span>IFSC Code:</span> <strong>HDFC0000240</strong>
+                        <span>Branch:</span> <strong>Kalina, Santacruz East, Mumbai</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-box">
+                <div>For Marico Limited</div>
+                <!-- Replace with actual stamp/signature image -->
+                <div class="stamp-placeholder">STAMP & SIGN</div>
+                <div>Authorized Signatory</div>
+            </div>
+        </div>
+
+        <!-- Notes & Terms -->
+        <div class="notes-section">
+            <h3>Notes</h3>
+            <p>Thank you for the Business!</p>
+        </div>
+
+        <div class="notes-section">
+            <h3>Terms & Condition</h3>
+            <ul class="terms-list">
+                <li>1. Goods once sold cannot be taken back or exchanged.</li>
+                <li>2. Interest @24% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                <li>3. Subject to local Jurisdiction.</li>
+            </ul>
+        </div>
+
+        <div class="receiver-sig">
+            Receiver's Signature: ______________________
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Page 1 / 1 | This is a digitally signed document
+        </div>
+
+    </div>
+
+</body>
+
+</html>

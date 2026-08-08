@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Replica</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #000;
+        }
+
+        .invoice-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: #fff;
+            margin: auto;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-placeholder {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-inner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid white;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-inner-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .brand-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: 36px;
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .tax-invoice-text {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 15px;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .header-right h2 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+        }
+
+        .divider {
+            height: 2px;
+            background-color: #E600A0;
+            /* Magenta-ish line */
+            margin: 15px 0;
+            border: none;
+        }
+
+        /* Bill To Section */
+        .details-section {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .details-left {
+            width: 50%;
+        }
+
+        .details-right {
+            width: 40%;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 2px 0;
+        }
+
+        .info-table td:nth-child(1) {
+            text-align: right;
+            padding-right: 15px;
+            width: 60%;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+            font-weight: normal;
+        }
+
+        /* Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .items-table th {
+            background-color: #F000DF;
+            /* Magenta header */
+            color: white;
+            padding: 6px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .items-table th.right-align,
+        .items-table td.right-align {
+            text-align: right;
+        }
+
+        .items-table th.center-align,
+        .items-table td.center-align {
+            text-align: center;
+        }
+
+        .items-table td {
+            padding: 6px;
+            vertical-align: top;
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* Totals */
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+
+        .totals-table {
+            width: 40%;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 3px 6px;
+            text-align: right;
+        }
+
+        .totals-table tr.total-row td {
+            font-weight: bold;
+            font-size: 14px;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 5px 6px;
+        }
+
+        /* Footers */
+        .amount-words-section {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            border-bottom: 1px solid #E600A0;
+            /* Magenta bottom line */
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .payable-section {
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        /* Bank & QR */
+        .payment-section {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 30px;
+        }
+
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000);
+            background-position: 0 0, 4px 4px;
+            background-size: 8px 8px;
+            border: 2px solid #000;
+        }
+
+        .bank-details {
+            width: 40%;
+        }
+
+        .bank-table {
+            border-collapse: collapse;
+        }
+
+        .bank-table td {
+            padding: 2px 10px 2px 0;
+        }
+
+        .signature-section {
+            text-align: center;
+        }
+
+        .stamp {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px auto;
+            color: #2c2999;
+            font-size: 10px;
+            font-weight: bold;
+            transform: rotate(-15deg);
+            border-style: dashed;
+        }
+
+        /* Terms */
+        .terms-section {
+            font-size: 10px;
+            line-height: 1.3;
+        }
+
+        .terms-section ol {
+            padding-left: 15px;
+            margin-top: 5px;
+        }
+
+        /* Footer Text */
+        .footer-text {
+            font-size: 9px;
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-row">
+                    <div class="logo-placeholder">
+                        <div class="logo-inner">
+                            <div class="logo-inner-dot"></div>
+                        </div>
+                    </div>
+                    <div class="brand-name">Instagram</div>
+                </div>
+                <div class="tax-invoice-text">TAX INVOICE</div>
+            </div>
+            <div class="header-right">
+                <h2>Instagram</h2>
+                GSTIN 36ABCCS2942R1ZR<br>
+                Block 3, Indira Nagar, Gachibowli<br>
+                Hyderabad, TELANGANA, 500032<br>
+                Mobile <strong>9999999999</strong>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Details -->
+        <div class="details-section">
+            <div class="details-left">
+                Bill To:<br>
+                <strong>Adam Mossori</strong><br>
+                <strong>GSTIN: 27ABCCS2942R1ZR</strong><br>
+                Ph: 9999999999<br>
+                Survey 115/1, ISB Rd, Financial District<br>
+                Gachibowli, Nanakaramguda,<br>
+                Hyderabad, TELANGANA, 500032<br><br>
+                Ship to:<br>
+                Survey 115/1, ISB Rd, Financial District<br>
+                Gachibowli, Nanakaramguda,<br>
+                Hyderabad, TELANGANA, 500032
+            </div>
+            <div class="details-right">
+                <table class="info-table">
+                    <tr>
+                        <td>Invoice #:</td>
+                        <td><strong>INV-1</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Invoice Date:</td>
+                        <td>16 Jun 2023</td>
+                    </tr>
+                    <tr>
+                        <td>Due Date:</td>
+                        <td>16 Jun 2023</td>
+                    </tr>
+                    <tr>
+                        <td>Place of Supply:</td>
+                        <td>36-TELANGANA</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 55%;">Description</th>
+                    <th class="center-align" style="width: 20%;">HSN/SAC</th>
+                    <th class="right-align" style="width: 20%;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>
+                        <strong>Digital Marketing</strong><br><br>
+                        Facebook Ads for 1 Month - 5 Paid campaigns - 20 Ads<br>
+                        Instagram Ad - Organic + Reels and Story Ads
+                    </td>
+                    <td class="center-align">45346</td>
+                    <td class="right-align">21,186.00</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><strong>Logo Designing</strong></td>
+                    <td class="center-align">-</td>
+                    <td class="right-align">5,000.00</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><strong>Professional fee</strong></td>
+                    <td class="center-align">-</td>
+                    <td class="right-align">1,694.92</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals-section">
+            <table class="totals-table">
+                <tr>
+                    <td>Taxable Amount</td>
+                    <td>₹27,880.92</td>
+                </tr>
+                <tr>
+                    <td>CGST 9.0%</td>
+                    <td>₹2,509.28</td>
+                </tr>
+                <tr>
+                    <td>SGST 9.0%</td>
+                    <td>₹2,509.28</td>
+                </tr>
+                <tr>
+                    <td>Round Off</td>
+                    <td>-0.40</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total</td>
+                    <td>₹32,899.00</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="amount-words-section">
+            <div>Total Items / Qty : 3 / 3.000</div>
+            <div>Total amount (in words): INR Thirty-Two Thousand, Eight Hundred And Ninety- Nine Rupees Only.</div>
+        </div>
+
+        <div class="payable-section">
+            Amount Payable: ₹ 17,899.00<br>
+            <strong>Amount Peid: ₹ 15,000.00</strong><br>
+            ₹15000 Paid via UPI on 16-05-2023
+        </div>
+
+        <!-- Payment & Bank -->
+        <div class="payment-section">
+            <div>
+                <div>Pay using UPI:</div>
+                <div class="qr-code"></div>
+            </div>
+
+            <div class="bank-details">
+                <strong>Bank Details:</strong><br>
+                <table class="bank-table">
+                    <tr>
+                        <td>Bank:</td>
+                        <td><strong>YES BANK</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Account #:</td>
+                        <td><strong>66789999222445</strong></td>
+                    </tr>
+                    <tr>
+                        <td>IFSC:</td>
+                        <td><strong>YESB0000457</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Branch:</td>
+                        <td>Kodihalli</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="signature-section">
+                <div style="font-size: 10px; margin-bottom: 5px;">For Instagram</div>
+                <div class="stamp">NATURE</div>
+            </div>
+        </div>
+
+        <!-- Terms -->
+        <div class="terms-section">
+            <strong>Notes:</strong><br>
+            Thank you for the Business<br><br>
+            <strong>Terms and Conditions:</strong>
+            <ol style="list-style-type: decimal; margin-bottom: 0;">
+                <li>Goods once sold cannot be taken back or exchanged.</li>
+                <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                </li>
+                <li>Interest @24% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                <li>Subject to local Jurisdiction.</li>
+            </ol>
+        </div>
+
+        <div class="footer-text">
+            <span>Page 1/1</span>
+            <span>This is a digitally signed document</span>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

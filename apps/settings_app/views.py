@@ -9,8 +9,8 @@ import django
 from django.conf import settings
 
 from apps.common.mixins import BillingLoginRequiredMixin, PageTitleMixin
-from .forms import UserProfileForm, SettingsPasswordChangeForm, InvoicePreferenceForm
-from .models import UserPreference, InvoicePreference
+from .forms import UserProfileForm, SettingsPasswordChangeForm, InvoicePreferenceForm, DocumentPreferenceForm
+from .models import UserPreference, InvoicePreference, DocumentPreference
 
 
 class SettingsProfileView(BillingLoginRequiredMixin, PageTitleMixin, UpdateView):
@@ -304,4 +304,122 @@ class SettingsInvoicePreferencesView(BillingLoginRequiredMixin, PageTitleMixin, 
     def form_valid(self, form):
         messages.success(self.request, "Invoice preferences updated successfully.")
         return super().form_valid(form)
+
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
+import json
+try:
+    from weasyprint import HTML
+except ImportError:
+    HTML = None
+
+
+
+class SettingsInvoiceDesignView(BillingLoginRequiredMixin, PageTitleMixin, UpdateView):
+    template_name = "settings_app/invoice_design.html"
+    form_class = DocumentPreferenceForm
+    success_url = reverse_lazy("settings_app:invoice_design")
+    page_title = "Invoice Design — Advance Billing"
+    
+    def get_object(self, queryset=None):
+        obj, created = DocumentPreference.objects.get_or_create(user=self.request.user)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from apps.common.services.organization_service import OrganizationService
+        org_data = OrganizationService.get_company_assets(self.request.user)
+        
+        has_logo = False
+        has_letterhead = False
+        has_signature = False
+        has_bank = False
+        
+        if org_data:
+            has_logo = bool(org_data.get("logo"))
+            has_letterhead = bool(org_data.get("letterhead"))
+            has_signature = bool(org_data.get("signature"))
+            has_bank = bool(org_data.get("default_bank"))
+            
+        context['has_logo'] = has_logo
+        context['has_letterhead'] = has_letterhead
+        context['has_signature'] = has_signature
+        context['has_bank'] = has_bank
+
+        TEMPLATE_DISPLAY_NAMES = {
+            'gst_classic': 'GST Classic',
+            'flipkart_invoice': 'Flipkart Invoice',
+            'retail_gst_compact': 'Retail GST Compact',
+            'evergreen': 'Evergreen Template',
+            'compact_template': 'Compact Template',
+            'genz': 'GenZ Template',
+            'landscape_template': 'Landscape GST Invoice',
+            'modern_template': 'Modern Invoice',
+            'mrp_discount_template': 'MRP + Discount Invoice',
+            'professional_template': 'Professional Invoice',
+            'service_template': 'Service Invoice',
+            'vintage': 'Vintage Invoice',
+        }
+        obj = self.get_object()
+        context['active_template_title'] = TEMPLATE_DISPLAY_NAMES.get(obj.template_name, obj.template_name)
+        return context
+        
+    def form_valid(self, form):
+        # Set onboarding completed to True after any save
+        form.instance.onboarding_completed = True
+        form.instance.save()
+        messages.success(self.request, "Invoice design preferences saved successfully.")
+        return super().form_valid(form)
+
+class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
+    """
+    Renders the HTML template based on provided JSON preferences.
+    """
+    def post(self, request, *args, **kwargs):
+        try:
+            from apps.invoices.services.invoice_preview_service import InvoicePreviewService
+            data = json.loads(request.body)
+            # data contains the form fields
+            template_name = data.get("template_name", "professional")
+            
+            context = InvoicePreviewService.get_preview_context(request.user, custom_prefs=data)
+            
+            template_path = f"pdf/{template_name}.html"
+            html_string = render_to_string(template_path, context)
+            
+            if not HTML:
+                return HttpResponse(html_string, content_type="text/html")
+                
+            pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+            
+            return HttpResponse(pdf_file, content_type="application/pdf")
+        except Exception as e:
+            return HttpResponse(f"<div style='color:red; padding:20px;'>Error rendering preview: {str(e)}</div>", status=400)
+
+class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
+    """
+    Generates a PDF using WeasyPrint based on the user's saved preferences.
+    """
+    def get(self, request, *args, **kwargs):
+        if not HTML:
+            return HttpResponse("WeasyPrint is not installed or configured correctly.", status=500)
+            
+        from apps.invoices.services.invoice_preview_service import InvoicePreviewService
+        
+        context = InvoicePreviewService.get_preview_context(request.user)
+        prefs = context.get("prefs", {})
+        if not prefs:
+            return HttpResponse("No preferences found.", status=404)
+        
+        template_name = prefs.get("template_name", "professional")
+        template_path = f"pdf/{template_name}.html"
+        
+        html_string = render_to_string(template_path, context)
+        
+        # WeasyPrint generation
+        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+        
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Preview_Document.pdf"'
+        return response
 

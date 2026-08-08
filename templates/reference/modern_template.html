@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.4;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #eee;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .header-left {
+            max-width: 60%;
+        }
+
+        .tax-invoice-title {
+            color: #2b579a;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .amazon-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .header-right {
+            text-align: right;
+            max-width: 35%;
+        }
+
+        .original-text {
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .amazon-logo {
+            width: 150px;
+            margin-top: 5px;
+        }
+
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-column {
+            width: 30%;
+        }
+
+        .info-column strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .place-of-supply {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            line-height: 1.4;
+            text-align: left;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 8px 5px;
+            font-weight: bold;
+        }
+
+        table td {
+            padding: 8px 5px;
+            vertical-align: top;
+        }
+
+        .right-align {
+            text-align: right;
+        }
+
+        .totals-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 4px 5px;
+        }
+
+        .total-row {
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        .summary-row {
+            border-bottom: 1px solid #000;
+        }
+
+        .amount-payable {
+            font-weight: bold;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .footer-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .qr-section,
+        .bank-section,
+        .signature-section {
+            width: 30%;
+        }
+
+        .qr-placeholder {
+            width: 90px;
+            height: 90px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+            border: 1px solid #999;
+            margin-top: 5px;
+        }
+
+        .bank-details-table {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .bank-details-table td {
+            padding: 2px 0;
+            font-size: 11px;
+        }
+
+        .signature-section {
+            text-align: right;
+            position: relative;
+        }
+
+        .seal-placeholder {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #5a5a9c;
+            border-radius: 50%;
+            display: inline-block;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5a5a9c;
+            font-size: 10px;
+            transform: rotate(-15deg);
+        }
+
+        .terms {
+            margin-top: 30px;
+            font-size: 10px;
+        }
+
+        .terms h4 {
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .terms ol {
+            padding-left: 15px;
+            margin-top: 0;
+        }
+
+        .page-footer {
+            margin-top: 20px;
+            font-size: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-box">
+
+        <div class="header">
+            <div class="header-left">
+                <div class="tax-invoice-title">TAX INVOICE</div>
+                <div class="amazon-title">Amazon</div>
+                <div><strong>GSTIN 28ADCDE3838R1ZQ</strong></div>
+                <div>C-city, 2nd Floor-Block A & Block B Survey Number-109,110,111/2,</div>
+                <div>Nanakramguda Village Serlingampally Mandal, Ranga Reddy Dist,</div>
+                <div>Hyderabad, TELANGANA, 500032</div>
+                <div>Mobile 08939999998 &nbsp; Email swipe@getswipe.in</div>
+            </div>
+            <div class="header-right">
+                <div class="original-text">ORIGINAL FOR RECIPIENT</div>
+                <!-- Using a standard Amazon logo URL to replicate the look -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon Logo"
+                    class="amazon-logo">
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-column">
+                <strong>Invoice #: INV-1</strong>
+            </div>
+            <div class="info-column">
+                <strong>Invoice Date: 16 Jun 2023</strong>
+            </div>
+            <div class="info-column">
+                <strong>Due Date: 16 Jun 2023</strong>
+            </div>
+        </div>
+
+        <div class="info-section" style="margin-top: 5px;">
+            <div class="info-column">
+                <strong>Customer Details:</strong>
+                Amit Agarwal<br>
+                Ph: 9888999998
+            </div>
+            <div class="info-column">
+                <strong>Billing address:</strong>
+                Babuganj, Hazanganj<br>
+                Lucknow, UTTARPRADESH, 226007
+            </div>
+            <div class="info-column">
+                <strong>Shipping address:</strong>
+                Babuganj, Hazanganj<br>
+                Lucknow, UTTARPRADESH, 226007
+            </div>
+        </div>
+
+        <div class="place-of-supply">
+            Place of Supply: 09-UTTARPRADESH
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 3%;">#</th>
+                    <th style="width: 37%;">Item</th>
+                    <th style="width: 15%; text-align: right;">Rate/ Item</th>
+                    <th style="width: 5%; text-align: right;">Qty</th>
+                    <th style="width: 15%; text-align: right;">Taxable Value</th>
+                    <th style="width: 15%; text-align: right;">Tax Amount</th>
+                    <th style="width: 10%; text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>
+                        Samsung Galaxy F23<br>
+                        HSN: 8517<br><br>
+                        Color Aqua Green<br>
+                        Storage - 128 GB<br>
+                        Ram - 6 GB
+                    </td>
+                    <td class="right-align">14,405.93</td>
+                    <td class="right-align">1</td>
+                    <td class="right-align">14,405.93</td>
+                    <td class="right-align">2,593.07 (18%)</td>
+                    <td class="right-align">16,999.00</td>
+                </tr>
+                <tr>
+                    <td style="border-top: 1px solid #eee;">2</td>
+                    <td style="border-top: 1px solid #eee;">
+                        Samsung 45 Watt Travel Adapter<br>
+                        HSN: 8504<br><br>
+                        EP-TA845XBNGIN<br>
+                        Color - Black
+                    </td>
+                    <td class="right-align" style="border-top: 1px solid #eee;">2,117.80</td>
+                    <td class="right-align" style="border-top: 1px solid #eee;">1</td>
+                    <td class="right-align" style="border-top: 1px solid #eee;">2,117.80</td>
+                    <td class="right-align" style="border-top: 1px solid #eee;">381.20 (18%)</td>
+                    <td class="right-align" style="border-top: 1px solid #eee;">2,499.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="totals-table">
+            <tr>
+                <td colspan="5"></td>
+                <td class="right-align" style="width: 20%; font-weight: bold;">Taxable Amount</td>
+                <td class="right-align" style="width: 15%; font-weight: bold;">₹16,523.73</td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td class="right-align" style="font-weight: bold;">IGST 18.0%</td>
+                <td class="right-align" style="font-weight: bold;">₹2,974.27</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="5"></td>
+                <td class="right-align" style="padding: 8px 5px;">Total</td>
+                <td class="right-align" style="padding: 8px 5px; font-size: 16px;">₹19,498.00</td>
+            </tr>
+            <tr class="summary-row">
+                <td colspan="3" style="padding-top: 8px; padding-bottom: 8px;">Total items | Qty : 2 / 2.000</td>
+                <td colspan="4" class="right-align" style="padding-top: 8px; padding-bottom: 8px;">Total amount (in
+                    words): INR Nineteen Thousand, Four Hundred And Ninety-Eight Rupees Only.</td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td class="right-align amount-payable">Amount Payable:</td>
+                <td class="right-align amount-payable">₹19,498.00</td>
+            </tr>
+        </table>
+
+        <div class="footer-details">
+            <div class="qr-section">
+                <strong>Pay using UPI:</strong>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=swipe@getswipe.in&pn=Amazon&am=19498.00"
+                    alt="QR Code" style="width: 90px; height: 90px; margin-top: 5px; display: block;">
+            </div>
+            <div class="bank-section">
+                <strong>Bank Details:</strong>
+                <table class="bank-details-table">
+                    <tr>
+                        <td style="width: 35%;">Bank:</td>
+                        <td>YES BANK</td>
+                    </tr>
+                    <tr>
+                        <td>Account #:</td>
+                        <td>007890999222445</td>
+                    </tr>
+                    <tr>
+                        <td>IFSC:</td>
+                        <td>YESB0124567</td>
+                    </tr>
+                    <tr>
+                        <td>Branch:</td>
+                        <td>Kodilalli</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="signature-section">
+                <div>For Amazon</div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <div class="seal-placeholder">
+                        SIGNATURE
+                    </div>
+                </div>
+                <div>Authorized Signatory</div>
+            </div>
+        </div>
+
+        <div class="terms">
+            <strong>Notes:</strong><br>
+            Thank you for the Business.<br><br>
+            <strong>Terms and Conditions:</strong>
+            <ol>
+                <li>Goods once sold cannot be taken back or exchanged.</li>
+                <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                </li>
+                <li>Interest @24% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                <li>Subject to local Jurisdiction.</li>
+            </ol>
+        </div>
+
+        <div class="page-footer">
+            Page 1 / 1 &nbsp;&nbsp; This is a digitally signed document.
+        </div>
+
+    </div>
+
+</body>
+
+</html>

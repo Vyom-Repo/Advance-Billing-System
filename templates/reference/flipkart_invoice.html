@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipkart Tax Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.3;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .company-info {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background-color: #fce404;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 40px;
+            color: #2874f0;
+            font-family: serif;
+            font-style: italic;
+            position: relative;
+        }
+
+        .logo span {
+            position: absolute;
+            top: 5px;
+            width: 30px;
+            height: 10px;
+            border-top: 2px solid #e0c800;
+            border-radius: 50%;
+        }
+
+        .company-details strong {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title strong {
+            font-size: 14px;
+            display: block;
+        }
+
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .address-col {
+            width: 48%;
+        }
+
+        .address-col strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: right;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        td:nth-child(1),
+        td:nth-child(2) {
+            text-align: left;
+        }
+
+        .totals-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .bank-details {
+            width: 40%;
+        }
+
+        .bank-details strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .bank-grid {
+            display: grid;
+            grid-template-columns: 80px auto;
+            gap: 2px;
+        }
+
+        .upi-section {
+            width: 20%;
+            text-align: center;
+        }
+
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            background-color: #ccc;
+            /* Placeholder for QR */
+            margin: 5px auto;
+            background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000);
+            background-position: 0 0, 4px 4px;
+            background-size: 8px 8px;
+        }
+
+        .summary-totals {
+            width: 35%;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .total-box {
+            border: 1px solid #000;
+            padding: 5px;
+            background-color: #eee;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .amount-paid {
+            color: green;
+            text-align: right;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .footer-info {
+            margin-bottom: 20px;
+        }
+
+        .signature-section {
+            text-align: right;
+            margin-top: 30px;
+        }
+
+        .signature {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 24px;
+            margin-top: 10px;
+        }
+
+        .terms {
+            margin-top: 20px;
+        }
+
+        .terms ol {
+            padding-left: 15px;
+            margin-top: 5px;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            margin-top: 30px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-container">
+        <div class="header">
+            <div class="company-info">
+                <div class="logo">
+                    <span></span>
+                    f
+                </div>
+                <div class="company-details">
+                    <strong>Flipkart</strong>
+                    GSTIN 35ABCCS2942R12R<br>
+                    Mobile 9339000000<br>
+                    Email team@gmail.com<br>
+                    Website www.getswipe.in
+                </div>
+            </div>
+            <div class="invoice-title">
+                <strong>TAX INVOICE</strong>
+                ORIGINAL FOR RECIPIENT<br>
+                Invoice A: INV-1<br>
+                Invoice Date: 13 Jul 2023<br>
+                Due Date: 13 Jul 2023
+            </div>
+        </div>
+
+        <div class="addresses">
+            <div class="address-col">
+                <strong>Bill From:</strong>
+                <strong>Flipkart</strong>
+                64, Whitefield Main Rd, Palm Meadows<br>
+                Whitefield<br>
+                Bengaluru, KARNATAKA, 560088<br><br>
+                <strong>Ship From:</strong>
+                Prakasham Salai, opposite SBI<br>
+                Mannadi Branch<br>
+                Chennai, TAMILNANU, 500108<br><br>
+                <strong>Place of Supply:</strong> 3G-TELANGANA
+            </div>
+            <div class="address-col">
+                <strong>Bill To:</strong>
+                <strong>Kalyan Krishnamurthy</strong>
+                37/2, opp secunderabad metro station<br>
+                Vijayapuri Colony, Tarnaka<br>
+                Hyderabad, TELANGANA, 500017<br><br>
+                <strong>Ship To:</strong>
+                R City Mall, Lal Behadur Shastri Marg<br>
+                Amrut Nagar, Ghatkopar West<br>
+                Man/nal, MAHARASHTRA, 400086<br>
+                Ph: 9999999999
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="3%">#</th>
+                    <th width="35%">Item</th>
+                    <th width="10%">HSN/SAC</th>
+                    <th width="10%">Rates (m:-)</th>
+                    <th width="5%">Qty</th>
+                    <th width="10%">Taxable Value</th>
+                    <th width="15%">Tax Amount</th>
+                    <th width="12%">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><strong>OnePlus 10R 5G</strong><br>(ſierra Black, 8GB RAM, 128GB Storage, 80W SuperVDOC)</td>
+                    <td>22001995</td>
+                    <td>27,065.25</td>
+                    <td>1</td>
+                    <td>27,965.25</td>
+                    <td>5,033.73 (18%)</td>
+                    <td>32,999.00</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><strong>OnePlus Nord Buds 2</strong><br>Upto 56hr rever, 4-Mic Design, IP55 Rating, Fast
+                        Charging (Thunder Gray)</td>
+                    <td>88183803</td>
+                    <td>2.541.65</td>
+                    <td>1</td>
+                    <td>2,541.43</td>
+                    <td>467.47 (18%)</td>
+                    <td>2,200.00</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><strong>OnePlus Fiber Case</strong><br>(Black color)</td>
+                    <td>42023193</td>
+                    <td>1,100.05</td>
+                    <td>1</td>
+                    <td>1,100.05</td>
+                    <td>198.15 (18%)</td>
+                    <td>1,259.00</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><strong>65W Fast Warp Desh Charger</strong><br>Adapter with Type C Dash Fast Charging Cablo</td>
+                    <td>85048000</td>
+                    <td>507.63</td>
+                    <td>1</td>
+                    <td>507.63</td>
+                    <td>91.37 (18%)</td>
+                    <td>599.00</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><strong>Amazon Basics Mobile tripod</strong><br>Holder Mount & Carry Bag for All Smart Phones,
+                        Gopro, Cameras, Silver color</td>
+                    <td>962000</td>
+                    <td>398.14</td>
+                    <td>1</td>
+                    <td>338.14</td>
+                    <td>60.96 (18%)</td>
+                    <td>359.00</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td><strong>Spigen Tempered Glass</strong></td>
+                    <td>70072190</td>
+                    <td>592.27</td>
+                    <td>1</td>
+                    <td>332.87</td>
+                    <td>100.63 (18%)</td>
+                    <td>659.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="bank-details">
+                <strong>Bank Details:</strong>
+                <div class="bank-grid">
+                    <div>Bank:</div>
+                    <div>ICICI</div>
+                    <div>Account #:</div>
+                    <div>68789999222445</div>
+                    <div>IFSC:</div>
+                    <div>ICICI0016</div>
+                    <div>Dranch:</div>
+                    <div>Maralhshatli</div>
+                </div>
+            </div>
+            <div class="upi-section">
+                <strong>Pay using UPI:</strong>
+                <div class="qr-code"></div>
+            </div>
+            <div class="summary-totals">
+                <div class="summary-row">
+                    <span>Taxable Amount</span>
+                    <span>₹33,045.77</span>
+                </div>
+                <div class="summary-row">
+                    <span>IGST 18.0%</span>
+                    <span>₹5,948.23</span>
+                </div>
+                <div class="total-box">
+                    <span>Total</span>
+                    <span>₹38,994.00</span>
+                </div>
+                <div class="amount-paid">
+                    ✓ Amount Paid
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            Total items / Qty : 0 / 6.000<br>
+            Total amount (in words.): INR Thirty-Right Thousand, Nine Hundred And Ninety-Four Rupees Only.
+        </div>
+
+        <div class="terms">
+            <strong>Notes:</strong><br>
+            Thank you for the Business<br><br>
+
+            <strong>Terms and Conditions:</strong>
+            <ol>
+                <li>Goods once sold carrett be taken back or exchanged.</li>
+                <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                </li>
+                <li>Interest @24% p.a. will be charged for undirered sids beyond 15 days.</li>
+                <li>Subject to local instrubition.</li>
+            </ol>
+        </div>
+
+        <div class="signature-section">
+            For Flipkart<br>
+            <div class="signature">sachin bansal</div>
+        </div>
+
+        <div class="page-footer">
+            <span>Page 1 / 1</span>
+            <span>This is a digitally signed document</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

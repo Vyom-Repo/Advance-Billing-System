@@ -54,8 +54,9 @@ django-csp==3.8                 # Content Security Policy headers
 # =============================================================================
 # Utilities
 # =============================================================================
-Pillow==11.1.0                  # Image processing (logo, letterhead uploads)
+Pillow==10.4.0                  # Image processing (logo, letterhead uploads)
 python-decouple==3.8            # Additional env var support (for manage.py ENV detection)
+weasyprint==63.0                # Professional PDF generation
 
 # =============================================================================
 # Development Only (install with: pip install -r requirements-dev.txt)

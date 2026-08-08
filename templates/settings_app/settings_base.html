@@ -156,8 +156,8 @@
                     <a href="{% url 'settings_app:invoice_preferences' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'invoice_preferences' %}active{% endif %}">
                         <i data-lucide="file-text"></i> Invoice Preferences
                     </a>
-                    <a href="{% url 'settings_app:pdf_printing' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'pdf_printing' %}active{% endif %}">
-                        <i data-lucide="printer"></i> PDF & Printing
+                    <a href="{% url 'settings_app:invoice_design' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'invoice_design' %}active{% endif %}">
+                        <i data-lucide="printer"></i> Invoice Design
                     </a>
                     <a href="{% url 'settings_app:notifications' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
                         <i data-lucide="bell"></i> Notifications

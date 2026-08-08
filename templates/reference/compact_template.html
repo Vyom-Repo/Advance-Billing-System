@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+        }
+
+        .top-header {
+            width: 100%;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .top-header .title {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .top-header .right-text {
+            text-align: right;
+        }
+
+        .main-box {
+            border: 1px solid #000;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid #000;
+        }
+
+        .border-right {
+            border-right: 1px solid #000;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .company-header {
+            display: flex;
+        }
+
+        .logo-container {
+            width: 25%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-box {
+            background-color: #e47c43;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 22px;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        .company-details {
+            width: 75%;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .customer-info td {
+            padding: 6px;
+        }
+
+        .items-table th {
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .items-table td,
+        .items-table th {
+            border-right: 1px solid #000;
+        }
+
+        .items-table td:last-child,
+        .items-table th:last-child {
+            border-right: none;
+        }
+
+        .totals-row td {
+            padding: 2px 6px;
+        }
+
+        .tax-table th,
+        .tax-table td {
+            border: 1px solid #000;
+            text-align: right;
+        }
+
+        .tax-table th {
+            text-align: center;
+        }
+
+        .tax-table td:first-child,
+        .tax-table th:first-child {
+            border-left: none;
+            text-align: left;
+        }
+
+        .tax-table td:last-child,
+        .tax-table th:last-child {
+            border-right: none;
+        }
+
+        .qr-box {
+            width: 80px;
+            height: 80px;
+            border: 1px dashed #000;
+            display: inline-block;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none"/><path d="M10,10 h30 v30 h-30 z M60,10 h30 v30 h-30 z M10,60 h30 v30 h-30 z M20,20 h10 v10 h-10 z M70,20 h10 v10 h-10 z M20,70 h10 v10 h-10 z M50,50 h10 v10 h-10 z M70,60 h20 v10 h-20 z M60,80 h20 v10 h-20 z" fill="%23000"/></svg>') no-repeat center center;
+            background-size: cover;
+        }
+
+        .stamp-box {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #5a5a8c;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #5a5a8c;
+            font-weight: bold;
+            font-size: 10px;
+            transform: rotate(-15deg);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-container">
+        <div class="top-header">
+            <div style="width: 33%;"></div>
+            <div class="title">TAX INVOICE</div>
+            <div class="right-text" style="width: 33%;">ORIGINAL FOR RECIPIENT</div>
+        </div>
+
+        <div class="main-box">
+
+            <!-- Company Header -->
+            <div class="company-header border-bottom">
+                <div class="logo-container border-right">
+                    <div class="logo-box">BIG BAZAAR</div>
+                </div>
+                <div class="company-details">
+                    <div style="font-size: 14px; font-weight: bold;">BIG BAZAAR</div>
+                    <div>GSTIN: 27AABCCT2727Q1ZX</div>
+                    <div>S-1, Whitefield Main Rd., Palm Meadows</div>
+                    <div>KARNATAKA, 560066</div>
+                    <div>Mobile: +91 9999999999</div>
+                </div>
+            </div>
+
+            <!-- Addresses -->
+            <table class="customer-info border-bottom">
+                <tr>
+                    <td width="50%" class="border-right">
+                        <div>Customer Details:</div>
+                        <div style="font-weight: bold;">Kishore Biyani</div>
+                        <div style="font-weight: bold;">Ph: 9999999999</div>
+                        <div>Billing Address:</div>
+                        <div>64, Whitefield Main Rd</div>
+                        <div>Bengaluru, KARNATAKA, 560068</div>
+                    </td>
+                    <td width="50%">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="width: 35%; padding: 0;">Invoice #:</td>
+                                <td style="font-weight: bold; padding: 0;">INV-3</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0;">Invoice Date:</td>
+                                <td style="font-weight: bold; padding: 0;">12 Apr 2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0;">Due Date:</td>
+                                <td style="font-weight: bold; padding: 0;">12 Apr 2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0;">Prace of Supply:</td>
+                                <td style="font-weight: bold; padding: 0;">20-KARNATAKA</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0; padding-top: 5px;">Dispatch From:</td>
+                                <td style="padding: 0; padding-top: 5px;"><b>BIG BAZAAR</b><br>64, Whitefield Main Rd
+                                    Palm Meadows<br>KARNATAKA, 560066</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th width="3%" align="left">#</th>
+                        <th width="37%" align="left">Item</th>
+                        <th width="10%" align="right">HSN/SAC</th>
+                        <th width="5%" align="right">Tax</th>
+                        <th width="10%" align="right">Qty</th>
+                        <th width="15%" align="right">Rate / Item</th>
+                        <th width="20%" align="right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Haldirams Samosa 200g</td>
+                        <td align="right">392210</td>
+                        <td align="right">3%</td>
+                        <td align="right">3 NOS</td>
+                        <td align="right">61.90</td>
+                        <td align="right">195.70</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Britania Whole Wheat Bread</td>
+                        <td align="right">392210</td>
+                        <td align="right">3%</td>
+                        <td align="right">2 NOS</td>
+                        <td align="right">45.20</td>
+                        <td align="right">55.72</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Excl Eacel Celly Wash Detergent Powder 1 kg</td>
+                        <td align="right">392210</td>
+                        <td align="right">5%</td>
+                        <td align="right">1 KOS</td>
+                        <td align="right">122.03</td>
+                        <td align="right">122.03</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Sanitizer</td>
+                        <td align="right">392210</td>
+                        <td align="right">3%</td>
+                        <td align="right">2 NOS</td>
+                        <td align="right">12712</td>
+                        <td align="right">581.36</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Usenels Set</td>
+                        <td align="right">76151430</td>
+                        <td align="right">72%</td>
+                        <td align="right">1 KGS</td>
+                        <td align="right">1,784.60</td>
+                        <td align="right">1,784.82</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Kitchen Towel Set</td>
+                        <td align="right">392210</td>
+                        <td align="right">5%</td>
+                        <td align="right">5 NOS</td>
+                        <td align="right">34.29</td>
+                        <td align="right">471.43</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>Green Cotton Bodsheet</td>
+                        <td align="right">392210</td>
+                        <td align="right">5%</td>
+                        <td align="right">5 NOS</td>
+                        <td align="right">339.29</td>
+                        <td align="right">1,698.43</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Premium Medjool Dates</td>
+                        <td align="right">392210</td>
+                        <td align="right">4%</td>
+                        <td align="right">1 KGS</td>
+                        <td align="right">1,875.00</td>
+                        <td align="right">1,875.00</td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>Fortune Sunflower Oil</td>
+                        <td align="right">392210</td>
+                        <td align="right">5%</td>
+                        <td align="right">2 LTR</td>
+                        <td align="right">200.00</td>
+                        <td align="right">426.00</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 20px;">10</td>
+                        <td style="padding-bottom: 20px;">Haldiram's Shujja Sev</td>
+                        <td align="right" style="padding-bottom: 20px;">9730</td>
+                        <td align="right" style="padding-bottom: 20px;">3%</td>
+                        <td align="right" style="padding-bottom: 20px;">10 NOS</td>
+                        <td align="right" style="padding-bottom: 20px;">190.40</td>
+                        <td align="right" style="padding-bottom: 20px;">1,904.70</td>
+                    </tr>
+
+                    <!-- Summary section inside Items Table -->
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">Delivery/ Shipping Charges</td>
+                        <td align="right">9958</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">100.00</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">Packaging Charges</td>
+                        <td align="right">9967</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">100.00</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">Treable Amount</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">9,107.20</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">CGST 2.5% @ 7122.42</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">178.06</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">SGST 2.5% @ 7122.42</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">178.06</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">CGST 6.0% @ 1784.92</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">107.90</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">SGST 6.0% @ 1784.92</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">107.90</td>
+                    </tr>
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">Roued Off</td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">0.45</td>
+                    </tr>
+
+                    <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                        <td colspan="4" align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">Total
+                        </td>
+                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">33.000</td>
+                        <td align="right" style="padding: 6px;"></td>
+                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">₹9,678.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Amount Chargeable -->
+            <div class="border-bottom" style="padding: 4px 6px;">
+                Amount Chargeable (in words): INR Nine Thousand, Six Hundred And Seventy-Eight Rupees Only. E & O E
+            </div>
+
+            <!-- Tax Breakdown Table -->
+            <table class="tax-table" cellspacing="0" cellpadding="0">
+                <thead>
+                    <tr>
+                        <th rowspan="2">HSN/SAC</th>
+                        <th rowspan="2">Taxable Value</th>
+                        <th colspan="2">Central Tax</th>
+                        <th colspan="2">State/UT Tax</th>
+                        <th rowspan="2">Total Tax Amount</th>
+                    </tr>
+                    <tr>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>392210</td>
+                        <td>5217.77</td>
+                        <td>2.5%</td>
+                        <td>130.44</td>
+                        <td>2.5%</td>
+                        <td>130.44</td>
+                        <td>260.80</td>
+                    </tr>
+                    <tr>
+                        <td>78151030</td>
+                        <td>1784.82</td>
+                        <td>6%</td>
+                        <td>107.00</td>
+                        <td>6%</td>
+                        <td>107.00</td>
+                        <td>214.18</td>
+                    </tr>
+                    <tr>
+                        <td>R70R</td>
+                        <td>1904.76</td>
+                        <td>2.5%</td>
+                        <td>47.62</td>
+                        <td>2.5%</td>
+                        <td>47.62</td>
+                        <td>95.24</td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td align="right">TOTAL</td>
+                        <td>9,107.25</td>
+                        <td></td>
+                        <td>285.15</td>
+                        <td></td>
+                        <td>285.13</td>
+                        <td>570.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Amount Paid / UPI section -->
+            <div class="border-bottom"
+                style="text-align: right; padding: 4px 6px; font-weight: bold; background-color: #f0f0f0;">
+                <span style="color: #28a745;">✔</span> Amount Paid<br>
+                <span style="font-size: 10px; font-weight: normal;">₹9678 Paid via UPI on 12-04-2025</span>
+            </div>
+
+            <!-- Footer / Bank Details -->
+            <table class="border-bottom" style="width: 100%;">
+                <tr>
+                    <td width="40%" class="border-right" style="padding: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Bank Details:</div>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding: 0 0 2px 0; width: 35%;">Bank:</td>
+                                <td style="padding: 0 0 2px 0;"><b>YES BANK</b></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 0 2px 0;">Account #:</td>
+                                <td style="padding: 0 0 2px 0;"><b>86789999222445</b></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 0 2px 0;">IFSC Code:</td>
+                                <td style="padding: 0 0 2px 0;"><b>YE88RM4S57</b></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 0 2px 0;">Branch:</td>
+                                <td style="padding: 0 0 2px 0;"><b>Kodhalii</b></td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 15px; font-weight: bold;">Notes:</div>
+                        <div>Thank you for shopping with us! We appreciate your business.</div>
+                    </td>
+                    <td width="30%" class="border-right"
+                        style="padding: 10px; text-align: center; vertical-align: top;">
+                        <div style="font-weight: bold; text-align: left; margin-bottom: 5px;">Pay Using UPS</div>
+                        <div class="qr-box"></div>
+                    </td>
+                    <td width="30%" style="padding: 10px; text-align: right; position: relative;">
+                        <div style="font-size: 10px; text-align: right;">For BIG BAZAAR</div>
+                        <div style="margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: flex-end;">
+                            <div class="stamp-box">SIGNATURE</div>
+                        </div>
+                        <div style="font-size: 10px; text-align: right;">Authorized Signatory</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Terms and Conditions -->
+            <div style="padding: 10px;">
+                <div style="font-weight: bold; margin-bottom: 4px;">Terms and Conditions:</div>
+                <div>1. All disputes must be reported within 15 days of invoice invoice.</div>
+                <div>2. Accepted payment methods include bank transfer, credit card, and PayPal.</div>
+                <div>3. In case of exchange, we only accept original receipt.</div>
+            </div>
+        </div>
+
+        <!-- Page Footer -->
+        <div style="margin-top: 10px; font-size: 10px; font-weight: bold;">
+            Page 1/1 • This is a digitally signed document.
+        </div>
+    </div>
+
+</body>
+
+</html>

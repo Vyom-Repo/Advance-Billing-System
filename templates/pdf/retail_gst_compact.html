@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Retail GST Compact</title>
+    <style>
+        @page {
+            size: {{ layout_frame.paper_size }} {{ layout_frame.orientation }};
+            margin-top: {{ layout_frame.margin_top }};
+            margin-bottom: {{ layout_frame.margin_bottom }};
+            margin-left: {{ layout_frame.margin_left }};
+            margin-right: {{ layout_frame.margin_right }};
+            
+            {% if layout_frame.has_letterhead_background %}
+                background-image: url("{{ layout_frame.background_image_url }}");
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                background-position: top left;
+            {% endif %}
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000;
+            line-height: 1.15;
+            
+            {% if prefs.font_size == 'Small' %}
+                font-size: 8px;
+            {% elif prefs.font_size == 'Large' %}
+                font-size: 12px;
+            {% else %}
+                font-size: 10px; /* Dense but readable */
+            {% endif %}
+        }
+        
+        .bold { font-weight: bold; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        
+        table { 
+            border-collapse: collapse; 
+            table-layout: fixed; 
+            width: 100%; 
+            overflow-wrap: break-word; 
+            word-wrap: break-word; 
+        }
+        
+        th, td { 
+            vertical-align: top; 
+            box-sizing: border-box; 
+        }
+        
+        /* The main bounding box styling */
+        .main-box {
+            border: 1px solid #000;
+            width: 100%;
+        }
+        
+        .main-box td {
+            padding: 3px 6px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 4px;
+        }
+        
+        .items-table th {
+            font-weight: bold;
+            background-color: #f1f5f9;
+        }
+        
+        .logo { max-height: 50px; max-width: 150px; }
+        .printable-frame { width: 100%; box-sizing: border-box; }
+        
+        /* Avoid horizontal overflow */
+        .nowrap { white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <!-- Master Spacer Table for Print Pagination -->
+    <table style="width: 100%; border: none; border-spacing: 0; border-collapse: collapse;">
+        {% if layout_frame.letterhead_mode %}
+        <thead>
+            <tr><td style="height: {{ layout_frame.body_padding_top }}; border: none; padding: 0;"></td></tr>
+        </thead>
+        {% endif %}
+        
+        <tbody>
+            <tr><td style="border: none; padding: 0; {% if layout_frame.letterhead_mode %}padding-left: {{ layout_frame.body_padding_left|default:'0' }}; padding-right: {{ layout_frame.body_padding_right|default:'0' }};{% endif %}">
+                
+                <div class="printable-frame">
+                    
+                    <!-- TOP FLOATING HEADER -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px;">
+                        <div style="width: 30%;"></div>
+                        <div style="width: 40%; text-align: center; font-size: 1.2em; letter-spacing: 2px;" class="bold">TAX INVOICE</div>
+                        <div style="width: 30%; text-align: right; font-size: 0.9em; letter-spacing: 0.5px;">ORIGINAL FOR RECIPIENT</div>
+                    </div>
+                    
+                    <!-- START OF MAIN BORDERED BOX -->
+                    <div class="main-box">
+                        
+                        <!-- HEADER ROW: COMPANY DETAILS -->
+                        {% if not layout_frame.letterhead_mode %}
+                        {% if prefs.show_company_header %}
+                        <div style="border-bottom: 1px solid #000;">
+                            <table style="width: 100%; border: none; padding: 0;">
+                                <tr>
+                                    {% if prefs.show_company_logo and org.logo %}
+                                    <td style="width: 25%; text-align: center; vertical-align: middle; border: none; padding: 8px;">
+                                        <img src="file://{{ org.logo.path }}" alt="Logo" class="logo">
+                                    </td>
+                                    {% endif %}
+                                    
+                                    <td style="text-align: center; vertical-align: middle; border: none; padding: 8px;">
+                                        <div class="bold" style="font-size: 1.6em; margin-bottom: 4px; letter-spacing: 1px;">{{ company.name }}</div>
+                                        {% if company.gstin %}<div style="margin-bottom: 2px;"><span class="bold">GSTIN:</span> {{ company.gstin }}</div>{% endif %}
+                                        <div style="margin-bottom: 2px;">{{ company.address }}, {{ company.city }}, {{ company.state }}{% if company.pincode %} - {{ company.pincode }}{% endif %}</div>
+                                        {% if company.phone %}<div style="margin-bottom: 2px;"><span class="bold">Mobile:</span> {{ company.phone }}</div>{% endif %}
+                                        {% if company.email %}<div><span class="bold">Email:</span> {{ company.email }}</div>{% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        
+                        <!-- BILLING / SHIPPING ROW -->
+                        <div style="border-bottom: 1px solid #000;">
+                            <table style="width: 100%; border: none; padding: 0;">
+                                <tr>
+                                    <!-- Left Column: Customer -->
+                                    <td style="width: 50%; border-right: 1px solid #000; padding: 8px;">
+                                        <div style="margin-bottom: 4px;">Customer Details:</div>
+                                        <div class="bold" style="margin-bottom: 2px;">{{ customer.name }}</div>
+                                        {% if customer.phone %}<div style="margin-bottom: 4px;">Ph: {{ customer.phone }}</div>{% endif %}
+                                        
+                                        <div style="margin-bottom: 2px;">Billing Address:</div>
+                                        <div style="margin-bottom: 2px;">{{ customer.address }}</div>
+                                        <div>{{ customer.city }}, {{ customer.state }}{% if customer.zip_code %}, {{ customer.zip_code }}{% endif %}</div>
+                                    </td>
+                                    
+                                    <!-- Right Column: Invoice Details -->
+                                    <td style="width: 50%; padding: 8px;">
+                                        <table style="width: 100%; border: none; padding: 0;">
+                                            <tr><td style="width: 35%; padding: 1px 0;">Invoice #:</td><td style="padding: 1px 0;" class="bold">{{ invoice.number }}</td></tr>
+                                            <tr><td style="padding: 1px 0;">Invoice Date:</td><td style="padding: 1px 0;" class="bold">{{ invoice.date }}</td></tr>
+                                            <tr><td style="padding: 1px 0;">Due Date:</td><td style="padding: 1px 0;">{{ invoice.due_date }}</td></tr>
+                                            <tr><td style="padding: 1px 0;">Place of Supply:</td><td style="padding: 1px 0;">{{ company.state }}</td></tr>
+                                            <tr><td style="padding: 1px 0;">Dispatch From:</td><td style="padding: 1px 0;">{{ company.name }}</td></tr>
+                                            <tr><td colspan="2" style="padding: 1px 0;">{{ company.address }}<br>{{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- ITEMS TABLE -->
+                        <table class="items-table" style="border-left: none; border-right: none; border-bottom: none;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 4%; border-top: none; border-left: none;">#</th>
+                                    <th style="width: {% if prefs.show_hsn_sac and prefs.show_gst_summary %}43%{% elif prefs.show_hsn_sac %}51%{% elif prefs.show_gst_summary %}53%{% else %}61%{% endif %}; text-align: left; border-top: none;">Item</th>
+                                    {% if prefs.show_hsn_sac %}<th style="width: 10%; border-top: none;">HSN/SAC</th>{% endif %}
+                                    {% if prefs.show_gst_summary %}<th style="width: 8%; border-top: none;">Tax</th>{% endif %}
+                                    <th style="width: 8%; border-top: none;">Qty</th>
+                                    <th style="width: 12%; text-align: right; border-top: none;">Rate / Item</th>
+                                    <th style="width: 15%; text-align: right; border-top: none; border-right: none;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td class="text-center" style="border-left: none;">{{ forloop.counter }}</td>
+                                    <td>{{ item.name }}</td>
+                                    {% if prefs.show_hsn_sac %}<td class="text-center">{{ item.hsn }}</td>{% endif %}
+                                    {% if prefs.show_gst_summary %}<td class="text-center">{{ item.tax_pct }}%</td>{% endif %}
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-right">{{ item.rate }}</td>
+                                    <td class="text-right nowrap" style="border-right: none;">{{ item.amount }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- TOTALS ROWS inside items table for seamless border alignment -->
+                                <tr>
+                                    {% if prefs.show_hsn_sac and prefs.show_gst_summary %}
+                                        <td colspan="6" class="text-right" style="border-left: none; border-bottom: none; padding: 4px;">Taxable Amount</td>
+                                    {% elif prefs.show_hsn_sac or prefs.show_gst_summary %}
+                                        <td colspan="5" class="text-right" style="border-left: none; border-bottom: none; padding: 4px;">Taxable Amount</td>
+                                    {% else %}
+                                        <td colspan="4" class="text-right" style="border-left: none; border-bottom: none; padding: 4px;">Taxable Amount</td>
+                                    {% endif %}
+                                    <td class="text-right nowrap" style="border-right: none; border-bottom: none; padding: 4px;">{{ invoice.subtotal }}</td>
+                                </tr>
+                                {% if prefs.show_gst_summary %}
+                                <tr>
+                                    {% if prefs.show_hsn_sac and prefs.show_gst_summary %}
+                                        <td colspan="6" class="text-right" style="border-left: none; border-bottom: none; border-top: none; padding: 4px;">Total Tax Amount</td>
+                                    {% elif prefs.show_hsn_sac or prefs.show_gst_summary %}
+                                        <td colspan="5" class="text-right" style="border-left: none; border-bottom: none; border-top: none; padding: 4px;">Total Tax Amount</td>
+                                    {% else %}
+                                        <td colspan="4" class="text-right" style="border-left: none; border-bottom: none; border-top: none; padding: 4px;">Total Tax Amount</td>
+                                    {% endif %}
+                                    <td class="text-right nowrap" style="border-right: none; border-bottom: none; border-top: none; padding: 4px;">{{ invoice.tax_total }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    {% if prefs.show_hsn_sac and prefs.show_gst_summary %}
+                                        <td colspan="6" class="text-right bold" style="font-size: 1.1em; border-left: none; border-right: 1px solid #000; padding: 8px 4px;">Total</td>
+                                    {% elif prefs.show_hsn_sac or prefs.show_gst_summary %}
+                                        <td colspan="5" class="text-right bold" style="font-size: 1.1em; border-left: none; border-right: 1px solid #000; padding: 8px 4px;">Total</td>
+                                    {% else %}
+                                        <td colspan="4" class="text-right bold" style="font-size: 1.1em; border-left: none; border-right: 1px solid #000; padding: 8px 4px;">Total</td>
+                                    {% endif %}
+                                    <td class="text-right bold nowrap" style="font-size: 1.1em; border-right: none; padding: 8px 4px;">{{ invoice.total }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- BOTTOM FOOTER BLOCKS: BANK, QR, SIGNATURE -->
+                        <table style="width: 100%; border: none; padding: 0; border-collapse: collapse; border-bottom: 1px solid #000;">
+                            <tr>
+                                {% if prefs.show_bank_details %}
+                                <td style="border-right: 1px solid #000; padding: 8px; vertical-align: top;">
+                                    <div class="bold" style="margin-bottom: 4px;">Bank Details:</div>
+                                    <table style="width: 100%; border: none; padding: 0; font-size: 0.9em;">
+                                        <tr><td style="width: 30%; padding: 1px 0; border: none;">Bank:</td><td class="bold" style="padding: 1px 0; border: none;">{{ company.bank_name }}</td></tr>
+                                        <tr><td style="padding: 1px 0; border: none;">Account #:</td><td class="bold" style="padding: 1px 0; border: none;">{{ company.acc_no }}</td></tr>
+                                        <tr><td style="padding: 1px 0; border: none;">IFSC Code:</td><td class="bold" style="padding: 1px 0; border: none;">{{ company.ifsc }}</td></tr>
+                                        <tr><td style="padding: 1px 0; border: none;">Branch:</td><td class="bold" style="padding: 1px 0; border: none;">{{ company.city }}</td></tr>
+                                    </table>
+                                </td>
+                                {% endif %}
+                                
+                                {% if prefs.show_qr_code %}
+                                <td style="border-right: 1px solid #000; padding: 8px; text-align: center; vertical-align: top;">
+                                    <div class="bold" style="margin-bottom: 6px; text-align: left;">Pay using UPI:</div>
+                                    {% if invoice.qr_image %}
+                                        <img src="{{ invoice.qr_image.url }}" alt="QR Code" style="width: 80px; height: 80px;" />
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                
+                                {% if prefs.show_signature %}
+                                <td style="padding: 8px; text-align: right; position: relative; vertical-align: top;">
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 10px;">For {{ company.name }}</div>
+                                    {% if org.signature %}
+                                    <div style="margin-bottom: 5px;">
+                                        <img src="file://{{ org.signature.path }}" alt="Signature" style="max-height: 60px; max-width: 150px;">
+                                    </div>
+                                    {% else %}
+                                    <div style="height: 60px;"></div> <!-- Spacer -->
+                                    {% endif %}
+                                    <div class="bold" style="position: absolute; bottom: 8px; right: 8px;">Authorized Signatory</div>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        </table>
+                        
+                        <!-- NOTES AND TERMS -->
+                        {% if invoice.notes or prefs.show_terms %}
+                        <div style="padding: 8px; font-size: 0.9em;">
+                            {% if invoice.notes %}
+                            <div class="bold" style="margin-bottom: 2px;">Notes:</div>
+                            <div style="margin-bottom: 8px;">{{ invoice.notes|linebreaksbr }}</div>
+                            {% endif %}
+                            
+                            {% if prefs.show_terms %}
+                            <div class="bold" style="margin-bottom: 2px;">Terms and Conditions:</div>
+                            <div>{{ invoice.terms|linebreaksbr }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                    </div> <!-- END MAIN BOX -->
+                    
+                    {% if prefs.show_company_footer %}
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #333; margin-top: 5px;">
+                        <div>
+                            {% if prefs.show_page_numbers %}Page 1 / 1{% endif %}
+                        </div>
+                        <div>
+                            {% if prefs.custom_footer_message %}
+                                {{ prefs.custom_footer_message }}
+                            {% else %}
+                                This is a digitally signed document.
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                </div> <!-- /.printable-frame -->
+                
+            </td></tr>
+        </tbody>
+        
+        {% if layout_frame.letterhead_mode %}
+        <tfoot>
+            <tr><td style="height: {{ layout_frame.body_padding_bottom }}; border: none; padding: 0;"></td></tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</body>
+</html>

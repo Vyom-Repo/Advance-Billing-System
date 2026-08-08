@@ -1,0 +1,709 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Evergreen Invoice</title>
+
+    <style>
+        @page {
+            size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
+            margin-top: {{ layout_frame.margin_top|default:"8mm" }};
+            margin-right: {{ layout_frame.margin_right|default:"8mm" }};
+            margin-bottom: {{ layout_frame.margin_bottom|default:"8mm" }};
+            margin-left: {{ layout_frame.margin_left|default:"8mm" }};
+
+            {% if layout_frame.has_letterhead_background %}
+            background-image: url("{{ layout_frame.background_image_url }}");
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            {% endif %}
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+            font-size: 7px;
+            line-height: 1.16;
+        }
+
+        {% if layout_frame.letterhead_mode %}
+        body {
+            padding-top: {{ layout_frame.body_padding_top }};
+            padding-right: {{ layout_frame.body_padding_right }};
+            padding-bottom: {{ layout_frame.body_padding_bottom }};
+            padding-left: {{ layout_frame.body_padding_left }};
+        }
+        {% endif %}
+
+        .invoice-page {
+            width: 100%;
+        }
+
+        .grid {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .grid td,
+        .grid th {
+            border: 0.35px solid #222;
+            padding: 2px 3px;
+            vertical-align: top;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: 700;
+        }
+
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        /* HEADER */
+        .header {
+            border: 0.5px solid #222;
+        }
+
+        .header-top {
+            height: 13px;
+            vertical-align: middle !important;
+            padding: 1px 4px !important;
+        }
+
+        .header-top-left {
+            width: 54%;
+            text-align: center;
+            font-size: 7.4px;
+            font-weight: 700;
+            letter-spacing: .6px;
+        }
+
+        .header-top-right {
+            width: 46%;
+            text-align: right;
+            font-size: 6px;
+            vertical-align: middle !important;
+        }
+
+        .header-main td {
+            height: 50px;
+        }
+
+        .logo-cell {
+            width: 22%;
+            padding: 3px !important;
+            vertical-align: top !important;
+        }
+
+        .logo {
+            display: block;
+            max-width: 100%;
+            max-height: 37px;
+            object-fit: contain;
+        }
+
+        .company-cell {
+            width: 48%;
+            padding: 3px 4px !important;
+        }
+
+        .company-name {
+            font-size: 8px;
+            font-weight: 700;
+            margin-bottom: 1px;
+        }
+
+        .company-line {
+            font-size: 6.2px;
+            line-height: 1.18;
+        }
+
+        .invoice-meta {
+            width: 30%;
+            padding: 2px 3px !important;
+        }
+
+        .invoice-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .invoice-meta td {
+            border: 0 !important;
+            padding: 1px !important;
+            font-size: 5.9px;
+        }
+
+        .invoice-meta .label {
+            width: 44%;
+        }
+
+        .invoice-meta .value {
+            width: 56%;
+            word-break: break-word;
+        }
+
+        /* DETAILS */
+        .details td {
+            height: 43px;
+        }
+
+        .details-left,
+        .details-right {
+            width: 50%;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 6.5px;
+            margin-bottom: 2px;
+        }
+
+        .detail-line {
+            font-size: 5.8px;
+            line-height: 1.18;
+        }
+
+        /* ITEMS */
+        .items th {
+            height: 13px;
+            padding: 1px 2px !important;
+            font-size: 5.5px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 700;
+        }
+
+        .items td {
+            font-size: 5.35px;
+            padding: 1.5px 2px;
+            vertical-align: top;
+        }
+
+        .items .sr {
+            width: 4%;
+        }
+
+        .items .description {
+            width: {% if prefs.show_hsn_sac %}27%{% else %}36%{% endif %};
+        }
+
+        {% if prefs.show_hsn_sac %}
+        .items .hsn {
+            width: 9%;
+        }
+        {% endif %}
+
+        .items .tax {
+            width: 6%;
+        }
+
+        .items .qty {
+            width: 8%;
+        }
+
+        .items .rate {
+            width: 9%;
+        }
+
+        .items .per {
+            width: 7%;
+        }
+
+        .items .amount {
+            width: 11%;
+        }
+
+        .item-row td {
+            height: 10px;
+        }
+
+        .item-description {
+            font-weight: 400;
+        }
+
+        .taxable-row td,
+        .tax-row td {
+            font-weight: 700;
+        }
+
+        .taxable-label,
+        .tax-line,
+        .total-label {
+            text-align: right;
+        }
+
+        .total-row td {
+            height: 12px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .total-value {
+            font-size: 6.4px;
+        }
+
+        /* WORDS */
+        .words-row td {
+            height: 12px;
+            font-size: 5.8px;
+            vertical-align: middle;
+        }
+
+        /* GST SUMMARY */
+        .gst-summary th {
+            font-size: 5.3px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 1px;
+        }
+
+        .gst-summary td {
+            font-size: 5.2px;
+            text-align: right;
+            padding: 1.5px 2px;
+        }
+
+        .gst-summary td:first-child {
+            text-align: left;
+        }
+
+        /* PAYMENT */
+        .payment-strip td {
+            height: 13px;
+            font-size: 5.8px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .payment-left {
+            width: 67%;
+            text-align: right;
+        }
+
+        .payment-right {
+            width: 33%;
+            text-align: right;
+        }
+
+        /* FOOTER */
+        .footer-main td {
+            height: 51px;
+        }
+
+        .bank {
+            width: {% if prefs.show_bank_details and prefs.show_qr_code and prefs.show_signature %}33%{% elif prefs.show_bank_details and prefs.show_qr_code %}50%{% elif prefs.show_bank_details and prefs.show_signature %}50%{% elif prefs.show_bank_details %}100%{% else %}0{% endif %};
+        }
+
+        .qr {
+            width: {% if prefs.show_bank_details and prefs.show_qr_code and prefs.show_signature %}34%{% elif prefs.show_bank_details and prefs.show_qr_code %}50%{% elif prefs.show_qr_code and prefs.show_signature %}50%{% elif prefs.show_qr_code %}100%{% else %}0{% endif %};
+            text-align: center;
+        }
+
+        .signature {
+            width: {% if prefs.show_bank_details and prefs.show_qr_code and prefs.show_signature %}33%{% elif prefs.show_bank_details and prefs.show_signature %}50%{% elif prefs.show_qr_code and prefs.show_signature %}50%{% elif prefs.show_signature %}100%{% else %}0{% endif %};
+            text-align: center;
+        }
+
+        .bank-title,
+        .qr-title,
+        .signature-title {
+            font-size: 6px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .bank-line {
+            font-size: 5.4px;
+            line-height: 1.35;
+        }
+
+        .qr-image {
+            display: block;
+            width: 35mm;
+            height: 35mm;
+            max-width: 100%;
+            max-height: 36px;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+
+        .signature-image {
+            display: block;
+            width: 32mm;
+            height: 28mm;
+            max-width: 100%;
+            max-height: 30px;
+            object-fit: contain;
+            margin: 0 auto 1px;
+        }
+
+        .signature-text {
+            font-size: 5px;
+            margin-top: 2px;
+        }
+
+        /* NOTES / TERMS */
+        .bottom-info td {
+            height: 28px;
+        }
+
+        .notes {
+            width: 48%;
+        }
+
+        .terms {
+            width: 52%;
+        }
+
+        .notes-title,
+        .terms-title {
+            font-weight: 700;
+            font-size: 6px;
+            margin-bottom: 2px;
+        }
+
+        .notes-text,
+        .terms-text {
+            font-size: 5.3px;
+            line-height: 1.2;
+        }
+
+        /* DOCUMENT FOOTER */
+        .document-footer {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        .document-footer td {
+            border: 0;
+            font-size: 5px;
+            padding: 1px 0;
+        }
+
+        .page-number {
+            width: 25%;
+            text-align: left;
+        }
+
+        .footer-message {
+            width: 50%;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .footer-date {
+            width: 25%;
+            text-align: right;
+        }
+
+        tr,
+        .invoice-block {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice-page">
+
+        <!-- HEADER -->
+        <table class="grid header">
+            <tr>
+                <td colspan="2" class="header-top header-top-left">TAX INVOICE</td>
+                <td class="header-top header-top-right">ORIGINAL FOR RECIPIENT</td>
+            </tr>
+
+            <tr class="header-main">
+                {% if prefs.show_company_logo and org and org.logo %}
+                <td class="logo-cell">
+                    <img class="logo" src="file://{{ org.logo.path }}" alt="Company Logo">
+                </td>
+                {% else %}
+                <td class="logo-cell"></td>
+                {% endif %}
+
+                {% if prefs.show_company_header %}
+                <td class="company-cell">
+                    <div class="company-name">{{ company.name }}</div>
+                    {% if company.gstin %}<div class="company-line">GSTIN: {{ company.gstin }}</div>{% endif %}
+                    <div class="company-line">{{ company.address }}</div>
+                    <div class="company-line">{{ company.city }}{% if company.city and company.state %}, {% endif %}{{ company.state }}</div>
+                    {% if company.phone %}<div class="company-line">Mobile: {{ company.phone }}</div>{% endif %}
+                    {% if company.email %}<div class="company-line">Email: {{ company.email }}</div>{% endif %}
+                </td>
+                {% else %}
+                <td class="company-cell"></td>
+                {% endif %}
+
+                <td class="invoice-meta">
+                    <table>
+                        <tr>
+                            <td class="label">Invoice No:</td>
+                            <td class="value">{{ invoice.number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Invoice Date:</td>
+                            <td class="value">{{ invoice.date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Place of Supply:</td>
+                            <td class="value">{{ company.state }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Due Date:</td>
+                            <td class="value">{{ invoice.due_date }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <!-- CUSTOMER / SHIPPING DETAILS -->
+        <table class="grid details">
+            <tr>
+                <td class="details-left">
+                    <div class="section-title">Customer Details:</div>
+                    <div class="detail-line"><b>Name:</b> {{ customer.name }}</div>
+                    <div class="detail-line"><b>Billing Address:</b></div>
+                    <div class="detail-line">{{ customer.address }}</div>
+                    <div class="detail-line">{{ customer.city }}{% if customer.city and customer.state %}, {% endif %}{{ customer.state }}</div>
+                    {% if customer.gstin %}<div class="detail-line"><b>GSTIN:</b> {{ customer.gstin }}</div>{% endif %}
+                </td>
+
+                <td class="details-right">
+                    <div class="section-title">Invoice Details:</div>
+                    <div class="detail-line"><b>Invoice No:</b> {{ invoice.number }}</div>
+                    <div class="detail-line"><b>Invoice Date:</b> {{ invoice.date }}</div>
+                    <div class="detail-line"><b>Due Date:</b> {{ invoice.due_date }}</div>
+                    <div class="detail-line"><b>Place of Supply:</b> {{ company.state }}</div>
+
+                    <div class="section-title" style="margin-top:2px;">Shipping Address:</div>
+                    <div class="detail-line">{{ customer.address }}</div>
+                    <div class="detail-line">{{ customer.city }}{% if customer.city and customer.state %}, {% endif %}{{ customer.state }}</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- ITEMS -->
+        <table class="grid items">
+            <thead>
+                <tr>
+                    <th class="sr">Sr</th>
+                    <th class="description">Item</th>
+                    {% if prefs.show_hsn_sac %}<th class="hsn">HSN/SAC</th>{% endif %}
+                    <th class="tax">Tax</th>
+                    <th class="qty">Qty</th>
+                    <th class="rate">Rate / Item</th>
+                    <th class="per">Per</th>
+                    <th class="amount">Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in items %}
+                <tr class="item-row">
+                    <td class="center">{{ forloop.counter }}</td>
+                    <td class="item-description">{{ item.name }}</td>
+                    {% if prefs.show_hsn_sac %}<td class="center">{{ item.hsn }}</td>{% endif %}
+                    <td class="center">{{ item.tax_pct }}%</td>
+                    <td class="center">{{ item.quantity }}</td>
+                    <td class="right">{{ item.rate }}</td>
+                    <td class="center">Nos</td>
+                    <td class="right nowrap">{{ item.amount }}</td>
+                </tr>
+                {% endfor %}
+
+                <tr class="taxable-row">
+                    <td colspan="{% if prefs.show_hsn_sac %}7{% else %}6{% endif %}" class="taxable-label">Taxable Amount</td>
+                    <td class="right nowrap">{{ invoice.subtotal }}</td>
+                </tr>
+
+                <tr class="tax-row">
+                    <td colspan="{% if prefs.show_hsn_sac %}7{% else %}6{% endif %}" class="tax-line">Tax (GST)</td>
+                    <td class="right nowrap">{{ invoice.tax_total }}</td>
+                </tr>
+
+                <tr class="total-row">
+                    <td colspan="{% if prefs.show_hsn_sac %}6{% else %}5{% endif %}" class="total-label">Total</td>
+                    <td class="center"></td>
+                    <td class="total-value nowrap">{{ invoice.total }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- AMOUNT IN WORDS -->
+        <table class="grid words-row">
+            <tr>
+                <td>
+                    <strong>Amount Chargeable (in words):</strong>
+                    {{ invoice.currency }} {{ invoice.total }} Only.
+                </td>
+            </tr>
+        </table>
+
+        <!-- GST SUMMARY -->
+        {% if prefs.show_gst_summary %}
+        <table class="grid gst-summary">
+            <thead>
+                <tr>
+                    <th rowspan="2">HSN/SAC</th>
+                    <th rowspan="2">Taxable Value</th>
+                    <th colspan="2">Central Tax</th>
+                    <th colspan="2">State/UT Tax</th>
+                    <th rowspan="2">Total Tax Amount</th>
+                </tr>
+                <tr>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.hsn }}</td>
+                    <td>{{ item.amount }}</td>
+                    <td>{{ item.tax_pct|floatformat:0 }}%</td>
+                    <td>—</td>
+                    <td>{{ item.tax_pct|floatformat:0 }}%</td>
+                    <td>—</td>
+                    <td>—</td>
+                </tr>
+                {% endfor %}
+                <tr class="bold">
+                    <td class="right">TOTAL</td>
+                    <td>{{ invoice.subtotal }}</td>
+                    <td></td>
+                    <td>—</td>
+                    <td></td>
+                    <td>—</td>
+                    <td>{{ invoice.tax_total }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if prefs.show_payment_info %}
+        <!-- PAYMENT -->
+        <table class="grid payment-strip">
+            <tr>
+                <td class="payment-left">Balance Due</td>
+                <td class="payment-right">{{ invoice.total }}</td>
+            </tr>
+        </table>
+        {% endif %}
+
+        <!-- BANK / QR / SIGNATURE -->
+        {% if prefs.show_bank_details or prefs.show_qr_code or prefs.show_signature %}
+        <table class="grid footer-main">
+            <tr>
+                {% if prefs.show_bank_details %}
+                <td class="bank">
+                    <div class="bank-title">Bank Details:</div>
+                    {% if company.bank_name %}<div class="bank-line"><strong>Bank:</strong> {{ company.bank_name }}</div>{% endif %}
+                    {% if company.acc_no %}<div class="bank-line"><strong>Account No:</strong> {{ company.acc_no }}</div>{% endif %}
+                    {% if company.ifsc %}<div class="bank-line"><strong>IFSC:</strong> {{ company.ifsc }}</div>{% endif %}
+                </td>
+                {% endif %}
+
+                {% if prefs.show_qr_code %}
+                <td class="qr">
+                    <div class="qr-title">Pay using UPI</div>
+                    {% if org and org.qr_code %}
+                    <img class="qr-image" src="file://{{ org.qr_code.path }}" alt="UPI QR Code">
+                    {% else %}
+                    <div style="width:35px;height:35px;border:1px dashed #aaa;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:5px;color:#999;">QR</div>
+                    {% endif %}
+                </td>
+                {% endif %}
+
+                {% if prefs.show_signature %}
+                <td class="signature">
+                    <div class="signature-title">For {{ company.name }}</div>
+                    {% if org and org.signature %}
+                    <img class="signature-image" src="file://{{ org.signature.path }}" alt="Authorized Signature">
+                    {% endif %}
+                    <div class="signature-text">Authorized Signatory</div>
+                </td>
+                {% endif %}
+            </tr>
+        </table>
+        {% endif %}
+
+        <!-- NOTES / TERMS -->
+        {% if prefs.show_terms or invoice.notes %}
+        <table class="grid bottom-info">
+            <tr>
+                {% if invoice.notes %}
+                <td class="notes">
+                    <div class="notes-title">Notes:</div>
+                    <div class="notes-text">{{ invoice.notes }}</div>
+                </td>
+                {% endif %}
+
+                {% if prefs.show_terms %}
+                <td class="terms">
+                    <div class="terms-title">Terms and Conditions:</div>
+                    <div class="terms-text">
+                        {{ invoice.terms|linebreaksbr }}
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+        </table>
+        {% endif %}
+
+        <!-- DOCUMENT FOOTER -->
+        {% if prefs.show_company_footer or prefs.show_page_numbers or prefs.show_print_date %}
+        <table class="document-footer">
+            <tr>
+                {% if prefs.show_page_numbers %}
+                <td class="page-number">Page 1 / 1</td>
+                {% else %}
+                <td class="page-number"></td>
+                {% endif %}
+
+                <td class="footer-message">
+                    {% if prefs.show_company_footer and prefs.custom_footer_message %}
+                        {{ prefs.custom_footer_message }}
+                    {% else %}
+                        This is a digitally signed document.
+                    {% endif %}
+                </td>
+
+                {% if prefs.show_print_date %}
+                <td class="footer-date">Printed on: {% now "d M Y" %}</td>
+                {% else %}
+                <td class="footer-date"></td>
+                {% endif %}
+            </tr>
+        </table>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>
