@@ -30,7 +30,7 @@ class SettingsPasswordChangeForm(PasswordChangeForm):
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-input'})
 
-from .models import InvoicePreference
+from .models import InvoicePreference, DocumentPreference
 
 class InvoicePreferenceForm(forms.ModelForm):
     """
@@ -83,3 +83,37 @@ class InvoicePreferenceForm(forms.ModelForm):
             cleaned_data['custom_payment_days'] = None
             
         return cleaned_data
+
+class DocumentPreferenceForm(forms.ModelForm):
+    """
+    Form for updating PDF & Printing preferences.
+    """
+    class Meta:
+        model = DocumentPreference
+        fields = [
+            "template_name", "paper_size", "orientation", "margins",
+            "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
+            "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
+            "show_signature", "show_terms", "show_payment_info",
+            "font_size", "table_density",
+            "show_page_numbers", "show_print_date", "custom_footer_message"
+        ]
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Toggle inputs
+        toggle_fields = [
+            "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
+            "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
+            "show_signature", "show_terms", "show_payment_info",
+            "show_page_numbers", "show_print_date"
+        ]
+        
+        for field_name, field in self.fields.items():
+            if field_name in toggle_fields:
+                field.widget.attrs.update({'class': 'toggle-input'})
+            elif field_name == "custom_footer_message":
+                field.widget.attrs.update({'class': 'form-input', 'rows': 2})
+            else:
+                field.widget.attrs.update({'class': 'form-input'})

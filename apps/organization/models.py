@@ -39,9 +39,28 @@ class Organization(TimeStampedModel):
     
     # Branding
     logo = models.ImageField(upload_to="organization_logos/", blank=True, null=True)
+    letterhead = models.ImageField(upload_to="organization_letterheads/", blank=True, null=True, help_text="Full A4 page background for invoices.")
+    letterhead_header_offset = models.IntegerField(default=30, help_text="Header safe area offset in mm")
+    letterhead_footer_offset = models.IntegerField(default=25, help_text="Footer safe area offset in mm")
+    signature = models.ImageField(upload_to="organization_signatures/", blank=True, null=True, help_text="Authorized signatory image.")
 
     def __str__(self) -> str:
         return self.business_name
+
+class BankAccount(TimeStampedModel):
+    """
+    Bank account details for an Organization.
+    """
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="bank_accounts")
+    bank_name = models.CharField(max_length=255)
+    account_name = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=50)
+    ifsc_code = models.CharField(max_length=20)
+    branch = models.CharField(max_length=255, blank=True)
+    is_default = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.account_number}"
 
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -53,3 +72,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     if instance.logo:
         instance.logo.delete(save=False)
+    if instance.letterhead:
+        instance.letterhead.delete(save=False)
+    if instance.signature:
+        instance.signature.delete(save=False)

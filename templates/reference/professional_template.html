@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Professional Invoice Template</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #eee;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111
+        }
+
+        body {
+            padding: 7mm
+        }
+
+        .invoice {
+            width: 196mm;
+            min-height: 282mm;
+            margin: auto;
+            background: #fff;
+            border: 1px solid #c8d0d8;
+            font-size: 6.2px;
+            line-height: 1.2;
+            padding: 0 5mm 4mm
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 52% 23% 25%;
+            min-height: 29mm;
+            border-bottom: 1px solid #9aa4ad
+        }
+
+        .logo {
+            padding: 3mm 0;
+            color: #5e9fcb;
+            font-size: 15px;
+            font-weight: normal
+        }
+
+        .logo-mark {
+            font-size: 28px;
+            font-weight: bold;
+            line-height: .8;
+            color: #6ba928
+        }
+
+        .logo-word {
+            margin-left: 1mm
+        }
+
+        .title {
+            padding-top: 5mm;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px
+        }
+
+        .original {
+            text-align: right;
+            padding-top: 5mm;
+            font-size: 5px
+        }
+
+        .company p {
+            margin: .6mm 0;
+            font-size: 6px
+        }
+
+        .company-name {
+            font-size: 9px;
+            font-weight: bold;
+            margin-bottom: 1mm
+        }
+
+        .info {
+            display: grid;
+            grid-template-columns: 33.33% 33.33% 33.34%;
+            background: #f4f8fa;
+            border-bottom: 1px solid #d4dce2
+        }
+
+        .box {
+            padding: 2mm;
+            min-height: 22mm;
+            border-right: 1px solid #d4dce2
+        }
+
+        .box:last-child {
+            border-right: 0
+        }
+
+        .box b {
+            font-weight: bold
+        }
+
+        .box p {
+            margin: .7mm 0
+        }
+
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed
+        }
+
+        .items th,
+        .items td {
+            border-bottom: 1px solid #aab2b9;
+            padding: 1.25mm 1mm;
+            vertical-align: top
+        }
+
+        .items th {
+            background: #f5f7f8;
+            text-align: center;
+            font-weight: bold
+        }
+
+        .center {
+            text-align: center
+        }
+
+        .right {
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .item-name {
+            font-weight: bold
+        }
+
+        .item-sub {
+            font-size: 5.7px
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: 65% 35%;
+            border-bottom: 1px solid #9aa4ad
+        }
+
+        .summary-left {
+            padding: 1.5mm
+        }
+
+        .summary-right {
+            padding: 1.5mm;
+            border-left: 1px solid #9aa4ad
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: .55mm 0
+        }
+
+        .row.total {
+            border-top: 1px solid #777;
+            font-weight: bold;
+            font-size: 7px
+        }
+
+        .payment {
+            display: grid;
+            grid-template-columns: 20% 45% 35%;
+            border-bottom: 1px solid #9aa4ad;
+            min-height: 35mm
+        }
+
+        .payment>div {
+            padding: 2mm;
+            border-right: 1px solid #9aa4ad
+        }
+
+        .payment>div:last-child {
+            border-right: 0
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 1.5mm
+        }
+
+        .qr {
+            width: 25mm;
+            height: 25mm;
+            border: 1px solid #111;
+            background: repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px)
+        }
+
+        .signature {
+            height: 30mm;
+            position: relative
+        }
+
+        .stamp {
+            position: absolute;
+            right: 2mm;
+            top: 4mm;
+            width: 17mm;
+            height: 17mm;
+            border: 1.5px solid #5267a7;
+            border-radius: 50%;
+            color: #5267a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 4px;
+            transform: rotate(-10deg)
+        }
+
+        .auth {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            font-size: 5px
+        }
+
+        .notes {
+            padding: 2mm;
+            min-height: 25mm
+        }
+
+        .notes p {
+            margin: .8mm 0
+        }
+
+        .notes ol {
+            margin: 1mm 0 0 4mm;
+            padding: 0
+        }
+
+        .notes li {
+            margin-bottom: .5mm
+        }
+
+        .receiver {
+            margin-top: 5mm;
+            width: 35mm;
+            border-bottom: 1px solid #555;
+            padding-bottom: 1mm
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5mm 0;
+            font-size: 5.2px
+        }
+
+        @media print {
+
+            html,
+            body {
+                background: #fff;
+                padding: 0
+            }
+
+            .invoice {
+                border: 1px solid #999
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice">
+
+        <div class="header">
+            <div class="logo">
+                <div><span class="logo-mark">M</span></div>
+                <div class="logo-word">marico</div>
+                <div class="company" style="margin-top:3mm">
+                    <div class="company-name">Marico Limited</div>
+                    <p>7th Floor, Grande Palladium</p>
+                    <p>175 CST Road, Kalina</p>
+                    <p>Santacruz East, Mumbai, Maharashtra, 400098</p>
+                    <p>GSTIN: 27AAACM4325H1ZK</p>
+                </div>
+            </div>
+            <div style="padding-top:4mm">
+                <p>Phone &nbsp;&nbsp; +91 22 6648 0480</p>
+                <p>Email &nbsp;&nbsp;&nbsp; sales@marico.com</p>
+                <p>Website &nbsp; www.marico.com</p>
+            </div>
+            <div class="original">
+                <div class="title">TAX INVOICE</div>
+                ORIGINAL FOR RECIPIENT
+            </div>
+        </div>
+
+        <div class="info">
+            <div class="box">
+                <b>Bill To</b>
+                <p>Rohan Sharma</p>
+                <p>Flat No. 302, Shree Residency</p>
+                <p>Medchal Main Road</p>
+                <p>Hyderabad, Telangana, 500081</p>
+            </div>
+            <div class="box">
+                <b>Ship To</b>
+                <p>Rohan Sharma</p>
+                <p>Flat No. 302, Shree Residency</p>
+                <p>Medchal Main Road</p>
+                <p>Hyderabad, Telangana, 500081</p>
+            </div>
+            <div class="box">
+                <b>Details</b>
+                <p>Invoice No: INV-1</p>
+                <p>Invoice Date: 10 Mar 2026</p>
+                <p>Due Date: 10 Mar 2026</p>
+                <p>Place of Supply: TELANGANA</p>
+            </div>
+        </div>
+
+        <table class="items">
+            <colgroup>
+                <col style="width:5%">
+                <col style="width:37%">
+                <col style="width:7%">
+                <col style="width:13%">
+                <col style="width:13%">
+                <col style="width:12%">
+                <col style="width:13%">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Tax</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="center">1</td>
+                    <td><b>Fiama Shower Gel (Pack of 2)</b><br><span class="item-sub">HSN: 3307</span></td>
+                    <td>Premium Skin Care Range</td>
+                    <td class="center">2</td>
+                    <td class="right">325.00</td>
+                    <td class="right">58.50 (18%)</td>
+                    <td class="right">767.00</td>
+                </tr>
+                <tr>
+                    <td class="center">2</td>
+                    <td><b>Savlon Hand Sanitizer (500ml)</b><br><span class="item-sub">HSN: 3808</span></td>
+                    <td>Disinfectant Liquid</td>
+                    <td class="center">1</td>
+                    <td class="right">285.00</td>
+                    <td class="right">45.00 (18%)</td>
+                    <td class="right">285.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <div class="summary-left">
+                <div style="height:11mm"></div>
+                <div class="row"><span>Total Items / Qty: 2 / 5.000</span><span>Total amount in words: INR One Thousand
+                        and Fifty-Two Rupees Only.</span></div>
+            </div>
+            <div class="summary-right">
+                <div class="row"><span>Taxable Amount</span><span>₹1,006.00</span></div>
+                <div class="row"><span>CGST 9.0%</span><span>₹90.54</span></div>
+                <div class="row"><span>SGST 9.0%</span><span>₹90.54</span></div>
+                <div class="row total"><span>Total</span><span>₹1,206.00</span></div>
+            </div>
+        </div>
+
+        <div class="payment">
+            <div>
+                <div class="section-title">Pay using UPI</div>
+                <div class="qr"></div>
+            </div>
+            <div>
+                <div class="section-title">Bank Details:</div>
+                <div>Bank: &nbsp;&nbsp;&nbsp;&nbsp; HDFC Bank</div>
+                <div>Account #: &nbsp; 00200003478001</div>
+                <div>IFSC Code: &nbsp; HDFC0002400</div>
+                <div>Branch: &nbsp;&nbsp;&nbsp; Kalina, Santacruz East, Mumbai</div>
+            </div>
+            <div>
+                <b>For Marico Limited</b>
+                <div class="signature">
+                    <div class="stamp">AUTHORISED<br>SIGNATORY</div>
+                    <div class="auth">Authorized Signatory</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <b>Notes</b>
+            <p>Thank you for the business!</p>
+            <b>Terms &amp; Conditions</b>
+            <ol>
+                <li>Goods once sold cannot be taken back or exchanged.</li>
+                <li>Interest @24.0% p.a. will be charged for un-cleared bills beyond 10 days.</li>
+                <li>Subject to local jurisdiction.</li>
+            </ol>
+            <div class="receiver">Receiver's Signature</div>
+        </div>
+
+        <div class="bottom">
+            <span>Page 1 / 1</span>
+            <span>This is a digitally signed document.</span>
+        </div>
+
+    </div>
+</body>
+
+</html>

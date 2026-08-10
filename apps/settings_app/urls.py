@@ -17,7 +17,9 @@ urlpatterns = [
     
     # Future Settings
     path("invoice-preferences/", views.SettingsInvoicePreferencesView.as_view(), name="invoice_preferences"),
-    path("pdf-printing/", TemplateView.as_view(template_name="settings_app/coming_soon.html", extra_context={"feature_name": "PDF & Printing", "feature_desc": "Design your invoice PDFs with custom templates and signatures.", "feature_icon": "printer"}), name="pdf_printing"),
+    path("invoice-design/", views.SettingsInvoiceDesignView.as_view(), name="invoice_design"),
+    path("invoice-design/preview/", views.SettingsInvoiceDesignPreviewAPIView.as_view(), name="invoice_design_preview"),
+    path("invoice-design/download/", views.SettingsInvoiceDesignDownloadView.as_view(), name="invoice_design_download"),
     path("notifications/", views.SettingsNotificationsView.as_view(), name="notifications"),
     path("data-management/", TemplateView.as_view(template_name="settings_app/coming_soon.html", extra_context={"feature_name": "Data Management", "feature_desc": "Export your data, manage backups, and view audit logs.", "feature_icon": "database"}), name="data_management"),
     path("delete-account/", TemplateView.as_view(template_name="settings_app/coming_soon.html", extra_context={"feature_name": "Delete Account", "feature_desc": "Permanently remove your account and all associated data.", "feature_icon": "trash-2"}), name="delete_account"),

@@ -1,0 +1,1506 @@
+{% extends "settings_app/settings_base.html" %}
+{% load static %}
+
+{% block settings_title %}Invoice Design{% endblock %}
+
+{% block settings_css %}
+<style>
+    /* ==========================================================================
+       VIEW MANAGER
+       ========================================================================== */
+    .view-container {
+        display: none;
+        animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .view-container.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Sticky Action Bar */
+    .sticky-action-bar {
+        position: fixed;
+        bottom: var(--space-8);
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: var(--color-bg-surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--color-border);
+        padding: var(--space-4) var(--space-6);
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-lg), 0 20px 40px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        z-index: 999;
+        opacity: 0;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    }
+
+    .sticky-action-bar.visible {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    .unsaved-text {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-warning);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    /* ==========================================================================
+       VIEW 1: SETTINGS (Standard UI matching Profile)
+       ========================================================================== */
+    .designs-trigger {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-4) 0;
+        cursor: pointer;
+    }
+
+    .designs-trigger-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    .designs-trigger-title {
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+
+    .designs-trigger-value {
+        color: var(--color-accent);
+        font-weight: var(--font-medium);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .gst-badge {
+        background: #e0f2fe;
+        color: #0284c7;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+        font-weight: var(--font-semibold);
+    }
+
+    /* ACCORDIONS */
+    .accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .accordion-icon {
+        transition: transform 0.3s ease;
+        color: var(--color-text-muted);
+    }
+
+    .accordion-item.open .accordion-icon {
+        transform: rotate(180deg);
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+    }
+
+    .accordion-item.open .accordion-content {
+        max-height: 2000px;
+        padding-top: var(--space-4);
+        margin-top: var(--space-4);
+        border-top: 1px solid var(--color-border);
+    }
+
+    /* SQUARE CHECKBOX CARDS (Invoice Elements) */
+    .elements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--space-4);
+    }
+
+    .element-card {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--color-background);
+    }
+
+    .element-card:hover {
+        border-color: var(--color-border-hover);
+        background: var(--color-surface);
+    }
+
+    .element-card.checked {
+        border-color: var(--color-accent);
+        background: var(--color-accent-subtle);
+    }
+
+    .custom-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--color-text-muted);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .element-card.checked .custom-checkbox {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .custom-checkbox svg {
+        color: white;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.2s;
+    }
+
+    .element-card.checked .custom-checkbox svg {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .element-label {
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+        line-height: 1.2;
+        user-select: none;
+    }
+
+    .elements-grid input[type="checkbox"] {
+        display: none;
+    }
+
+    /* TOGGLE ROWS (Branding) */
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .toggle-row:last-child {
+        border-bottom: none;
+    }
+
+    .toggle-info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    .toggle-title {
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+    }
+
+    .toggle-desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    /* ==========================================================================
+       VIEW 2: GALLERY WORKSPACE
+       ========================================================================== */
+    .workspace-header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        margin-bottom: var(--space-8);
+    }
+
+    .back-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        transition: color 0.2s;
+        cursor: pointer;
+    }
+
+    .back-nav:hover {
+        color: var(--color-text-primary);
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--space-6);
+    }
+
+    .gallery-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s;
+    }
+
+    .gallery-card:hover:not(.disabled) {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--color-border-hover);
+    }
+
+    .gallery-card.disabled {
+        opacity: 0.6;
+    }
+
+    .gallery-preview {
+        height: 240px;
+        background: #f1f5f9;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: var(--space-4);
+    }
+
+    .gallery-card-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--color-surface);
+        padding: 4px 10px;
+        border-radius: var(--radius-full);
+        font-size: 11px;
+        font-weight: var(--font-semibold);
+        border: 1px solid var(--color-border);
+        z-index: 10;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* SVG Mini Document Mockups */
+    .mini-doc {
+        width: 100%;
+        max-width: 140px;
+        aspect-ratio: 1 / 1.414;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 2px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .doc-header-row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .doc-logo {
+        width: 30px;
+        height: 10px;
+        background: #cbd5e1;
+        border-radius: 1px;
+    }
+
+    .doc-title {
+        width: 40px;
+        height: 14px;
+        background: #94a3b8;
+        border-radius: 1px;
+    }
+
+    .doc-line {
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 1px;
+    }
+
+    .doc-table {
+        border: 1px solid #e2e8f0;
+        border-radius: 1px;
+        margin: 4px 0;
+    }
+
+    .doc-th {
+        height: 8px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .doc-td {
+        height: 6px;
+        border-bottom: 1px solid #f1f5f9;
+        margin: 2px;
+    }
+
+    .gallery-info {
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        flex: 1;
+    }
+
+    .gallery-title-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+
+    .gallery-title {
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .gallery-actions {
+        display: flex;
+        gap: var(--space-3);
+        margin-top: auto;
+    }
+
+    /* ==========================================================================
+       VIEW 3: FULL PAGE PREVIEW
+       ========================================================================== */
+    .preview-workspace {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 80px);
+        /* Fill available space minus top nav approx */
+    }
+
+    .preview-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-4);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        margin-bottom: var(--space-4);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .preview-frame-container {
+        flex: 1;
+        background: #525659;
+        border-radius: var(--radius-xl);
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        padding: var(--space-8);
+        border: 1px solid var(--color-border);
+        position: relative;
+    }
+
+    .preview-iframe {
+        width: 100%;
+        max-width: 850px;
+        background: white;
+        border: none;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        transform-origin: top center;
+        transition: transform 0.2s ease;
+    }
+</style>
+{% endblock %}
+
+{% block settings_content %}
+
+<form method="post" id="invoice-design-form">
+    {% csrf_token %}
+    <div style="display:none;">{{ form.template_name }}</div> <!-- Hidden binding -->
+
+    <!-- ==========================================================================
+         VIEW 1: SETTINGS (DEFAULT)
+         ========================================================================== -->
+    <div id="view-settings" class="view-container active">
+        <!-- Card 1: Invoice Designs Trigger -->
+        <div class="settings-card" style="margin-bottom: var(--space-6);">
+            <div class="settings-card-header" style="border-bottom: none; padding-bottom: 0;">
+                <h3 class="settings-card-title">Invoice Designs</h3>
+                <p class="settings-card-description">Choose the overall layout and structure your customers will
+                    receive.</p>
+            </div>
+
+            <div style="padding: 0 var(--space-6) var(--space-4);">
+                <div class="designs-trigger" onclick="navToGallery()">
+                    <div class="designs-trigger-content">
+                        <!-- This title changes dynamically when picking from the gallery -->
+                        <div class="designs-trigger-title" id="active-template-title">{{
+                            active_template_title|default:'GST Classic' }}</div>
+                    </div>
+                    <div class="designs-trigger-value">
+                        <span class="gst-badge">GST Compliant</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Branding (Accordion) -->
+        <div class="settings-card accordion-item open" id="acc-branding" style="margin-bottom: var(--space-6);">
+            <div class="settings-card-header accordion-header" onclick="toggleAccordion('acc-branding')"
+                style="border-bottom: none;">
+                <div>
+                    <h3 class="settings-card-title">Branding</h3>
+                    <p class="settings-card-description" style="margin-bottom: 0;">Manage your company identity on the
+                        document.</p>
+                </div>
+                <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </div>
+            <div class="accordion-content">
+                <div style="padding: 0 var(--space-6) var(--space-6);">
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Company Logo</div>
+                            <div class="toggle-desc">
+                                Display your logo on the document.
+                                {% if not has_logo %}
+                                <br>
+                                <span style="color: var(--color-warning);">
+                                    No company logo uploaded.
+                                    <a href="{% url 'organization:index' %}" style="color: var(--color-accent);">
+                                        Go to Organization Settings
+                                    </a>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <label class="toggle-switch">
+                            {{ form.show_company_logo }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Company Header</div>
+                            <div class="toggle-desc">Displays company name, address, and GSTIN.</div>
+                        </div>
+                        <label class="toggle-switch">{{ form.show_company_header }}<span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="toggle-row" style="flex-wrap: wrap;">
+                        <div
+                            style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Company Footer</div>
+                                <div class="toggle-desc">Display a custom message at the bottom of pages.</div>
+                            </div>
+                            <label class="toggle-switch">{{ form.show_company_footer }}<span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div id="footer-text-panel" style="width: 100%; margin-top: var(--space-2); display: none;">
+                            {{ form.custom_footer_message }}
+                        </div>
+                    </div>
+                    <div class="toggle-row" style="border-bottom: none;">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Print on Company Letterhead</div>
+                            <div class="toggle-desc">
+                                Removes background spacing. Branding visibility remains fully under your control.
+                                {% if not has_letterhead %}
+                                <br>
+                                <span style="color: var(--color-warning);">
+                                    Upload a company letterhead from
+                                    <a href="{% url 'organization:index' %}" style="color:var(--color-accent);">
+                                        Organization Settings
+                                    </a>.
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if has_letterhead %}
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="print_on_letterhead"
+                                id="{{ form.print_on_letterhead.id_for_label }}" class="toggle-input" {% if form.print_on_letterhead.value %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        {% else %}
+                        <label class="toggle-switch" style="opacity: 0.5; pointer-events: none;">
+                            <input type="checkbox" name="print_on_letterhead"
+                                id="{{ form.print_on_letterhead.id_for_label }}" class="toggle-input" disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Invoice Elements (Accordion) -->
+        <div class="settings-card accordion-item" id="acc-elements" style="margin-bottom: var(--space-6);">
+            <div class="settings-card-header accordion-header" onclick="toggleAccordion('acc-elements')"
+                style="border-bottom: none;">
+                <div>
+                    <h3 class="settings-card-title">Invoice Elements</h3>
+                    <p class="settings-card-description" style="margin-bottom: 0;">Toggle the blocks displayed on the
+                        invoice.</p>
+                </div>
+                <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </div>
+            <div class="accordion-content">
+                <div style="padding: 0 var(--space-6) var(--space-6);">
+                    <div class="elements-grid">
+                        <label class="element-card {% if form.show_qr_code.value %}checked{% endif %}">{{
+                            form.show_qr_code }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">QR Code</div>
+                        </label>
+                        <label class="element-card {% if form.show_bank_details.value and has_bank %}checked{% endif %}"
+                            {% if not has_bank %}style="opacity: 0.5; pointer-events: none;" {% endif %}>
+                            <input type="checkbox" name="show_bank_details" class="toggle-input" {% if form.show_bank_details.value and has_bank %}checked{% endif %} {% if not has_bank %}disabled{% endif %}>
+                            <div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Bank Details
+                                {% if not has_bank %}
+                                <div
+                                    style="font-size: 10px; color: var(--color-warning); font-weight: normal; margin-top: 4px;">
+                                    No bank configured. <a href="{% url 'organization:index' %}"
+                                        style="color:var(--color-accent);text-decoration:underline; pointer-events: auto;">Configure</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </label>
+                        <label class="element-card {% if form.show_gst_summary.value %}checked{% endif %}">{{
+                            form.show_gst_summary }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">GST Summary</div>
+                        </label>
+                        <label class="element-card {% if form.show_hsn_sac.value %}checked{% endif %}">{{
+                            form.show_hsn_sac }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">HSN/SAC</div>
+                        </label>
+                        <label
+                            class="element-card {% if form.show_signature.value and has_signature %}checked{% endif %}"
+                            {% if not has_signature %}style="opacity: 0.5; pointer-events: none;" {% endif %}>
+                            <input type="checkbox" name="show_signature" class="toggle-input" {% if form.show_signature.value and has_signature %}checked{% endif %} {% if not has_signature %}disabled{% endif %}>
+                            <div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Signature
+                                {% if not has_signature %}
+                                <div
+                                    style="font-size: 10px; color: var(--color-warning); font-weight: normal; margin-top: 4px;">
+                                    No signature uploaded. <a href="{% url 'organization:index' %}"
+                                        style="color:var(--color-accent);text-decoration:underline; pointer-events: auto;">Configure</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </label>
+                        <label class="element-card {% if form.show_payment_info.value %}checked{% endif %}">{{
+                            form.show_payment_info }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Payment Info</div>
+                        </label>
+                        <label class="element-card {% if form.show_terms.value %}checked{% endif %}">{{ form.show_terms
+                            }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Terms & Conditions</div>
+                        </label>
+                        <label class="element-card {% if form.show_page_numbers.value %}checked{% endif %}">{{
+                            form.show_page_numbers }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Page Numbers</div>
+                        </label>
+                        <label class="element-card {% if form.show_print_date.value %}checked{% endif %}">{{
+                            form.show_print_date }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Print Date</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Advanced Printing (Accordion) -->
+        <div class="settings-card accordion-item" id="acc-advanced" style="margin-bottom: var(--space-6);">
+            <div class="settings-card-header accordion-header" onclick="toggleAccordion('acc-advanced')"
+                style="border-bottom: none;">
+                <div>
+                    <h3 class="settings-card-title">Advanced Printing</h3>
+                    <p class="settings-card-description" style="margin-bottom: 0;">Configure precise document layout
+                        settings.</p>
+                </div>
+                <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </div>
+            <div class="accordion-content">
+                <div style="padding: 0 var(--space-6) var(--space-6);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                        <div>
+                            <label class="form-label" for="{{ form.paper_size.id_for_label }}">Paper Size</label>
+                            {{ form.paper_size }}
+                        </div>
+                        <div>
+                            <label class="form-label" for="{{ form.orientation.id_for_label }}">Orientation</label>
+                            {{ form.orientation }}
+                        </div>
+                        <div>
+                            <label class="form-label" for="{{ form.margins.id_for_label }}">Margins</label>
+                            {{ form.margins }}
+                        </div>
+                        <div>
+                            <label class="form-label" for="{{ form.table_density.id_for_label }}">Table Density</label>
+                            {{ form.table_density }}
+                        </div>
+                        <div style="display:none;">{{ form.font_size }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Action Bar (moved to body via JS) -->
+        <div class="sticky-action-bar" id="sticky-bar">
+            <div class="unsaved-text"><i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Unsaved
+                changes</div>
+            <div style="display: flex; gap: var(--space-3);">
+                <button type="button" class="btn btn-outline" style="border-radius: var(--radius-full); color: white;"
+                    id="btn-discard">Discard</button>
+                <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-full);" id="save-btn"
+                    form="invoice-design-form">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- ==========================================================================
+     VIEW 2: INVOICE TEMPLATES GALLERY
+     ========================================================================== -->
+<div id="view-gallery" class="view-container">
+    <div class="workspace-header">
+        <div class="back-nav" onclick="navToSettings()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back to Invoice Design
+        </div>
+        <div>
+            <h2
+                style="font-size: 28px; font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-1);">
+                Invoice Templates</h2>
+            <p style="color: var(--color-text-muted);">Choose the design your customers will receive.</p>
+        </div>
+    </div>
+
+    <div class="gallery-grid">
+        <!-- Flipkart Invoice -->
+        <div class="gallery-card">
+            <div class="gallery-preview">
+                <div class="gallery-card-badge"
+                    style="color: var(--color-accent); border-color: var(--color-accent); display: none;"
+                    id="badge-flipkart_invoice">Default</div>
+                <div class="mini-doc"
+                    style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <!-- Simple mini preview of flipkart -->
+                    <div
+                        style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 20px; height: 20px; background: #fbbf24;"></div>
+                        <div style="width: 40%; height: 10px; background: #e2e8f0;"></div>
+                    </div>
+                    <div style="border-bottom: 1px solid #000; height: 20px; margin-bottom: 4px; display: flex;">
+                        <div style="width: 50%; border-right: 1px solid #000;"></div>
+                        <div style="width: 50%;"></div>
+                    </div>
+                    <div style="border-bottom: 1px solid #000; height: 40px;"></div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Flipkart Invoice <span class="gst-badge">GST Compliant</span></div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;"
+                        onclick="navToPreview('flipkart_invoice', 'Flipkart Invoice')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;"
+                        onclick="applyTemplate('flipkart_invoice', 'Flipkart Invoice')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GST Classic -->
+        <div class="gallery-card">
+            <div class="gallery-preview"
+                style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge"
+                    style="color: var(--color-accent); border-color: var(--color-accent); display: none;"
+                    id="badge-gst_classic">Default</div>
+                <div class="mini-doc"
+                    style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="border-bottom: 1px solid #000; height: 12px; margin-bottom: 4px;"></div>
+                    <div style="border-bottom: 1px solid #000; height: 24px; margin-bottom: 4px; display: flex;">
+                        <div style="width: 20%; border-right: 1px solid #000;"></div>
+                        <div style="flex: 1;"></div>
+                    </div>
+                    <div style="border-bottom: 1px solid #000; height: 32px; margin-bottom: 4px; display: flex;">
+                        <div style="width: 50%; border-right: 1px solid #000;"></div>
+                        <div style="width: 50%;"></div>
+                    </div>
+                    <div style="border-bottom: 1px solid #000; height: 60px;"></div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">GST Classic <span class="gst-badge">GST Compliant</span></div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;"
+                        onclick="navToPreview('gst_classic', 'GST Classic')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;"
+                        onclick="applyTemplate('gst_classic', 'GST Classic')">Use Template</button>
+                </div>
+            </div>
+        </div>
+        <!-- Retail GST Compact -->
+        <div class="gallery-card">
+            <div class="gallery-preview"
+                style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge"
+                    style="color: var(--color-accent); border-color: var(--color-accent); display: none;"
+                    id="badge-retail_gst_compact">Default</div>
+                <div class="mini-doc"
+                    style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <!-- Simple mini preview of retail -->
+                    <div style="text-align: center; font-size: 8px; border-bottom: 1px solid #ccc; margin-bottom: 4px;">
+                        TAX INVOICE</div>
+                    <div style="border: 1px solid #000; padding: 2px;">
+                        <div
+                            style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                            <div style="width: 20px; height: 10px; background: #f87171;"></div>
+                            <div style="width: 40%; height: 10px; background: #e2e8f0;"></div>
+                        </div>
+                        <div style="border-bottom: 1px solid #000; height: 20px; margin-bottom: 4px; display: flex;">
+                            <div style="width: 50%; border-right: 1px solid #000;"></div>
+                            <div style="width: 50%;"></div>
+                        </div>
+                        <div style="height: 30px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Retail GST Compact <span class="gst-badge">GST Compliant</span></div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;"
+                        onclick="navToPreview('retail_gst_compact', 'Retail GST Compact')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;"
+                        onclick="applyTemplate('retail_gst_compact', 'Retail GST Compact')">Use Template</button>
+                </div>
+            </div>
+        </div>
+        <!-- Evergreen Template -->
+        <div class="gallery-card">
+            <div class="gallery-preview"
+                style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+
+                <div class="gallery-card-badge"
+                    style="color: var(--color-accent); border-color: var(--color-accent); display: none;"
+                    id="badge-evergreen">Default</div>
+
+                <div class="mini-doc"
+                    style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">
+                        TAX INVOICE
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+
+                    <div style="display: flex; border: 1px solid #000; height: 28px; margin-bottom: 4px;">
+                        <div style="width: 50%; border-right: 1px solid #000;"></div>
+                        <div style="width: 50%;"></div>
+                    </div>
+
+                    <div style="border: 1px solid #000;">
+                        <div style="height: 8px; background: #e5e7eb; border-bottom: 1px solid #000;"></div>
+                        <div style="height: 10px; border-bottom: 1px solid #e5e7eb;"></div>
+                        <div style="height: 10px; border-bottom: 1px solid #e5e7eb;"></div>
+                        <div style="height: 10px;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 5px;">
+                        <div style="width: 45%; height: 25px; border: 1px solid #000;"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">
+                        Evergreen Template
+                        <span class="gst-badge">GST Compliant</span>
+                    </div>
+                </div>
+
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;"
+                        onclick="navToPreview('evergreen', 'Evergreen Template')">
+                        Preview
+                    </button>
+
+                    <button type="button" class="btn btn-primary" style="flex:1;"
+                        onclick="applyTemplate('evergreen', 'Evergreen Template')">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-compact_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Compact Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('compact_template', 'Compact Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('compact_template', 'Compact Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-genz">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">GenZ Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('genz', 'GenZ Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('genz', 'GenZ Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-landscape_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Landscape Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('landscape_template', 'Landscape Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('landscape_template', 'Landscape Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-modern_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Modern Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('modern_template', 'Modern Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('modern_template', 'Modern Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-mrp_discount_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">MRP Discount Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('mrp_discount_template', 'MRP Discount Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('mrp_discount_template', 'MRP Discount Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-professional_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Professional Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('professional_template', 'Professional Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('professional_template', 'Professional Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-service_template">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Service Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('service_template', 'Service Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('service_template', 'Service Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <div class="gallery-preview" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-bottom: none;">
+                <div class="gallery-card-badge" style="color: var(--color-accent); border-color: var(--color-accent); display: none;" id="badge-vintage">Default</div>
+                <div class="mini-doc" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 12px; border: 1px solid #000; border-radius: 0;">
+                    <div style="text-align: center; font-size: 7px; font-weight: 700; margin-bottom: 4px;">TAX INVOICE</div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div style="width: 30%; height: 12px; background: #d1d5db;"></div>
+                        <div style="width: 45%; height: 8px; background: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-title-row">
+                    <div class="gallery-title">Vintage Template</div>
+                </div>
+                <div class="gallery-actions">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="navToPreview('vintage', 'Vintage Template')">Preview</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyTemplate('vintage', 'Vintage Template')">Use Template</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ==========================================================================
+     VIEW 3: FULL PAGE PREVIEW
+     ========================================================================== -->
+<div id="view-preview" class="view-container">
+    <div class="preview-workspace">
+        <div class="preview-toolbar">
+            <div style="display: flex; gap: var(--space-6); align-items: center;">
+                <div class="back-nav" onclick="navToGallery()" style="margin: 0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m15 18-6-6 6-6" />
+                    </svg>
+                    Back to Templates
+                </div>
+                <div style="width: 1px; height: 24px; background: var(--color-border);"></div>
+                <div style="font-weight: var(--font-semibold); font-size: var(--text-lg);" id="preview-title-bar">
+                    Preview</div>
+            </div>
+
+            <div style="display: flex; gap: var(--space-4); align-items: center;">
+                <!-- Zoom Controls -->
+                <div
+                    style="display: flex; gap: var(--space-1); background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 2px;">
+                    <button type="button" class="btn"
+                        style="padding: 4px 8px; border-radius: var(--radius-full); background: transparent; border: none;"
+                        onclick="zoomPreview(-0.1)">-</button>
+                    <span id="zoom-level"
+                        style="font-size: var(--text-sm); line-height: 24px; min-width: 44px; text-align: center; font-weight: var(--font-medium);">100%</span>
+                    <button type="button" class="btn"
+                        style="padding: 4px 8px; border-radius: var(--radius-full); background: transparent; border: none;"
+                        onclick="zoomPreview(0.1)">+</button>
+                </div>
+
+                <button type="button" id="btn-download-sample" class="btn btn-secondary"
+                    style="border-radius: var(--radius-full);">
+                    Download Sample PDF
+                </button>
+
+                <button type="button" class="btn btn-primary" style="border-radius: var(--radius-full);"
+                    onclick="applyTemplateFromPreview()">
+                    Use Template
+                </button>
+            </div>
+        </div>
+
+        <div class="preview-frame-container" id="preview-body-container">
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color: var(--color-text-muted); text-align: center; display: none; flex-direction: column; gap: 8px;"
+                id="preview-loader">
+                <div style="font-weight: 600; font-size: 16px; color: var(--color-text-primary);">Preparing preview...
+                </div>
+                <div style="font-size: 13px;">Rendering your invoice<br>Applying company branding<br>Preparing
+                    letterhead</div>
+            </div>
+            <div id="pdf-render-container"
+                style="display: none; flex-direction: column; gap: var(--space-6); align-items: center; width: 100%;">
+            </div>
+
+            <div id="preview-error-fallback"
+                style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-md);">
+                <div style="font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px;">
+                    Preview unavailable</div>
+                <div style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 24px;">The PDF was generated
+                    successfully, but your browser<br>could not display the embedded PDF.</div>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button type="button" class="btn btn-secondary" id="btn-fallback-open">Open PDF</button>
+                    <button type="button" class="btn btn-primary" id="btn-fallback-download">Download PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block settings_js %}
+<script src="{% static 'js/pdf.min.js' %}"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{% static 'js/pdf.worker.min.js' %}";
+    // ----------------------------------------------------
+    // VIEW CONTROLLER
+    // ----------------------------------------------------
+    const viewSettings = document.getElementById('view-settings');
+    const viewGallery = document.getElementById('view-gallery');
+    const viewPreview = document.getElementById('view-preview');
+
+    function hideAllViews() {
+        viewSettings.classList.remove('active');
+        viewGallery.classList.remove('active');
+        viewPreview.classList.remove('active');
+    }
+
+    function navToSettings() {
+        hideAllViews();
+        viewSettings.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function navToGallery() {
+        hideAllViews();
+        viewGallery.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // ----------------------------------------------------
+    // TEMPLATE ACTIONS
+    // ----------------------------------------------------
+    const templateInput = document.getElementById('id_template_name');
+    let previewingTemplateId = '';
+    let previewingTemplateName = '';
+
+    function setInitialActiveTemplate() {
+        const initialTpl = templateInput.value || 'gst_classic';
+        const badge = document.getElementById('badge-' + initialTpl);
+        if (badge) {
+            badge.style.display = 'flex';
+        }
+    }
+
+    function applyTemplate(id, name) {
+        templateInput.value = id;
+        document.getElementById('active-template-title').innerText = name;
+
+        // Update badges
+        document.querySelectorAll('.gallery-card-badge').forEach(b => b.style.display = 'none');
+        document.getElementById('badge-' + id).style.display = 'flex';
+
+        navToSettings();
+    }
+
+    function applyTemplateFromPreview() {
+        applyTemplate(previewingTemplateId, previewingTemplateName);
+    }
+
+    // ----------------------------------------------------
+    // FULL PAGE PREVIEW LOGIC
+    // ----------------------------------------------------
+    const pdfContainer = document.getElementById('pdf-render-container');
+    const loader = document.getElementById('preview-loader');
+    const errorFallback = document.getElementById('preview-error-fallback');
+    const form = document.getElementById('invoice-design-form');
+    let currentZoom = null; // null means auto-fit
+    let currentPdfDoc = null;
+
+    let currentPreviewUrl = null;
+
+    // Wire up download button to use the blob URL
+    document.getElementById('btn-download-sample').addEventListener('click', (e) => {
+        if (currentPreviewUrl) {
+            const link = document.createElement("a");
+            link.href = currentPreviewUrl;
+            link.download = "sample_invoice.pdf";
+            link.click();
+        } else {
+            // fallback if clicked before preview is generated (or fails)
+            window.open("{% url 'settings_app:invoice_design_download' %}", "_blank");
+        }
+    });
+
+    document.getElementById('btn-fallback-open').addEventListener('click', () => {
+        if (currentPreviewUrl) {
+            window.open(currentPreviewUrl, "_blank");
+        }
+    });
+
+    document.getElementById('btn-fallback-download').addEventListener('click', () => {
+        if (currentPreviewUrl) {
+            const link = document.createElement("a");
+            link.href = currentPreviewUrl;
+            link.download = "sample_invoice.pdf";
+            link.click();
+        }
+    });
+
+    async function navToPreview(id, name) {
+        previewingTemplateId = id;
+        previewingTemplateName = name;
+        document.getElementById('preview-title-bar').innerText = name;
+
+        hideAllViews();
+        viewPreview.classList.add('active');
+
+        currentZoom = null; // Reset to auto-fit
+
+        pdfContainer.style.display = 'none';
+        pdfContainer.innerHTML = ''; // Clear old pages
+        errorFallback.style.display = 'none';
+        loader.style.display = 'flex';
+
+        // Use the form's current state, but temporarily override the template ID 
+        // in the payload just in case the backend uses it.
+        const payload = {};
+        const formData = new FormData(form);
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+        for (let [key, value] of formData.entries()) {
+            if (key !== 'csrfmiddlewaretoken') payload[key] = value;
+        }
+        checkboxes.forEach(cb => { payload[cb.name] = cb.checked; });
+
+        payload['template_name'] = id; // Ensure we render the correct preview template
+
+        try {
+            const response = await fetch("{% url 'settings_app:invoice_design_preview' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/pdf')) {
+                    const blob = await response.blob();
+
+                    if (currentPreviewUrl) {
+                        URL.revokeObjectURL(currentPreviewUrl);
+                    }
+
+                    currentPreviewUrl = URL.createObjectURL(blob);
+
+                    // Render using PDF.js
+                    const arrayBuffer = await blob.arrayBuffer();
+                    currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                    pdfContainer.style.display = 'flex';
+                    await renderAllPages();
+
+                } else {
+                    errorFallback.style.display = 'block';
+                    console.error("Unexpected response type:", contentType);
+                }
+            } else {
+                errorFallback.style.display = 'block';
+                console.error("Error generating preview, status:", response.status);
+            }
+        } catch (e) {
+            errorFallback.style.display = 'block';
+            console.error("Network error generating preview:", e);
+        }
+
+        loader.style.display = 'none';
+    }
+
+    async function renderAllPages() {
+        if (!currentPdfDoc) return;
+
+        pdfContainer.innerHTML = ''; // Clear container
+
+        // Get container width for auto-fit calculation (subtract padding/scrollbars approx)
+        const availableWidth = pdfContainer.parentElement.clientWidth - 128;
+
+        for (let i = 1; i <= currentPdfDoc.numPages; i++) {
+            const page = await currentPdfDoc.getPage(i);
+
+            // Calculate base scale
+            const unscaledViewport = page.getViewport({ scale: 1 });
+
+            // Auto-fit if currentZoom is null
+            if (currentZoom === null) {
+                currentZoom = availableWidth / unscaledViewport.width;
+                if (currentZoom > 2.0) currentZoom = 2.0;
+                // Update UI text
+                document.getElementById('zoom-level').textContent = Math.round(currentZoom * 100) + '%';
+            }
+
+            const viewport = page.getViewport({ scale: currentZoom });
+
+            const canvas = document.createElement('canvas');
+            canvas.style.display = 'block';
+            canvas.style.background = 'white';
+            canvas.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            canvas.style.borderRadius = '2px';
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            pdfContainer.appendChild(canvas);
+
+            const renderContext = {
+                canvasContext: canvas.getContext('2d'),
+                viewport: viewport
+            };
+
+            await page.render(renderContext).promise;
+        }
+    }
+
+    function zoomPreview(delta) {
+        if (currentZoom === null) currentZoom = 1.0;
+        currentZoom += delta;
+        if (currentZoom < 0.25) currentZoom = 0.25;
+        if (currentZoom > 2.5) currentZoom = 2.5;
+
+        document.getElementById('zoom-level').textContent = Math.round(currentZoom * 100) + '%';
+        renderAllPages();
+    }
+
+    function applyZoom() {
+        // Obsolete, handled by renderAllPages
+    }
+
+    // ----------------------------------------------------
+    // ACCORDION LOGIC
+    // ----------------------------------------------------
+    function toggleAccordion(id) {
+        const item = document.getElementById(id);
+        if (item.classList.contains('open')) {
+            item.classList.remove('open');
+        } else {
+            document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+            item.classList.add('open');
+        }
+    }
+
+    // ----------------------------------------------------
+    // CHECKBOX CARDS LOGIC
+    // ----------------------------------------------------
+    document.querySelectorAll('.element-card').forEach(card => {
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) card.classList.add('checked');
+            else card.classList.remove('checked');
+        });
+    });
+
+    // ----------------------------------------------------
+    // INLINE TOGGLE LOGIC
+    // ----------------------------------------------------
+    const footerToggle = document.getElementById('id_show_company_footer');
+    const footerPanel = document.getElementById('footer-text-panel');
+    if (footerToggle && footerPanel) {
+        function checkFooterToggle() {
+            footerPanel.style.display = footerToggle.checked ? 'block' : 'none';
+        }
+        footerToggle.addEventListener('change', checkFooterToggle);
+        checkFooterToggle(); // init
+    }
+
+    // ----------------------------------------------------
+    // STICKY BAR & FORM SUBMIT
+    // ----------------------------------------------------
+    const stickyBar = document.getElementById('sticky-bar');
+    const btnDiscard = document.getElementById('btn-discard');
+
+    // Move sticky bar to body to ensure it is fixed to the viewport, bypassing any CSS transform containing blocks
+    if (stickyBar) {
+        document.body.appendChild(stickyBar);
+    }
+
+    function alignStickyBar() {
+        const content = document.querySelector('.settings-content');
+        if (content && stickyBar) {
+            const rect = content.getBoundingClientRect();
+            stickyBar.style.left = (rect.left + rect.width / 2) + 'px';
+        }
+    }
+    window.addEventListener('resize', alignStickyBar);
+    alignStickyBar();
+
+    form.addEventListener('input', () => {
+        stickyBar.classList.add('visible');
+    });
+
+    form.addEventListener('change', () => {
+        stickyBar.classList.add('visible');
+    });
+
+    btnDiscard.addEventListener('click', () => {
+        form.reset();
+        stickyBar.classList.remove('visible');
+
+        // Update checkbox visuals
+        document.querySelectorAll('.element-card').forEach(card => {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                if (checkbox.checked) card.classList.add('checked');
+                else card.classList.remove('checked');
+            }
+        });
+
+        // Update footer toggle
+        if (typeof checkFooterToggle === 'function') checkFooterToggle();
+    });
+
+    const saveBtn = document.getElementById('save-btn');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveBtn.innerText = 'Saving...';
+        saveBtn.style.opacity = '0.75';
+        saveBtn.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+            saveBtn.innerText = 'Saved ✓';
+            saveBtn.style.backgroundColor = 'var(--color-success)';
+            saveBtn.style.borderColor = 'var(--color-success)';
+            saveBtn.style.opacity = '1';
+
+            setTimeout(() => {
+                form.submit();
+            }, 400);
+        }, 300);
+    });
+
+</script>
+{% endblock %}

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Modern Invoice Template</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #eeeeee;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+        }
+
+        body {
+            padding: 7mm;
+        }
+
+        .invoice {
+            width: 196mm;
+            min-height: 282mm;
+            margin: auto;
+            background: #fff;
+            border: 1px solid #9aa0a6;
+            font-size: 6.7px;
+            line-height: 1.2;
+        }
+
+        /* Header */
+        .header {
+            display: grid;
+            grid-template-columns: 50% 25% 25%;
+            border-bottom: 1px solid #777;
+            min-height: 30mm;
+        }
+
+        .company {
+            padding: 3mm;
+        }
+
+        .company .brand {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 1mm;
+        }
+
+        .company p {
+            margin: 0;
+        }
+
+        .invoice-title {
+            padding: 3mm 2mm;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #28446b;
+        }
+
+        .original {
+            text-align: right;
+            padding: 3mm 2mm;
+            font-size: 5.5px;
+            text-transform: uppercase;
+        }
+
+        /* Information */
+        .info {
+            display: grid;
+            grid-template-columns: 33.33% 33.33% 33.34%;
+            border-bottom: 1px solid #777;
+        }
+
+        .info-box {
+            padding: 2mm;
+            min-height: 22mm;
+            border-right: 1px solid #777;
+        }
+
+        .info-box:last-child {
+            border-right: none;
+        }
+
+        .info-box b {
+            display: inline-block;
+            margin-bottom: .8mm;
+        }
+
+        .info-box p {
+            margin: 0;
+        }
+
+        /* Items */
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .items th,
+        .items td {
+            border-right: 1px solid #888;
+            border-bottom: 1px solid #888;
+            padding: 1.2mm;
+            vertical-align: top;
+        }
+
+        .items th {
+            font-weight: 700;
+            text-align: center;
+            background: #f8f8f8;
+        }
+
+        .items th:last-child,
+        .items td:last-child {
+            border-right: none;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .item-name {
+            font-weight: 700;
+        }
+
+        .item-details {
+            margin-top: 1mm;
+            line-height: 1.25;
+        }
+
+        .item-images {
+            display: flex;
+            gap: 2mm;
+            margin-top: 2mm;
+        }
+
+        .item-image {
+            width: 25mm;
+            height: 15mm;
+            border-radius: 1mm;
+            background: linear-gradient(135deg, #d9d9d9, #f5f5f5);
+            border: 1px solid #ddd;
+        }
+
+        /* Summary */
+        .summary {
+            display: grid;
+            grid-template-columns: 70% 30%;
+            border-bottom: 1px solid #777;
+        }
+
+        .summary-left {
+            padding: 1.5mm 2mm;
+        }
+
+        .summary-right {
+            border-left: 1px solid #777;
+            padding: 1.5mm 2mm;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .7mm 0;
+        }
+
+        .summary-row.total {
+            border-top: 1px solid #555;
+            font-weight: 700;
+            font-size: 8px;
+        }
+
+        .summary-row.payable {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .amount-paid {
+            color: #258b38;
+            font-weight: 700;
+        }
+
+        /* Footer financial block */
+        .financial {
+            display: grid;
+            grid-template-columns: 30% 45% 25%;
+            min-height: 34mm;
+            border-bottom: 1px solid #777;
+        }
+
+        .financial>div {
+            padding: 2mm;
+            border-right: 1px solid #777;
+        }
+
+        .financial>div:last-child {
+            border-right: none;
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin-bottom: 1.5mm;
+        }
+
+        .qr {
+            width: 24mm;
+            height: 24mm;
+            margin-top: 1mm;
+            background:
+                repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px),
+                repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px);
+            border: 1px solid #111;
+        }
+
+        .bank-line {
+            margin: 1mm 0;
+        }
+
+        .signature {
+            height: 29mm;
+            position: relative;
+        }
+
+        .signature-circle {
+            position: absolute;
+            right: 1mm;
+            top: 6mm;
+            width: 17mm;
+            height: 17mm;
+            border: 1.5px solid #3158f5;
+            border-radius: 50%;
+            color: #3158f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 4.5px;
+            transform: rotate(-10deg);
+        }
+
+        .signature-text {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            font-size: 5.5px;
+        }
+
+        /* Notes */
+        .notes {
+            padding: 2mm;
+            min-height: 24mm;
+            border-bottom: 1px solid #777;
+        }
+
+        .notes p {
+            margin: .8mm 0;
+        }
+
+        .notes ol {
+            margin: 1mm 0 0 4mm;
+            padding: 0;
+        }
+
+        .notes li {
+            margin-bottom: .5mm;
+        }
+
+        /* Bottom */
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5mm 2mm;
+            font-size: 5.5px;
+        }
+
+        @media print {
+
+            html,
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .invoice {
+                border: 1px solid #777;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="company">
+                <div class="brand">Amazon</div>
+                <p>GSTIN: 26DCDR836918Z</p>
+                <p>C-21, City Center-Floor Block A Block B Survey Number-109,110,111/2,</p>
+                <p>Narolgam Village, Near Shree Manglamayal Mandir, Ranga Reddy Dist.</p>
+                <p>Ahmedabad, 591ANANGA, 560002</p>
+                <p>Mobile: 8999999998 &nbsp; Email: support@amazon.in</p>
+            </div>
+
+            <div class="invoice-title">TAX INVOICE</div>
+
+            <div class="original">ORIGINAL FOR RECIPIENT</div>
+        </div>
+
+        <!-- META -->
+        <div class="info">
+            <div class="info-box">
+                <b>Invoice No:</b> INV-1<br>
+                <b>Invoice Date:</b> 16 Jun 2023<br>
+                <b>Due Date:</b> 16 Jun 2023
+            </div>
+
+            <div class="info-box">
+                <b>Customer Details:</b>
+                <p>Amazon Customer</p>
+                <p>City Address</p>
+                <p>Ahmedabad, Gujarat</p>
+                <p>GSTIN: 26XXXXX</p>
+            </div>
+
+            <div class="info-box">
+                <b>Billing Address:</b>
+                <p>Building Name</p>
+                <p>Lucknow, UTTAR PRADESH, 225007</p>
+                <br>
+                <b>Shipping Address:</b>
+                <p>Lucknow, UTTAR PRADESH, 225007</p>
+            </div>
+        </div>
+
+        <!-- ITEMS -->
+        <table class="items">
+            <colgroup>
+                <col style="width:5%">
+                <col style="width:39%">
+                <col style="width:14%">
+                <col style="width:8%">
+                <col style="width:14%">
+                <col style="width:20%">
+            </colgroup>
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Rate / Item</th>
+                    <th>Qty</th>
+                    <th>Taxable Value</th>
+                    <th>Tax Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td class="center">1</td>
+                    <td>
+                        <div class="item-name">Samsung Galaxy F23</div>
+                        <div class="item-details">
+                            HSN: 8517<br>
+                            Color: Aqua Green<br>
+                            Storage - 128 GB<br>
+                            Ram - 6 GB
+                        </div>
+                        <div class="item-images">
+                            <div class="item-image"></div>
+                            <div class="item-image"></div>
+                            <div class="item-image"></div>
+                        </div>
+                    </td>
+                    <td class="right">14,408.33</td>
+                    <td class="center">1</td>
+                    <td class="right">14,408.33</td>
+                    <td class="right">2,592.00 (18%)<br>₹16,999.00</td>
+                </tr>
+
+                <tr>
+                    <td class="center">2</td>
+                    <td>
+                        <div class="item-name">Samsung 45 Watt Travel Adapter</div>
+                        <div class="item-details">
+                            HSN: 8504<br>
+                            EP-TA845XBNIGIN<br>
+                            Color - Black
+                        </div>
+                        <div class="item-images">
+                            <div class="item-image"></div>
+                            <div class="item-image"></div>
+                        </div>
+                    </td>
+                    <td class="right">2,117.80</td>
+                    <td class="center">1</td>
+                    <td class="right">2,117.80</td>
+                    <td class="right">381.20 (18%)<br>₹2,499.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <div class="summary">
+            <div class="summary-left">
+                <div class="summary-row">
+                    <span>Taxable Amount</span>
+                    <span>₹16,526.23</span>
+                </div>
+                <div class="summary-row">
+                    <span>IGST 18.0%</span>
+                    <span>₹2,973.24</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Items / Qty: 2 / 2</span>
+                    <span>Total amount in words: INR Nineteen Thousand, Four Hundred And Ninety-Eight Rupees
+                        Only.</span>
+                </div>
+            </div>
+
+            <div class="summary-right">
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>₹19,498.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Discount</span>
+                    <span>₹18,000.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Amount Payable</span>
+                    <span>₹19,399.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT / BANK / SIGNATURE -->
+        <div class="financial">
+            <div>
+                <div class="section-title">Pay using UPI</div>
+                <div class="qr"></div>
+            </div>
+
+            <div>
+                <div class="section-title">Bank Details:</div>
+                <div class="bank-line"><b>Bank:</b> YES BANK</div>
+                <div class="bank-line"><b>Account #:</b> 987999222445</div>
+                <div class="bank-line"><b>IFSC:</b> YESB0001234</div>
+                <div class="bank-line"><b>Branch:</b> Kodhuli</div>
+            </div>
+
+            <div>
+                <div class="signature">
+                    <div style="font-weight:700;">For Amazon</div>
+                    <div class="signature-circle">AUTHORISED<br>SIGNATORY</div>
+                    <div class="signature-text">Authorized Signatory</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="notes">
+            <b>Notes:</b>
+            <p>Thank you for the business.</p>
+
+            <b>Terms and Conditions:</b>
+            <ol>
+                <li>Goods once sold cannot be taken back or exchanged.</li>
+                <li>We are not responsible for delays caused by third parties.</li>
+                <li>Interest @ 18% p.a. will be charged for delayed payment.</li>
+                <li>Subject to local jurisdiction.</li>
+            </ol>
+        </div>
+
+        <div class="bottom">
+            <span>Page 1 / 1</span>
+            <span>This is a digitally signed document.</span>
+        </div>
+
+    </div>
+</body>
+
+</html>

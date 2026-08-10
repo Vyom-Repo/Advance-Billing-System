@@ -95,6 +95,84 @@ class InvoicePreference(models.Model):
             parts.append(prefix)
         if fy_str:
             parts.append(fy_str)
-        parts.append(num_str)
-        
         return "-".join(parts)
+
+class DocumentPreference(models.Model):
+    """
+    Stores default preferences for PDF layout and printing.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='document_preference')
+    
+    TEMPLATE_CHOICES = (
+        ('gst_classic', 'GST Classic'),
+        ('flipkart_invoice', 'Flipkart Invoice'),
+        ('retail_gst_compact', 'Retail GST Compact'),
+        ('evergreen', 'Evergreen Template'),
+        ('compact_template', 'Compact Template'),
+        ('genz', 'GenZ Template'),
+        ('landscape_template', 'Landscape Template'),
+        ('modern_template', 'Modern Template'),
+        ('mrp_discount_template', 'MRP Discount Template'),
+        ('professional_template', 'Professional Template'),
+        ('service_template', 'Service Template'),
+        ('vintage', 'Vintage Template'),
+    )
+    template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='gst_classic')
+    
+    PAPER_SIZE_CHOICES = (
+        ('A4', 'A4'),
+        ('Letter', 'Letter'),
+    )
+    paper_size = models.CharField(max_length=10, choices=PAPER_SIZE_CHOICES, default='A4')
+    
+    ORIENTATION_CHOICES = (
+        ('Portrait', 'Portrait'),
+        ('Landscape', 'Landscape'),
+    )
+    orientation = models.CharField(max_length=15, choices=ORIENTATION_CHOICES, default='Portrait')
+    
+    MARGIN_CHOICES = (
+        ('Narrow', 'Narrow'),
+        ('Normal', 'Normal'),
+        ('Wide', 'Wide'),
+    )
+    margins = models.CharField(max_length=10, choices=MARGIN_CHOICES, default='Normal')
+    
+    show_company_logo = models.BooleanField(default=True)
+    show_company_header = models.BooleanField(default=True)
+    show_company_footer = models.BooleanField(default=True)
+    print_on_letterhead = models.BooleanField(default=False)
+    
+    show_qr_code = models.BooleanField(default=True)
+    show_bank_details = models.BooleanField(default=True)
+    show_gst_summary = models.BooleanField(default=True)
+    show_hsn_sac = models.BooleanField(default=True)
+    show_signature = models.BooleanField(default=True)
+    show_terms = models.BooleanField(default=True)
+    show_payment_info = models.BooleanField(default=True)
+    
+    FONT_SIZE_CHOICES = (
+        ('Small', 'Small'),
+        ('Medium', 'Medium'),
+        ('Large', 'Large'),
+    )
+    font_size = models.CharField(max_length=10, choices=FONT_SIZE_CHOICES, default='Medium')
+    
+    DENSITY_CHOICES = (
+        ('Compact', 'Compact'),
+        ('Comfortable', 'Comfortable'),
+    )
+    table_density = models.CharField(max_length=15, choices=DENSITY_CHOICES, default='Comfortable')
+    
+    show_page_numbers = models.BooleanField(default=True)
+    show_print_date = models.BooleanField(default=True)
+    custom_footer_message = models.TextField(blank=True, default="Thank you for your business.")
+
+    onboarding_completed = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.email} Document Preferences"
+

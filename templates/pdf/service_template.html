@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Service Invoice Template</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #eee;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111
+        }
+
+        body {
+            padding: 7mm
+        }
+
+        .invoice {
+            width: 196mm;
+            min-height: 282mm;
+            margin: auto;
+            background: #fff;
+            padding: 4mm 5mm 3mm;
+            font-size: 6.2px;
+            line-height: 1.18
+        }
+
+        .top {
+            display: grid;
+            grid-template-columns: 62% 38%;
+            border-bottom: 1px solid #333;
+            min-height: 24mm
+        }
+
+        .brand {
+            display: flex;
+            align-items: flex-start;
+            gap: 2mm
+        }
+
+        .brand-logo {
+            width: 10mm;
+            height: 10mm;
+            border-radius: 2mm;
+            background: linear-gradient(135deg, #e84b9b, #8c3bb8);
+            color: #fff;
+            font-size: 17px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1mm
+        }
+
+        .brand-name {
+            font-family: cursive;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 1mm
+        }
+
+        .small-title {
+            font-size: 6px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 1mm
+        }
+
+        .company {
+            margin-top: 2mm
+        }
+
+        .company b {
+            font-size: 7px
+        }
+
+        .company p {
+            margin: .4mm 0
+        }
+
+        .right-head {
+            text-align: right
+        }
+
+        .right-head b {
+            font-size: 8px
+        }
+
+        .right-head p {
+            margin: .8mm 0
+        }
+
+        .info {
+            display: grid;
+            grid-template-columns: 58% 42%;
+            min-height: 30mm
+        }
+
+        .info-left,
+        .info-right {
+            padding: 2mm 1mm
+        }
+
+        .info-right {
+            border-left: 1px solid #bbb
+        }
+
+        .section-label {
+            font-weight: bold;
+            margin-bottom: 1mm
+        }
+
+        .bill p {
+            margin: .45mm 0
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 40% 60%;
+            row-gap: .6mm
+        }
+
+        .details b {
+            font-weight: bold
+        }
+
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed
+        }
+
+        .items th,
+        .items td {
+            border-bottom: 1px solid #b9b9b9;
+            padding: 1.4mm 1mm;
+            vertical-align: top
+        }
+
+        .items th {
+            background: #ef00b5;
+            color: #fff;
+            text-align: center;
+            font-weight: bold
+        }
+
+        .items th:nth-child(1) {
+            width: 5%
+        }
+
+        .items th:nth-child(2) {
+            width: 55%
+        }
+
+        .items th:nth-child(3) {
+            width: 25%
+        }
+
+        .items th:nth-child(4) {
+            width: 15%
+        }
+
+        .center {
+            text-align: center
+        }
+
+        .right {
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .item-name {
+            font-weight: bold
+        }
+
+        .sub {
+            font-size: 5.7px
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: 68% 32%;
+            border-bottom: 1px solid #999
+        }
+
+        .summary-left {
+            padding: 1mm
+        }
+
+        .summary-right {
+            padding: 1mm 0
+        }
+
+        .sumrow {
+            display: flex;
+            justify-content: space-between;
+            padding: .55mm 0
+        }
+
+        .sumrow.total {
+            font-weight: bold;
+            font-size: 7px;
+            border-top: 1px solid #777
+        }
+
+        .words {
+            padding-top: 1mm
+        }
+
+        .payment {
+            display: grid;
+            grid-template-columns: 20% 45% 35%;
+            min-height: 34mm;
+            border-bottom: 1px solid #999
+        }
+
+        .payment>div {
+            padding: 2mm;
+            border-right: 1px solid #999
+        }
+
+        .payment>div:last-child {
+            border-right: 0
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 1.2mm
+        }
+
+        .qr {
+            width: 25mm;
+            height: 25mm;
+            background: repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px)
+        }
+
+        .bank div {
+            margin: .7mm 0
+        }
+
+        .signature {
+            height: 27mm;
+            position: relative
+        }
+
+        .stamp {
+            position: absolute;
+            right: 1mm;
+            top: 5mm;
+            width: 16mm;
+            height: 16mm;
+            border: 1.5px solid #5267a7;
+            border-radius: 50%;
+            color: #5267a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 4px;
+            transform: rotate(-12deg)
+        }
+
+        .auth {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            font-size: 5px
+        }
+
+        .notes {
+            padding: 2mm 1mm;
+            min-height: 23mm
+        }
+
+        .notes b {
+            font-size: 6px
+        }
+
+        .notes p {
+            margin: 1mm 0
+        }
+
+        .notes ol {
+            margin: 1mm 0 0 4mm;
+            padding: 0
+        }
+
+        .notes li {
+            margin-bottom: .5mm
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 3mm;
+            font-size: 5px
+        }
+
+        @media print {
+
+            html,
+            body {
+                background: #fff;
+                padding: 0
+            }
+
+            .invoice {
+                width: 196mm;
+                min-height: 282mm
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice">
+
+        <header class="top">
+            <div class="brand">
+                <div>
+                    <div class="brand" style="gap:1.5mm">
+                        <div class="brand-logo">◎</div>
+                        <div>
+                            <div class="brand-name">Instagram</div>
+                            <div class="small-title">TAX INVOICE</div>
+                        </div>
+                    </div>
+                    <div class="company">
+                        <b>Instagram</b>
+                        <p>GSTIN: 36AABCS2942R1ZR</p>
+                        <p>Block 3, Indira Nagar, Gachibowli</p>
+                        <p>Hyderabad, TELANGANA, 500032</p>
+                        <p>Mobile: 9999999999</p>
+                    </div>
+                </div>
+            </div>
+            <div class="right-head">
+                <b>Invoice #: INV-1</b>
+                <p>Invoice Date: &nbsp; 16 Jun 2023</p>
+                <p>Due Date: &nbsp;&nbsp;&nbsp;&nbsp; 16 Jun 2023</p>
+                <p>Place of Supply: &nbsp; 36-TELANGANA</p>
+            </div>
+        </header>
+
+        <section class="info">
+            <div class="info-left bill">
+                <div class="section-label">Bill To:</div>
+                <p><b>Adom Masoori</b></p>
+                <p>GSTIN: 27AABCS2942R1ZR</p>
+                <p>Ph: 9999999999</p>
+                <p>Survy 115/1, ISD Rd, Financial District</p>
+                <p>Gachibowli, Hyderabad, TELANGANA, 500032</p>
+                <p>Hyderabad, TELANGANA, 500032</p>
+                <p>Survy 115/1, ISD Rd, Financial District</p>
+                <p>Gachibowli, Hyderabad, TELANGANA, 500032</p>
+            </div>
+            <div class="info-right details">
+                <div><b>Invoice #:</b></div>
+                <div>INV-1</div>
+                <div><b>Invoice Date:</b></div>
+                <div>16 Jun 2023</div>
+                <div><b>Due Date:</b></div>
+                <div>16 Jun 2023</div>
+                <div><b>Place of Supply:</b></div>
+                <div>36-TELANGANA</div>
+            </div>
+        </section>
+
+        <table class="items">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Description</th>
+                    <th>HSN/SAC</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="center">1</td>
+                    <td><span class="item-name">Digital Marketing</span><br><span class="sub">Facebook Ads for 1 Month -
+                            5 Paid campaigns - 20 Ads<br>Instagram Ads - Organic + Reels and Story Ads</span></td>
+                    <td class="center">45346</td>
+                    <td class="right">21,186.00</td>
+                </tr>
+                <tr>
+                    <td class="center">2</td>
+                    <td><span class="item-name">Logo Designing</span></td>
+                    <td class="center">-</td>
+                    <td class="right">5,000.00</td>
+                </tr>
+                <tr>
+                    <td class="center">3</td>
+                    <td><span class="item-name">Professional fee</span></td>
+                    <td class="center">-</td>
+                    <td class="right">1,694.92</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <section class="summary">
+            <div class="summary-left">
+                <div style="height:7mm"></div>
+                <div class="words">Total Items / Qty: 3 / 3.000</div>
+                <div class="words">Total amount in words: INR Thirty-Two Thousand, Eight Hundred And Ninety-Nine Rupees
+                    Only.</div>
+            </div>
+            <div class="summary-right">
+                <div class="sumrow"><span>Taxable Amount</span><span>₹27,880.92</span></div>
+                <div class="sumrow"><span>CGST 9.0%</span><span>₹2,509.28</span></div>
+                <div class="sumrow"><span>SGST 9.0%</span><span>₹2,509.28</span></div>
+                <div class="sumrow total"><span>Total</span><span>₹32,899.00</span></div>
+                <div class="sumrow"><span>Amount Payable</span><span>₹32,899.00</span></div>
+                <div class="sumrow"><span>Amount Paid</span><span>₹15,000.00</span></div>
+            </div>
+        </section>
+
+        <div class="payment">
+            <div>
+                <div class="section-title">Pay using UPI:</div>
+                <div class="qr"></div>
+            </div>
+            <div class="bank">
+                <div class="section-title">Bank Details:</div>
+                <div>Bank: &nbsp;&nbsp;&nbsp;&nbsp; YES BANK</div>
+                <div>Account #: &nbsp; 687899922445</div>
+                <div>IFSC: &nbsp;&nbsp;&nbsp;&nbsp; YESBBN04567</div>
+                <div>Branch: &nbsp;&nbsp;&nbsp; Kodihalli</div>
+            </div>
+            <div>
+                <b>For Instagram</b>
+                <div class="signature">
+                    <div class="stamp">AUTHORISED<br>SIGNATORY</div>
+                    <div class="auth">Authorized Signatory</div>
+                </div>
+            </div>
+        </div>
+
+        <section class="notes">
+            <b>Notes:</b>
+            <p>Thank you for the business</p>
+            <b>Terms and Conditions:</b>
+            <ol>
+                <li>Goods once sold cannot be taken back or exchanged.</li>
+                <li>We are not the manufacturers, company will stand for warranty as per their terms and conditions.
+                </li>
+                <li>Interest @24.0% p.a. will be charged for uncleared bills beyond 15 days.</li>
+                <li>Subject to local jurisdiction.</li>
+            </ol>
+        </section>
+
+        <div class="bottom">
+            <span>Page 1 / 1</span>
+            <span>This is a digitally signed document.</span>
+        </div>
+
+    </div>
+</body>
+
+</html>
