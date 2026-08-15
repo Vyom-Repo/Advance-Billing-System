@@ -22,7 +22,7 @@ from .base import env, BASE_DIR
 DEBUG = True
 
 # In development, allow all local origins by default
-ALLOWED_HOSTS = env("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "0.0.0.0"])
+ALLOWED_HOSTS = list(set(env("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "0.0.0.0"]) + ["localhost", "127.0.0.1", "0.0.0.0", "testserver"]))
 
 # =============================================================================
 # DATABASE

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ledger Classic Invoice</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #1a1a1a;
+            font-family: "Courier New", Courier, "Liberation Mono", Georgia, serif;
+            font-size: 8.5px;
+            line-height: 1.3;
+        }
+
+        body {
+            padding: 10mm;
+        }
+
+        .ledger-frame {
+            width: 190mm;
+            min-height: 277mm;
+            margin: 0 auto;
+            border: 1.5px solid #222;
+            padding: 5mm;
+            background: #fff;
+        }
+
+        /* Top Ledger Header */
+        .ledger-top {
+            border-bottom: 2px solid #222;
+            padding-bottom: 3mm;
+            margin-bottom: 3mm;
+        }
+
+        .header-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 2mm;
+            margin-bottom: 3mm;
+        }
+
+        .doc-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .doc-copy {
+            font-size: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .company-grid {
+            display: grid;
+            grid-template-columns: 60% 40%;
+            gap: 4mm;
+        }
+
+        .company-name {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1mm;
+        }
+
+        .logo-box {
+            max-height: 16mm;
+            max-width: 40mm;
+            margin-bottom: 2mm;
+            object-fit: contain;
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8px;
+        }
+
+        .meta-table td {
+            padding: 1mm 1.5mm;
+            border: 1px solid #777;
+        }
+
+        .meta-table td.label {
+            font-weight: 700;
+            background: #f4f4f4;
+            width: 45%;
+        }
+
+        /* Customer & Dispatch Section */
+        .party-section {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            border: 1px solid #333;
+            margin-bottom: 4mm;
+        }
+
+        .party-box {
+            padding: 2.5mm;
+        }
+
+        .party-box:first-child {
+            border-right: 1px solid #333;
+        }
+
+        .party-title {
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #777;
+            padding-bottom: 1mm;
+            margin-bottom: 1.5mm;
+            font-size: 8px;
+        }
+
+        /* Items Ledger Table */
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4mm;
+            font-size: 8px;
+        }
+
+        .ledger-table th {
+            border-top: 1.5px solid #222;
+            border-bottom: 1.5px solid #222;
+            border-right: 1px solid #888;
+            padding: 1.5mm 1mm;
+            background: #f7f7f7;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .ledger-table th:first-child {
+            border-left: 1.5px solid #222;
+        }
+
+        .ledger-table th:last-child {
+            border-right: 1.5px solid #222;
+        }
+
+        .ledger-table td {
+            border-bottom: 1px solid #ccc;
+            border-right: 1px solid #888;
+            padding: 1.5mm 1mm;
+            vertical-align: top;
+        }
+
+        .ledger-table td:first-child {
+            border-left: 1.5px solid #222;
+        }
+
+        .ledger-table td:last-child {
+            border-right: 1.5px solid #222;
+        }
+
+        .ledger-table tr.total-row td {
+            border-top: 1.5px solid #222;
+            border-bottom: 1.5px solid #222;
+            font-weight: 700;
+            background: #fafafa;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+
+        /* Totals & Tax Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 55% 45%;
+            gap: 4mm;
+            margin-bottom: 4mm;
+        }
+
+        .tax-summary-ledger {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5px;
+        }
+
+        .tax-summary-ledger th,
+        .tax-summary-ledger td {
+            border: 1px solid #666;
+            padding: 1mm 1.2mm;
+        }
+
+        .tax-summary-ledger th {
+            background: #f0f0f0;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5px;
+        }
+
+        .totals-table td {
+            padding: 1.2mm 2mm;
+            border-bottom: 1px dashed #888;
+        }
+
+        .totals-table tr.grand-total td {
+            border-top: 2px solid #222;
+            border-bottom: 3px double #222;
+            font-weight: 700;
+            font-size: 10.5px;
+            background: #f9f9f9;
+        }
+
+        /* Financial & Sign Section */
+        .bottom-pane {
+            display: grid;
+            grid-template-columns: 48% 24% 28%;
+            border: 1px solid #333;
+            margin-bottom: 4mm;
+        }
+
+        .bottom-box {
+            padding: 2.5mm;
+            border-right: 1px solid #333;
+        }
+
+        .bottom-box:last-child {
+            border-right: none;
+        }
+
+        .bottom-title {
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #777;
+            padding-bottom: 1mm;
+            margin-bottom: 2mm;
+            font-size: 8px;
+        }
+
+        .qr-box {
+            width: 25mm;
+            height: 25mm;
+            margin: 1mm auto 0;
+            display: block;
+            object-fit: contain;
+        }
+
+        .sign-area {
+            height: 26mm;
+            position: relative;
+            text-align: center;
+        }
+
+        .sign-img {
+            max-height: 18mm;
+            max-width: 32mm;
+            margin: 0 auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .sign-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 1px solid #333;
+            padding-top: 1mm;
+            font-size: 7px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Terms & Footer */
+        .terms-box {
+            border: 1px solid #555;
+            padding: 2mm;
+            font-size: 7px;
+            margin-bottom: 3mm;
+        }
+
+        .terms-box strong {
+            display: block;
+            margin-bottom: 1mm;
+            text-transform: uppercase;
+        }
+
+        .footer-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 6.5px;
+            border-top: 1px solid #777;
+            padding-top: 1.5mm;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ledger-frame">
+        <!-- HEADER -->
+        <div class="ledger-top">
+            <div class="header-title-bar">
+                <div class="doc-title">TAX INVOICE</div>
+                <div class="doc-copy">ORIGINAL FOR RECIPIENT</div>
+            </div>
+
+            <div class="company-grid">
+                <div>
+                    {% if config.show_company_logo and company.logo_url %}
+                    <div><img class="logo-box" src="{{ company.logo_url }}" alt="Logo"></div>
+                    {% endif %}
+
+                    {% if config.show_company_header %}
+                    <div class="company-name">{{ company.name }}</div>
+                    {% if company.gstin %}<div>GSTIN: {{ company.gstin }}</div>{% endif %}
+                    {% if company.address %}<div>{{ company.address }}</div>{% endif %}
+                    {% if company.city %}<div>{{ company.city }}, {{ company.state }}{% if company.pincode %} - {{ company.pincode }}{% endif %}</div>{% endif %}
+                    {% if company.phone %}<div>TEL: {{ company.phone }}</div>{% endif %}
+                    {% if company.email %}<div>EMAIL: {{ company.email }}</div>{% endif %}
+                    {% endif %}
+                </div>
+
+                <div>
+                    <table class="meta-table">
+                        <tr>
+                            <td class="label">INVOICE NO.</td>
+                            <td class="tabular-nums"><b>{{ bill.number }}</b></td>
+                        </tr>
+                        <tr>
+                            <td class="label">DATE</td>
+                            <td>{{ bill.date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">DUE DATE</td>
+                            <td>{{ bill.due_date }}</td>
+                        </tr>
+                        {% if bill.place_of_supply %}
+                        <tr>
+                            <td class="label">PLACE OF SUPPLY</td>
+                            <td>{{ bill.place_of_supply }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTIES -->
+        <div class="party-section">
+            <div class="party-box">
+                <div class="party-title">BILLED TO (BUYER)</div>
+                <div><b>{{ customer.name }}</b></div>
+                {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                {% if customer.phone %}<div>TEL: {{ customer.phone }}</div>{% endif %}
+            </div>
+
+            <div class="party-box">
+                <div class="party-title">SHIPPED TO (CONSIGNEE)</div>
+                {% if customer.shipping_name %}<div><b>{{ customer.shipping_name }}</b></div>{% else %}<div><b>{{ customer.name }}</b></div>{% endif %}
+                {% if customer.shipping_address %}
+                <div>{{ customer.shipping_address }}</div>
+                {% if customer.shipping_city %}<div>{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}</div>{% endif %}
+                {% else %}
+                {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ITEMS TABLE -->
+        <table class="ledger-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">FOLIO</th>
+                    <th style="width: {% if config.show_hsn_sac %}43%{% else %}53%{% endif %}; text-align: left;">PARTICULARS</th>
+                    {% if config.show_hsn_sac %}<th style="width: 10%;">HSN/SAC</th>{% endif %}
+                    <th style="width: 8%;">QTY</th>
+                    <th style="width: 14%;" class="text-right">RATE</th>
+                    <th style="width: 20%;" class="text-right">AMOUNT ({{ bill.currency_symbol }})</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="text-center tabular-nums">{{ item.index }}</td>
+                    <td>
+                        <b>{{ item.name }}</b>
+                        {% if item.description %}<div style="font-size: 7px; color: #444;">{{ item.description }}</div>{% endif %}
+                    </td>
+                    {% if config.show_hsn_sac %}<td class="text-center tabular-nums">{{ item.hsn }}</td>{% endif %}
+                    <td class="text-center tabular-nums">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="text-right tabular-nums">{{ item.rate }}</td>
+                    <td class="text-right tabular-nums"><b>{{ item.amount }}</b></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- TOTALS & TAX BREAKDOWN -->
+        <div class="summary-grid">
+            <div>
+                {% if config.show_gst_summary and gst_summary %}
+                <table class="tax-summary-ledger">
+                    <thead>
+                        <tr>
+                            <th>HSN/SAC</th>
+                            <th>TAXABLE</th>
+                            <th>CGST</th>
+                            <th>SGST</th>
+                            <th>TOTAL TAX</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in gst_summary %}
+                        {% if not row.is_total %}
+                        <tr>
+                            <td class="text-center">{{ row.hsn }}</td>
+                            <td class="text-right">{{ row.taxable }}</td>
+                            <td class="text-right">{{ row.cgst_amount }}</td>
+                            <td class="text-right">{{ row.sgst_amount }}</td>
+                            <td class="text-right"><b>{{ row.total_tax }}</b></td>
+                        </tr>
+                        {% else %}
+                        <tr style="font-weight: 700; background: #eef2f5;">
+                            <td class="text-center">TOTAL</td>
+                            <td class="text-right">{{ row.taxable }}</td>
+                            <td class="text-right">{{ row.cgst_amount }}</td>
+                            <td class="text-right">{{ row.sgst_amount }}</td>
+                            <td class="text-right">{{ row.total_tax }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+
+                {% if bill.amount_in_words %}
+                <div style="margin-top: 2mm; font-size: 7.5px;">
+                    <b>AMOUNT IN WORDS:</b> {{ bill.amount_in_words }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <table class="totals-table">
+                    <tr>
+                        <td>SUBTOTAL</td>
+                        <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.subtotal }}</td>
+                    </tr>
+                    {% if config.show_gst_summary %}
+                    <tr>
+                        <td>TAX TOTAL</td>
+                        <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.tax_total }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if bill.discount_total %}
+                    <tr>
+                        <td>DISCOUNT</td>
+                        <td class="text-right tabular-nums">-{{ bill.currency_symbol }}{{ bill.discount_total }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="grand-total">
+                        <td>GRAND TOTAL</td>
+                        <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.grand_total }}</td>
+                    </tr>
+                    {% if config.show_payment_info and bill.amount_paid %}
+                    <tr>
+                        <td>Amount Paid</td>
+                        <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.amount_paid }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>BALANCE DUE</b></td>
+                        <td class="text-right tabular-nums"><b>{{ bill.currency_symbol }}{{ bill.amount_due }}</b></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- BOTTOM FINANCIAL & SIGNATURE SECTION -->
+        <div class="bottom-pane">
+            <div class="bottom-box">
+                {% if config.show_bank_details %}
+                <div class="bottom-title">BANK PARTICULARS</div>
+                {% if company.bank_name %}<div>BANK: <b>{{ company.bank_name }}</b></div>{% endif %}
+                {% if company.acc_no %}<div>A/C NO.: <b>{{ company.acc_no }}</b></div>{% endif %}
+                {% if company.ifsc %}<div>IFSC CODE: <b>{{ company.ifsc }}</b></div>{% endif %}
+                {% if company.branch %}<div>BRANCH: {{ company.branch }}</div>{% endif %}
+                {% endif %}
+            </div>
+
+            <div class="bottom-box" style="text-align: center;">
+                {% if config.show_qr_code %}
+                <div class="bottom-title">SCAN TO PAY</div>
+                {% if bill.qr_code_url %}
+                <img class="qr-box" src="{{ bill.qr_code_url }}" alt="QR Code">
+                {% else %}
+                <div style="border: 1px dashed #666; width: 22mm; height: 22mm; margin: 1mm auto; font-size: 6px; display: flex; align-items: center; justify-content: center;">UPI QR</div>
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="bottom-box">
+                {% if config.show_signature %}
+                <div class="bottom-title">FOR {{ company.name|upper }}</div>
+                <div class="sign-area">
+                    {% if company.signature_url %}
+                    <img class="sign-img" src="{{ company.signature_url }}" alt="Signature">
+                    {% endif %}
+                    <div class="sign-line">Authorized Signatory</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TERMS -->
+        {% if config.show_terms and bill.terms %}
+        <div class="terms-box">
+            <strong>TERMS &amp; CONDITIONS</strong>
+            {{ bill.terms|linebreaksbr }}
+        </div>
+        {% endif %}
+
+        <!-- FOOTER -->
+        {% if config.show_company_footer %}
+        <div class="footer-bar">
+            {% if config.show_page_numbers %}<span>PAGE 1 / 1</span>{% endif %}
+            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; PRINTED ON {% now "d-M-Y" %}{% endif %}</span>
+        </div>
+        {% elif config.show_page_numbers or config.show_print_date %}
+        <div class="footer-bar">
+            {% if config.show_page_numbers %}<span>PAGE 1 / 1</span>{% else %}<span></span>{% endif %}
+            <span>{% if config.show_print_date %}PRINTED ON {% now "d-M-Y" %}{% endif %}</span>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

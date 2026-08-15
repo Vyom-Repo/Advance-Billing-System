@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Elegant Serif Invoice</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #27272a;
+            font-family: "Times New Roman", Times, Georgia, "Liberation Serif", serif;
+            font-size: 8.5px;
+            line-height: 1.4;
+        }
+
+        body {
+            padding: 12mm 12mm 10mm;
+        }
+
+        .page-wrap {
+            width: 186mm;
+            min-height: 275mm;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Letterhead Centered Header */
+        .letterhead-header {
+            text-align: center;
+            border-bottom: 1px solid #71717a;
+            padding-bottom: 4mm;
+            margin-bottom: 5mm;
+            position: relative;
+        }
+
+        .letterhead-logo {
+            max-height: 16mm;
+            max-width: 45mm;
+            margin: 0 auto 2mm;
+            display: block;
+            object-fit: contain;
+        }
+
+        .firm-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #18181b;
+        }
+
+        .firm-meta {
+            font-size: 7.5px;
+            color: #52525b;
+            margin-top: 1mm;
+            font-style: italic;
+        }
+
+        .doc-watermark {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #71717a;
+            margin-top: 2mm;
+        }
+
+        /* Metadata & Customer Block */
+        .invoice-two-col {
+            display: grid;
+            grid-template-columns: 55% 45%;
+            gap: 6mm;
+            margin-bottom: 5mm;
+            padding-bottom: 4mm;
+            border-bottom: 1px solid #e4e4e7;
+        }
+
+        .col-heading {
+            font-size: 7.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #71717a;
+            border-bottom: 0.5px solid #a1a1aa;
+            padding-bottom: 1mm;
+            margin-bottom: 1.5mm;
+        }
+
+        .client-name {
+            font-size: 10px;
+            font-weight: 700;
+            color: #18181b;
+            margin-bottom: 0.8mm;
+        }
+
+        .client-info {
+            font-size: 8px;
+            color: #3f3f46;
+            line-height: 1.35;
+        }
+
+        .meta-list {
+            font-size: 8px;
+            line-height: 1.45;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8mm 0;
+            border-bottom: 0.5px dotted #d4d4d8;
+        }
+
+        /* Elegant Table */
+        .elegant-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8px;
+            margin-bottom: 5mm;
+        }
+
+        .elegant-table th {
+            border-top: 1.5px solid #27272a;
+            border-bottom: 1.5px solid #27272a;
+            padding: 2mm 1.5mm;
+            font-size: 7.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #18181b;
+            text-align: left;
+        }
+
+        .elegant-table th.num-col,
+        .elegant-table td.num-col {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .elegant-table td {
+            padding: 2.2mm 1.5mm;
+            border-bottom: 0.5px solid #e4e4e7;
+            color: #27272a;
+            vertical-align: top;
+        }
+
+        .item-main-name {
+            font-weight: 700;
+            color: #18181b;
+        }
+
+        .item-subtext {
+            font-size: 7px;
+            color: #71717a;
+            font-style: italic;
+            margin-top: 0.5mm;
+        }
+
+        /* Totals & Tax Summary */
+        .bottom-calc-grid {
+            display: grid;
+            grid-template-columns: 55% 45%;
+            gap: 6mm;
+            margin-bottom: 5mm;
+        }
+
+        .tax-table-serif {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7px;
+        }
+
+        .tax-table-serif th {
+            border-bottom: 1px solid #71717a;
+            padding: 1mm;
+            text-transform: uppercase;
+            font-size: 6.8px;
+        }
+
+        .tax-table-serif td {
+            padding: 1mm;
+            border-bottom: 0.5px solid #e4e4e7;
+        }
+
+        .totals-column {
+            font-size: 8px;
+        }
+
+        .totals-row-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1mm 0;
+            border-bottom: 0.5px dotted #d4d4d8;
+        }
+
+        .totals-row-item.grand {
+            border-top: 1.5px solid #18181b;
+            border-bottom: 2.5px double #18181b;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2mm 0;
+            margin: 1.5mm 0;
+        }
+
+        /* Banking & Formal Signature */
+        .closing-section {
+            display: grid;
+            grid-template-columns: 46% 24% 30%;
+            gap: 4mm;
+            border-top: 1px solid #71717a;
+            padding-top: 4mm;
+            margin-bottom: 4mm;
+        }
+
+        .closing-card-title {
+            font-size: 7.2px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #71717a;
+            margin-bottom: 1.5mm;
+        }
+
+        .bank-details-serif {
+            font-size: 7.5px;
+            line-height: 1.4;
+            color: #3f3f46;
+        }
+
+        .qr-frame-serif {
+            text-align: center;
+        }
+
+        .qr-serif-img {
+            width: 23mm;
+            height: 23mm;
+            margin: auto;
+            object-fit: contain;
+        }
+
+        .sign-area-serif {
+            text-align: center;
+            height: 24mm;
+            position: relative;
+        }
+
+        .sign-serif-img {
+            max-height: 15mm;
+            max-width: 30mm;
+            margin: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .sign-serif-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 0.5px solid #71717a;
+            padding-top: 1mm;
+            font-size: 7px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Terms & Formal Footer */
+        .formal-terms {
+            font-size: 7px;
+            color: #52525b;
+            border-top: 0.5px solid #e4e4e7;
+            padding-top: 2.5mm;
+            margin-bottom: 3mm;
+            font-style: italic;
+        }
+
+        .formal-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 6.8px;
+            color: #71717a;
+            border-top: 1px solid #71717a;
+            padding-top: 1.5mm;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrap">
+        <div>
+            <!-- LETTERHEAD HEADER -->
+            <div class="letterhead-header">
+                {% if config.show_company_logo and company.logo_url %}
+                <img class="letterhead-logo" src="{{ company.logo_url }}" alt="Logo">
+                {% endif %}
+
+                {% if config.show_company_header %}
+                <div class="firm-title">{{ company.name }}</div>
+                <div class="firm-meta">
+                    {% if company.gstin %}<span>GSTIN: {{ company.gstin }}</span> &bull; {% endif %}
+                    {% if company.address %}<span>{{ company.address }}</span>, {% endif %}
+                    {% if company.city %}<span>{{ company.city }}, {{ company.state }}{% if company.pincode %} - {{ company.pincode }}{% endif %}</span>{% endif %}
+                    {% if company.phone %}<br><span>Tel: {{ company.phone }}</span> &bull; <span>Email: {{ company.email }}</span>{% endif %}
+                </div>
+                {% endif %}
+
+                <div class="doc-watermark">&mdash; TAX INVOICE &mdash;</div>
+            </div>
+
+            <!-- TWO COLUMN METADATA & CLIENT -->
+            <div class="invoice-two-col">
+                <div>
+                    <div class="col-heading">Client &amp; Consignee Particulars</div>
+                    <div class="client-name">{{ customer.name }}</div>
+                    <div class="client-info">
+                        {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% if customer.phone %}<div>Telephone: {{ customer.phone }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="col-heading">Invoice Details</div>
+                    <div class="meta-list">
+                        <div class="meta-row"><span>Invoice Number:</span><b>{{ bill.number }}</b></div>
+                        <div class="meta-row"><span>Invoice Date:</span><span>{{ bill.date }}</span></div>
+                        <div class="meta-row"><span>Payment Due:</span><span>{{ bill.due_date }}</span></div>
+                        {% if bill.place_of_supply %}<div class="meta-row"><span>Place of Supply:</span><span>{{ bill.place_of_supply }}</span></div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEMS TABLE -->
+            <table class="elegant-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">Item</th>
+                        <th style="width: {% if config.show_hsn_sac %}45%{% else %}55%{% endif %};">Particulars / Service Description</th>
+                        {% if config.show_hsn_sac %}<th style="width: 10%;" class="num-col">HSN/SAC</th>{% endif %}
+                        <th style="width: 8%;" class="num-col">Quantity</th>
+                        <th style="width: 14%;" class="num-col">Rate</th>
+                        <th style="width: 18%;" class="num-col">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td style="color: #71717a;">{{ item.index }}</td>
+                        <td>
+                            <div class="item-main-name">{{ item.name }}</div>
+                            {% if item.description %}<div class="item-subtext">{{ item.description }}</div>{% endif %}
+                        </td>
+                        {% if config.show_hsn_sac %}<td class="num-col" style="color: #52525b;">{{ item.hsn }}</td>{% endif %}
+                        <td class="num-col">{{ item.quantity }} {{ item.unit }}</td>
+                        <td class="num-col">{{ bill.currency_symbol }}{{ item.rate }}</td>
+                        <td class="num-col" style="font-weight: 700;">{{ bill.currency_symbol }}{{ item.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- SUMMARY & TAX TABLE -->
+            <div class="bottom-calc-grid">
+                <div>
+                    {% if config.show_gst_summary and gst_summary %}
+                    <div class="col-heading">Tax Computation Schedule</div>
+                    <table class="tax-table-serif">
+                        <thead>
+                            <tr>
+                                <th>HSN/SAC</th>
+                                <th style="text-align: right;">Taxable Value</th>
+                                <th style="text-align: right;">CGST</th>
+                                <th style="text-align: right;">SGST</th>
+                                <th style="text-align: right;">Tax Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in gst_summary %}
+                            {% if not row.is_total %}
+                            <tr>
+                                <td>{{ row.hsn }}</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right; font-weight: 700;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% else %}
+                            <tr style="font-weight: 700; border-top: 1px solid #71717a;">
+                                <td>Total</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+
+                    {% if bill.amount_in_words %}
+                    <div style="margin-top: 2.5mm; font-size: 7.5px; color: #52525b; font-style: italic;">
+                        Amount in words: <span style="font-weight: 700; color: #18181b;">{{ bill.amount_in_words }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="totals-column">
+                    <div class="totals-row-item">
+                        <span>Subtotal Amount</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span>
+                    </div>
+                    {% if config.show_gst_summary %}
+                    <div class="totals-row-item">
+                        <span>Applicable Taxes</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.tax_total }}</span>
+                    </div>
+                    {% endif %}
+                    {% if bill.discount_total %}
+                    <div class="totals-row-item">
+                        <span>Special Allowance / Discount</span>
+                        <span style="color: #15803d;">-{{ bill.currency_symbol }}{{ bill.discount_total }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="totals-row-item grand">
+                        <span>Total Net Payable</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
+                    </div>
+                    {% if config.show_payment_info and bill.amount_paid %}
+                    <div class="totals-row-item">
+                        <span>Amount Paid</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.amount_paid }}</span>
+                    </div>
+                    <div class="totals-row-item" style="font-weight: 700; color: #18181b;">
+                        <span>Balance Due</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.amount_due }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CLOSING SECTION -->
+            <div class="closing-section">
+                <div>
+                    {% if config.show_bank_details %}
+                    <div class="closing-card-title">Remittance Details</div>
+                    <div class="bank-details-serif">
+                        {% if company.bank_name %}<div>Bank: <b>{{ company.bank_name }}</b></div>{% endif %}
+                        {% if company.acc_no %}<div>Account #: <b>{{ company.acc_no }}</b></div>{% endif %}
+                        {% if company.ifsc %}<div>IFSC: <b>{{ company.ifsc }}</b></div>{% endif %}
+                        {% if company.branch %}<div>Branch: {{ company.branch }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="qr-frame-serif">
+                    {% if config.show_qr_code %}
+                    <div class="closing-card-title">Electronic Payment</div>
+                    {% if bill.qr_code_url %}
+                    <img class="qr-serif-img" src="{{ bill.qr_code_url }}" alt="QR Code">
+                    {% else %}
+                    <div style="border: 0.5px solid #a1a1aa; width: 22mm; height: 22mm; margin: auto; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #71717a;">QR Code</div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                <div>
+                    {% if config.show_signature %}
+                    <div class="closing-card-title" style="text-align: center;">For {{ company.name }}</div>
+                    <div class="sign-area-serif">
+                        {% if company.signature_url %}
+                        <img class="sign-serif-img" src="{{ company.signature_url }}" alt="Signature">
+                        {% endif %}
+                        <div class="sign-serif-line">Authorized Signatory</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FORMAL TERMS -->
+            {% if config.show_terms and bill.terms %}
+            <div class="formal-terms">
+                <strong>Terms of Engagement &amp; Settlement:</strong><br>
+                {{ bill.terms|linebreaksbr }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- FORMAL FOOTER -->
+        {% if config.show_company_footer %}
+        <div class="formal-footer">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% endif %}
+            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; Printed on {% now "d F Y" %}{% endif %}</span>
+        </div>
+        {% elif config.show_page_numbers or config.show_print_date %}
+        <div class="formal-footer">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% else %}<span></span>{% endif %}
+            <span>{% if config.show_print_date %}Printed on {% now "d F Y" %}{% endif %}</span>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

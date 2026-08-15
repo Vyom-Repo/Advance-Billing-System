@@ -180,88 +180,6 @@
             line-height: 1.25;
         }
 
-        .product-images {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2mm;
-            margin-top: 3mm;
-            max-width: 72mm;
-        }
-
-        .product-card {
-            height: 23mm;
-            border-radius: 2mm;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-card:nth-child(1) {
-            background: linear-gradient(135deg, #dbe8d0, #77a56e);
-        }
-
-        .product-card:nth-child(2) {
-            background: linear-gradient(135deg, #f4d7d9, #e9b9bf);
-        }
-
-        .product-card:nth-child(3) {
-            background: linear-gradient(135deg, #f0d9df, #d6aebc);
-        }
-
-        .watch {
-            position: absolute;
-            width: 12mm;
-            height: 12mm;
-            border-radius: 50%;
-            background: #151515;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            border: 2px solid #333;
-        }
-
-        .watch::after {
-            content: "";
-            position: absolute;
-            width: 3mm;
-            height: 3mm;
-            border-radius: 50%;
-            background: #eee;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .phone-strip {
-            display: flex;
-            gap: 2mm;
-            margin-top: 3mm;
-            max-width: 72mm;
-        }
-
-        .phone {
-            width: 16mm;
-            height: 21mm;
-            border-radius: 2mm;
-            background: #222;
-            border: 2px solid #777;
-        }
-
-        .phone:nth-child(2) {
-            background: #111;
-        }
-
-        .phone:nth-child(3) {
-            background: #d5b7a2;
-        }
-
-        .phone:nth-child(4) {
-            background: #ececec;
-        }
-
-        .phone:nth-child(5) {
-            background: #222;
-        }
-
         /* ---------- TOTAL AREA ---------- */
 
         .summary {
@@ -414,9 +332,9 @@
 
     <div class="invoice">
 
-        <!-- BLUE GOOGLE BRAND HEADER -->
+        <!-- BRAND HEADER -->
         <div class="brand-bar">
-            <div class="brand-name">Google</div>
+            <div class="brand-name">{{ company.name }}</div>
             <div class="invoice-label">TAX INVOICE</div>
         </div>
 
@@ -425,19 +343,19 @@
             <!-- COMPANY / GSTIN -->
             <div class="company-row">
                 <div class="company-block">
-                    <div class="company-title">Alphabet Inc.</div>
+                    <div class="company-title">{{ company.name }}</div>
                     <div class="small">
-                        Google India Pvt. Ltd Tower 2, Rajapusa, Gurugram, Haryana<br>
-                        Gurgaon, HARYANA, 122002
+                        {{ company.address }}<br>
+                        {{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}
                     </div>
                 </div>
 
                 <div class="company-block">
                     <div class="small">
-                        <strong>GSTIN 06CCD3456FFCD22</strong><br>
-                        Mobile +91 99999966661<br>
-                        Email: info@google.com<br>
-                        Website: www.google.com
+                        {% if company.gstin %}<strong>GSTIN {{ company.gstin }}</strong><br>{% endif %}
+                        {% if company.phone %}Mobile {{ company.phone }}<br>{% endif %}
+                        {% if company.email %}Email: {{ company.email }}<br>{% endif %}
+                        {% if company.website %}Website: {{ company.website }}{% endif %}
                     </div>
                 </div>
             </div>
@@ -445,13 +363,13 @@
             <!-- INVOICE META -->
             <div class="meta-row">
                 <div class="meta-cell">
-                    <strong>Invoice #:</strong> INV-2
+                    <strong>Invoice #:</strong> {{ bill.number }}
                 </div>
                 <div class="meta-cell">
-                    <strong>Invoice Date:</strong> 28 Dec 2024
+                    <strong>Invoice Date:</strong> {{ bill.date }}
                 </div>
                 <div class="meta-cell">
-                    <strong>Due Date:</strong> 28 Dec 2024
+                    <strong>Due Date:</strong> {{ bill.due_date }}
                 </div>
             </div>
 
@@ -460,18 +378,19 @@
                 <div class="billing-box">
                     <div class="section-title">Customer Details:</div>
                     <div class="small">
-                        Shree Padmanabha<br>
-                        Ph: 9098675431
+                        {{ customer.name }}<br>
+                        {% if customer.phone %}Ph: {{ customer.phone }}{% endif %}
+                        {% if customer.gstin %}<br>GSTIN: {{ customer.gstin }}{% endif %}
                     </div>
                 </div>
 
                 <div class="billing-box">
                     <div class="section-title">Billing Address:</div>
                     <div class="small">
-                        2024 Land, Santa Street 205<br>
-                        Rohini<br>
-                        HARYANA<br>
-                        Place of Supply: 06-HARYANA
+                        {{ customer.address }}<br>
+                        {{ customer.city }}<br>
+                        {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}
+                        {% if bill.place_of_supply %}<br>Place of Supply: {{ bill.place_of_supply }}{% endif %}
                     </div>
                 </div>
             </div>
@@ -480,16 +399,18 @@
             <table class="items-table">
                 <colgroup>
                     <col style="width: 5%">
-                    <col style="width: 48%">
+                    <col style="width: {% if config.show_hsn_sac %}38{% else %}53{% endif %}%">
+                    {% if config.show_hsn_sac %}<col style="width: 15%">{% endif %}
                     <col style="width: 18%">
                     <col style="width: 11%">
-                    <col style="width: 18%">
+                    <col style="width: 13%">
                 </colgroup>
 
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Item</th>
+                        {% if config.show_hsn_sac %}<th>HSN/SAC</th>{% endif %}
                         <th>Rate / Item</th>
                         <th>Qty</th>
                         <th>Amount</th>
@@ -497,156 +418,142 @@
                 </thead>
 
                 <tbody>
-
+                    {% for item in items %}
                     <tr>
-                        <td class="num">1</td>
+                        <td class="num">{{ item.index }}</td>
                         <td>
-                            <div class="desc">Pixel Watch 3</div>
-                            <div class="desc-sub">
-                                24 hours of battery with always-on display.<br>
-                                Track your performance and 40+ exercises.
-                            </div>
-
-                            <div class="product-images">
-                                <div class="product-card">
-                                    <div class="watch"></div>
-                                </div>
-                                <div class="product-card">
-                                    <div class="watch"></div>
-                                </div>
-                                <div class="product-card">
-                                    <div class="watch"></div>
-                                </div>
-                            </div>
+                            <div class="desc">{{ item.name }}</div>
+                            {% if item.description %}<div class="desc-sub">{{ item.description }}</div>{% endif %}
                         </td>
-                        <td class="money">
-                            ₹21,019.65<br>
-                            <span class="small">26,271.19 (-20%)</span>
-                        </td>
-                        <td class="num">3 PCS</td>
-                        <td class="money">₹63,058.05</td>
+                        {% if config.show_hsn_sac %}<td class="num">{{ item.hsn }}</td>{% endif %}
+                        <td class="money">{{ bill.currency_symbol }}{{ item.rate }}</td>
+                        <td class="num">{{ item.quantity }} {{ item.unit }}</td>
+                        <td class="money">{{ bill.currency_symbol }}{{ item.amount }}</td>
                     </tr>
-
-                    <tr>
-                        <td class="num">2</td>
-                        <td>
-                            <div class="desc">Google Pixel 9 Pro</div>
-                            <div class="desc-sub">
-                                HSN: 85171211<br>
-                                1080 x 2400 OLED at 422 PPI<br>
-                                Up to 100-hour battery life
-                            </div>
-
-                            <div class="phone-strip">
-                                <div class="phone"></div>
-                                <div class="phone"></div>
-                                <div class="phone"></div>
-                                <div class="phone"></div>
-                                <div class="phone"></div>
-                            </div>
-                        </td>
-                        <td class="money">₹97,457.83</td>
-                        <td class="num">1 PCS</td>
-                        <td class="money">₹97,457.83</td>
-                    </tr>
-
+                    {% endfor %}
                 </tbody>
             </table>
 
-            <!-- BANK + SHIPPING + TAXABLE / TOTAL -->
+            <!-- TOTALS / BANK DETAILS -->
             <div class="summary">
 
                 <div class="summary-left">
+                    {% if config.show_bank_details %}
                     <div class="small">
                         <strong>Bank Details:</strong><br>
-                        Bank: ICICI Limited<br>
-                        Account #: ICICI33470467993571<br>
-                        IFSC Code: ICIC0000188<br>
-                        Branch: GURGAON<br>
-                        Total amount (in words): One Lakh Ninety, Ninety Thousand...
+                        {% if company.bank_name %}Bank: {{ company.bank_name }}<br>{% endif %}
+                        {% if company.acc_no %}Account #: {{ company.acc_no }}<br>{% endif %}
+                        {% if company.ifsc %}IFSC Code: {{ company.ifsc }}<br>{% endif %}
+                        {% if company.branch %}Branch: {{ company.branch }}<br>{% endif %}
+                        {% if bill.amount_in_words %}Total amount (in words): {{ bill.amount_in_words }}{% endif %}
                     </div>
+                    {% endif %}
                 </div>
 
                 <div class="summary-right">
                     <div class="summary-line">
-                        <span>Delivery/Shipping Charges</span>
-                        <span>₹846.61</span>
+                        <span>Subtotal</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span>
+                    </div>
+                    {% if config.show_gst_summary %}
+                    {% for row in gst_summary %}{% if not row.is_total %}
+                    <div class="summary-line">
+                        <span>CGST {{ row.cgst_rate }}%</span>
+                        <span>{{ bill.currency_symbol }}{{ row.cgst_amount }}</span>
                     </div>
                     <div class="summary-line">
-                        <span>Taxable Amount</span>
-                        <span>₹1,81,355.88</span>
+                        <span>SGST {{ row.sgst_rate }}%</span>
+                        <span>{{ bill.currency_symbol }}{{ row.sgst_amount }}</span>
                     </div>
-                    <div class="summary-line">
-                        <span>CGST 9.0%</span>
-                        <span>₹16,521.96</span>
-                    </div>
-                    <div class="summary-line">
-                        <span>SGST 9.0%</span>
-                        <span>₹16,521.96</span>
-                    </div>
+                    {% endif %}{% endfor %}
+                    {% endif %}
                     <div class="summary-line total">
                         <span>Total</span>
-                        <span>₹1,91,399.00</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
                     </div>
+                    {% if bill.discount_total %}
                     <div class="summary-line">
                         <span>Total Discount</span>
-                        <span>₹18,000.00</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.discount_total }}</span>
                     </div>
+                    {% endif %}
                     <div class="summary-line grand">
                         <span>Amount Payable</span>
-                        <span>₹1,90,399.00</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.amount_payable }}</span>
                     </div>
                 </div>
 
             </div>
 
-            <!-- BANK / QR / SIGNATURE -->
+            <!-- BANK / QR / SIGNATURE FOOTER -->
             <div class="footer-main">
 
+                {% if config.show_bank_details %}
                 <div class="footer-box">
                     <div class="section-title">Bank Details:</div>
-                    <div class="bank-line"><strong>Bank:</strong> ICICI Limited</div>
-                    <div class="bank-line"><strong>Account #:</strong> ICICI33470467993571</div>
-                    <div class="bank-line"><strong>IFSC Code:</strong> ICIC0000188</div>
-                    <div class="bank-line"><strong>Branch:</strong> GURGAON</div>
+                    {% if company.bank_name %}<div class="bank-line"><strong>Bank:</strong> {{ company.bank_name }}</div>{% endif %}
+                    {% if company.acc_no %}<div class="bank-line"><strong>Account #:</strong> {{ company.acc_no }}</div>{% endif %}
+                    {% if company.ifsc %}<div class="bank-line"><strong>IFSC Code:</strong> {{ company.ifsc }}</div>{% endif %}
+                    {% if company.branch %}<div class="bank-line"><strong>Branch:</strong> {{ company.branch }}</div>{% endif %}
                 </div>
+                {% endif %}
 
+                {% if config.show_qr_code %}
                 <div class="footer-box">
                     <div class="qr-title">Pay using UPI</div>
-                    <div class="qr"></div>
+                    {% if bill.qr_code_url %}
+                        <img src="{{ bill.qr_code_url }}" style="width:25mm;height:25mm;" alt="QR Code">
+                    {% else %}
+                        <div class="qr"></div>
+                    {% endif %}
                 </div>
+                {% endif %}
 
+                {% if config.show_signature %}
                 <div class="footer-box">
                     <div class="signature-area">
-                        <div class="signature">Authorized Sign</div>
+                        {% if company.signature_url %}
+                            <img src="{{ company.signature_url }}" style="position:absolute;right:0;bottom:7mm;max-height:18mm;max-width:35mm;" alt="Signature">
+                        {% else %}
+                            <div class="signature">Authorized Sign</div>
+                        {% endif %}
                         <div class="signature-label">Authorized Signatory</div>
                     </div>
                 </div>
+                {% endif %}
 
             </div>
 
             <!-- NOTES / TERMS -->
             <div class="bottom-row">
+                {% if bill.notes %}
                 <div>
                     <div class="terms-title">Notes:</div>
-                    Thank you for the business.
+                    {{ bill.notes }}
                 </div>
+                {% endif %}
 
+                {% if config.show_terms and bill.terms %}
                 <div>
                     <div class="terms-title">Terms and Conditions:</div>
-                    1. Goods once sold cannot be taken back.<br>
-                    2. We are not responsible for delays caused by third parties.<br>
-                    3. Interest will be charged for delayed payment.
+                    {{ bill.terms|linebreaksbr }}
                 </div>
+                {% endif %}
             </div>
 
+            {% if config.show_company_footer %}
             <div class="footer-link">
-                Swiggy | Simple Invoicing, Billing and Payments | Visit swiggy.com
+                {{ config.custom_footer_message }}
             </div>
+            {% endif %}
 
+            {% if config.show_page_numbers or config.show_company_footer or config.show_print_date %}
             <div class="page-number">
-                Page 1 / 1 &nbsp; | &nbsp; This is a digitally signed document.
+                {% if config.show_page_numbers %}Page 1 / 1{% endif %}
+                {% if config.show_company_footer %}{% if config.show_page_numbers %} &nbsp; | &nbsp; {% endif %}This is a digitally signed document.{% endif %}
+                {% if config.show_print_date %}{% if config.show_page_numbers or config.show_company_footer %} &nbsp; | &nbsp; {% endif %}Printed on {% now "d M Y" %}{% endif %}
             </div>
+            {% endif %}
 
         </div>
     </div>

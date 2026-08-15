@@ -364,6 +364,18 @@ class SettingsInvoiceDesignView(BillingLoginRequiredMixin, PageTitleMixin, Updat
         context['active_template_title'] = TEMPLATE_DISPLAY_NAMES.get(
             obj.template_name, obj.template_name
         )
+        
+        # Get available reference templates
+        import os
+        from django.conf import settings
+        reference_dir = os.path.join(settings.BASE_DIR, 'templates', 'reference')
+        available_references = []
+        if os.path.exists(reference_dir):
+            for f in os.listdir(reference_dir):
+                if f.endswith('.html'):
+                    available_references.append(f.replace('.html', ''))
+        context['available_references'] = json.dumps(available_references)
+        
         return context
         
     def form_valid(self, form):
@@ -375,53 +387,146 @@ class SettingsInvoiceDesignView(BillingLoginRequiredMixin, PageTitleMixin, Updat
 
 class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
     """
-    Renders the HTML template based on provided JSON preferences.
+    Renders a PDF preview using the unified render_bill_pdf pipeline.
+
+    Accepts a JSON body with any DocumentPreference fields plus an optional
+    ``template_name`` key.  The posted values are treated as one-off
+    request_overrides — they are NOT saved to the database.
     """
     def post(self, request, *args, **kwargs):
         try:
             from apps.invoices.services.invoice_preview_service import InvoicePreviewService
+            from apps.invoices.services.bill_serializer import serialize_bill_for_render
+            from apps.common.services.sample_data_service import SampleDataService
+            from apps.common.services.organization_service import OrganizationService
+            from apps.common.services.layout_engine import PrintableFrameBuilder
+
             data = json.loads(request.body)
-            # data contains the form fields
-            template_name = data.get("template_name", "gst_classic")
-            
-            context = InvoicePreviewService.get_preview_context(request.user, custom_prefs=data, preview_mode="demo")
-            
-            template_path = f"pdf/{template_name}.html"
-            html_string = render_to_string(template_path, context)
-            
-            if not HTML:
-                return HttpResponse(html_string, content_type="text/html")
-                
-            pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-            
-            return HttpResponse(pdf_file, content_type="application/pdf")
+            template_slug = data.get("template_name", "gst_classic")
+            template_path = f"pdf/{template_slug}.html"
+
+            # Resolve config (template defaults + user prefs + request body as overrides)
+            config = InvoicePreviewService.resolve_render_config(
+                template_slug=template_slug,
+                user=request.user,
+                request_overrides=data,
+            )
+
+            # Build org / company data
+            org_data = OrganizationService.get_company_assets(request.user)
+            if org_data:
+                org_obj = org_data["organization"]
+                company = {
+                    "name": org_data["business_name"],
+                    "address": f"{org_data['address_line_1']} {org_data['address_line_2']}".strip(),
+                    "city": org_data["city"],
+                    "state": org_data["state"],
+                    "gstin": org_data["gstin"],
+                    "email": org_data["email"],
+                    "phone": org_data["phone"],
+                }
+                if org_data["default_bank"]:
+                    company["bank_name"] = org_data["default_bank"].bank_name
+                    company["acc_no"]    = org_data["default_bank"].account_number
+                    company["ifsc"]      = org_data["default_bank"].ifsc_code
+            else:
+                org_obj = None
+                company = SampleDataService.sample_company()
+
+            invoice  = SampleDataService.sample_invoice(request.user)
+            customer = SampleDataService.sample_customer()
+            items    = SampleDataService.sample_items()
+
+            bill_data  = serialize_bill_for_render(invoice, customer, items, company, org_obj)
+            layout_frame = PrintableFrameBuilder.build_frame(org_obj, config)
+
+            pdf_bytes = InvoicePreviewService.render_bill_pdf(
+                bill_data=bill_data,
+                config=config,
+                template_file_path=template_path,
+                layout_frame=layout_frame,
+                org=org_obj,
+            )
+            return HttpResponse(pdf_bytes, content_type="application/pdf")
+
         except Exception as e:
-            return HttpResponse(f"<div style='color:red; padding:20px;'>Error rendering preview: {str(e)}</div>", status=400)
+            import traceback
+            return HttpResponse(
+                f"<div style='color:red;padding:20px;'>Error rendering preview: {e}<br><pre>{traceback.format_exc()}</pre></div>",
+                status=400,
+            )
 
 class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
     """
-    Generates a PDF using WeasyPrint based on the user's saved preferences.
+    Generates a PDF download using the user's saved DocumentPreference settings.
+    Uses the unified render_bill_pdf pipeline.
     """
     def get(self, request, *args, **kwargs):
         if not HTML:
             return HttpResponse("WeasyPrint is not installed or configured correctly.", status=500)
-            
+
         from apps.invoices.services.invoice_preview_service import InvoicePreviewService
-        
-        context = InvoicePreviewService.get_preview_context(request.user, preview_mode="demo")
-        prefs = context.get("prefs", {})
-        if not prefs:
-            return HttpResponse("No preferences found.", status=404)
-        
-        template_name = prefs.get("template_name", "gst_classic")
-        template_path = f"pdf/{template_name}.html"
-        
-        html_string = render_to_string(template_path, context)
-        
-        # WeasyPrint generation
-        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-        
-        response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Preview_Document.pdf"'
+        from apps.invoices.services.bill_serializer import serialize_bill_for_render
+        from apps.common.services.sample_data_service import SampleDataService
+        from apps.common.services.organization_service import OrganizationService
+        from apps.common.services.layout_engine import PrintableFrameBuilder
+        from apps.settings_app.models import DocumentPreference
+
+        try:
+            doc_pref = DocumentPreference.objects.get(user=request.user)
+            template_slug = doc_pref.template_name
+        except DocumentPreference.DoesNotExist:
+            template_slug = "gst_classic"
+
+        template_path = f"pdf/{template_slug}.html"
+        config = InvoicePreviewService.resolve_render_config(template_slug, request.user)
+
+        org_data = OrganizationService.get_company_assets(request.user)
+        if org_data:
+            org_obj = org_data["organization"]
+            company = {
+                "name":    org_data["business_name"],
+                "address": f"{org_data['address_line_1']} {org_data['address_line_2']}".strip(),
+                "city":    org_data["city"],
+                "state":   org_data["state"],
+                "gstin":   org_data["gstin"],
+                "email":   org_data["email"],
+                "phone":   org_data["phone"],
+            }
+            if org_data["default_bank"]:
+                company["bank_name"] = org_data["default_bank"].bank_name
+                company["acc_no"]    = org_data["default_bank"].account_number
+                company["ifsc"]      = org_data["default_bank"].ifsc_code
+        else:
+            org_obj = None
+            company = SampleDataService.sample_company()
+
+        invoice  = SampleDataService.sample_invoice(request.user)
+        customer = SampleDataService.sample_customer()
+        items    = SampleDataService.sample_items()
+
+        bill_data    = serialize_bill_for_render(invoice, customer, items, company, org_obj)
+        layout_frame = PrintableFrameBuilder.build_frame(org_obj, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=bill_data,
+            config=config,
+            template_file_path=template_path,
+            layout_frame=layout_frame,
+            org=org_obj,
+        )
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="Preview_Document.pdf"'
         return response
+
+from django.template.exceptions import TemplateDoesNotExist
+from django.shortcuts import render
+
+class SettingsInvoiceReferenceView(BillingLoginRequiredMixin, View):
+    def get(self, request, template_name, *args, **kwargs):
+        try:
+            return render(request, f"reference/{template_name}.html")
+        except TemplateDoesNotExist:
+            return HttpResponse(f"Reference file not found for template: {template_name}", status=404)
 

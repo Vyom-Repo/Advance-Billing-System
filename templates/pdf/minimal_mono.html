@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal Mono Invoice</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 8px;
+            line-height: 1.4;
+        }
+
+        body {
+            padding: 12mm 12mm 10mm;
+        }
+
+        .container {
+            width: 186mm;
+            min-height: 275mm;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Top Brand & Invoice Title */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8mm;
+        }
+
+        .brand-block {
+            max-width: 60%;
+        }
+
+        .logo-img {
+            max-height: 14mm;
+            max-width: 45mm;
+            margin-bottom: 2.5mm;
+            object-fit: contain;
+        }
+
+        .company-name {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #0f172a;
+        }
+
+        .company-meta {
+            font-size: 7.5px;
+            color: #64748b;
+            margin-top: 1mm;
+            line-height: 1.35;
+        }
+
+        .invoice-badge-block {
+            text-align: right;
+        }
+
+        .invoice-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+
+        .invoice-subtitle {
+            font-size: 7px;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 2mm;
+        }
+
+        .meta-details {
+            font-size: 7.5px;
+            line-height: 1.4;
+        }
+
+        .meta-details .num {
+            font-size: 9px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Bill To & Dates Bar */
+        .parties-grid {
+            display: grid;
+            grid-template-columns: 55% 45%;
+            gap: 6mm;
+            padding: 4mm 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 6mm;
+        }
+
+        .section-label {
+            font-size: 6.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin-bottom: 1.5mm;
+        }
+
+        .party-name {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.8mm;
+        }
+
+        .party-text {
+            font-size: 7.5px;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        /* Minimal Borderless Items Table */
+        .table-wrap {
+            margin-bottom: 6mm;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8px;
+        }
+
+        .items-table th {
+            padding: 2mm 1.5mm;
+            font-size: 7px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            border-bottom: 1.5px solid #0f172a;
+            text-align: left;
+        }
+
+        .items-table th.num-col,
+        .items-table td.num-col {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .items-table td {
+            padding: 2.5mm 1.5mm;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            vertical-align: top;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .item-desc {
+            font-size: 7px;
+            color: #64748b;
+            margin-top: 0.5mm;
+        }
+
+        /* Summary Section */
+        .summary-container {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            gap: 6mm;
+            margin-bottom: 6mm;
+        }
+
+        .tax-table-minimal {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5px;
+        }
+
+        .tax-table-minimal th {
+            border-bottom: 1px solid #cbd5e1;
+            padding: 1.2mm 1mm;
+            font-size: 6.5px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .tax-table-minimal td {
+            padding: 1.2mm 1mm;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .totals-block {
+            padding-left: 6mm;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.2mm 0;
+            font-size: 8px;
+            color: #475569;
+        }
+
+        .totals-row.main {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-top: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #0f172a;
+            padding: 2mm 0;
+            margin: 2mm 0;
+        }
+
+        /* Floating Info Cards: Bank, QR, Signature */
+        .floating-grid {
+            display: grid;
+            grid-template-columns: 46% 24% 30%;
+            gap: 4mm;
+            padding-top: 4mm;
+            border-top: 1px solid #e2e8f0;
+            margin-bottom: 4mm;
+        }
+
+        .floating-card {
+            padding: 0;
+        }
+
+        .card-heading {
+            font-size: 6.8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #94a3b8;
+            margin-bottom: 1.5mm;
+        }
+
+        .bank-data {
+            font-size: 7.5px;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .qr-image-minimal {
+            width: 24mm;
+            height: 24mm;
+            object-fit: contain;
+        }
+
+        .sign-minimal {
+            text-align: right;
+        }
+
+        .sign-img-minimal {
+            max-height: 16mm;
+            max-width: 32mm;
+            margin-left: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .sign-caption {
+            font-size: 6.8px;
+            color: #64748b;
+            margin-top: 1mm;
+            font-weight: 600;
+        }
+
+        /* Terms & Minimal Footer */
+        .terms-minimal {
+            font-size: 7px;
+            color: #64748b;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 2.5mm;
+            margin-bottom: 3mm;
+            line-height: 1.35;
+        }
+
+        .page-footer-minimal {
+            display: flex;
+            justify-content: space-between;
+            font-size: 6.5px;
+            color: #94a3b8;
+            padding-top: 2mm;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <!-- HEADER -->
+            <div class="top-row">
+                <div class="brand-block">
+                    {% if config.show_company_logo and company.logo_url %}
+                    <img class="logo-img" src="{{ company.logo_url }}" alt="Logo">
+                    {% endif %}
+
+                    {% if config.show_company_header %}
+                    <div class="company-name">{{ company.name }}</div>
+                    <div class="company-meta">
+                        {% if company.gstin %}<div>GSTIN: {{ company.gstin }}</div>{% endif %}
+                        {% if company.address %}<div>{{ company.address }}</div>{% endif %}
+                        {% if company.city %}<div>{{ company.city }}, {{ company.state }}{% if company.pincode %} {{ company.pincode }}{% endif %}</div>{% endif %}
+                        {% if company.phone %}<div>Ph: {{ company.phone }}</div>{% endif %}
+                        {% if company.email %}<div>{{ company.email }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="invoice-badge-block">
+                    <div class="invoice-title">INVOICE</div>
+                    <div class="invoice-subtitle">ORIGINAL FOR RECIPIENT</div>
+                    <div class="meta-details">
+                        <div>Invoice No: <span class="num">{{ bill.number }}</span></div>
+                        <div>Date: <span>{{ bill.date }}</span></div>
+                        <div>Due: <span>{{ bill.due_date }}</span></div>
+                        {% if bill.place_of_supply %}<div>Place of Supply: <span>{{ bill.place_of_supply }}</span></div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTIES -->
+            <div class="parties-grid">
+                <div>
+                    <div class="section-label">Billed To</div>
+                    <div class="party-name">{{ customer.name }}</div>
+                    <div class="party-text">
+                        {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% if customer.phone %}<div>Tel: {{ customer.phone }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="section-label">Shipped To</div>
+                    <div class="party-name">{% if customer.shipping_name %}{{ customer.shipping_name }}{% else %}{{ customer.name }}{% endif %}</div>
+                    <div class="party-text">
+                        {% if customer.shipping_address %}
+                        <div>{{ customer.shipping_address }}</div>
+                        {% if customer.shipping_city %}<div>{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} {{ customer.shipping_pincode }}{% endif %}</div>{% endif %}
+                        {% else %}
+                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEMS TABLE -->
+            <div class="table-wrap">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: {% if config.show_hsn_sac %}45%{% else %}55%{% endif %};">Description</th>
+                            {% if config.show_hsn_sac %}<th style="width: 10%;" class="num-col">HSN/SAC</th>{% endif %}
+                            <th style="width: 8%;" class="num-col">Qty</th>
+                            <th style="width: 14%;" class="num-col">Rate</th>
+                            <th style="width: 18%;" class="num-col">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td style="color: #94a3b8;">{{ item.index }}</td>
+                            <td>
+                                <div class="item-title">{{ item.name }}</div>
+                                {% if item.description %}<div class="item-desc">{{ item.description }}</div>{% endif %}
+                            </td>
+                            {% if config.show_hsn_sac %}<td class="num-col" style="color: #64748b;">{{ item.hsn }}</td>{% endif %}
+                            <td class="num-col">{{ item.quantity }} {{ item.unit }}</td>
+                            <td class="num-col">{{ bill.currency_symbol }}{{ item.rate }}</td>
+                            <td class="num-col" style="font-weight: 600;">{{ bill.currency_symbol }}{{ item.amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SUMMARY -->
+            <div class="summary-container">
+                <div>
+                    {% if config.show_gst_summary and gst_summary %}
+                    <div class="section-label">Tax Breakdown</div>
+                    <table class="tax-table-minimal">
+                        <thead>
+                            <tr>
+                                <th>HSN/SAC</th>
+                                <th style="text-align: right;">Taxable</th>
+                                <th style="text-align: right;">CGST</th>
+                                <th style="text-align: right;">SGST</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in gst_summary %}
+                            {% if not row.is_total %}
+                            <tr>
+                                <td>{{ row.hsn }}</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right; font-weight: 600;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% else %}
+                            <tr style="font-weight: 700; border-top: 1px solid #cbd5e1;">
+                                <td>Total</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+
+                    {% if bill.amount_in_words %}
+                    <div style="margin-top: 2.5mm; font-size: 7px; color: #64748b;">
+                        In words: <span style="color: #0f172a; font-weight: 600;">{{ bill.amount_in_words }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="totals-block">
+                    <div class="totals-row">
+                        <span>Subtotal</span>
+                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.subtotal }}</span>
+                    </div>
+                    {% if config.show_gst_summary %}
+                    <div class="totals-row">
+                        <span>Tax</span>
+                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.tax_total }}</span>
+                    </div>
+                    {% endif %}
+                    {% if bill.discount_total %}
+                    <div class="totals-row">
+                        <span>Discount</span>
+                        <span style="font-variant-numeric: tabular-nums; color: #16a34a;">-{{ bill.currency_symbol }}{{ bill.discount_total }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="totals-row main">
+                        <span>Total Due</span>
+                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
+                    </div>
+                    {% if config.show_payment_info and bill.amount_paid %}
+                    <div class="totals-row">
+                        <span>Amount Paid</span>
+                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.amount_paid }}</span>
+                    </div>
+                    <div class="totals-row" style="font-weight: 700; color: #0f172a;">
+                        <span>Balance Remaining</span>
+                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.amount_due }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FLOATING CARDS -->
+            <div class="floating-grid">
+                <div class="floating-card">
+                    {% if config.show_bank_details %}
+                    <div class="card-heading">Payment Details</div>
+                    <div class="bank-data">
+                        {% if company.bank_name %}<div>Bank: <b>{{ company.bank_name }}</b></div>{% endif %}
+                        {% if company.acc_no %}<div>Account #: <b>{{ company.acc_no }}</b></div>{% endif %}
+                        {% if company.ifsc %}<div>IFSC: <b>{{ company.ifsc }}</b></div>{% endif %}
+                        {% if company.branch %}<div>Branch: {{ company.branch }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="floating-card" style="text-align: center;">
+                    {% if config.show_qr_code %}
+                    <div class="card-heading">Instant Pay</div>
+                    {% if bill.qr_code_url %}
+                    <img class="qr-image-minimal" src="{{ bill.qr_code_url }}" alt="QR Code">
+                    {% else %}
+                    <div style="border: 1px dashed #cbd5e1; width: 20mm; height: 20mm; margin: auto; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #94a3b8;">UPI QR</div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="floating-card sign-minimal">
+                    {% if config.show_signature %}
+                    <div class="card-heading" style="text-align: right;">Authorized Signature</div>
+                    {% if company.signature_url %}
+                    <img class="sign-img-minimal" src="{{ company.signature_url }}" alt="Signature">
+                    {% endif %}
+                    <div class="sign-caption">For {{ company.name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TERMS -->
+            {% if config.show_terms and bill.terms %}
+            <div class="terms-minimal">
+                <div style="font-weight: 700; color: #475569; margin-bottom: 0.5mm;">Terms &amp; Notes</div>
+                {{ bill.terms|linebreaksbr }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- FOOTER -->
+        {% if config.show_company_footer %}
+        <div class="page-footer-minimal">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% endif %}
+            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; Printed on {% now "d M Y" %}{% endif %}</span>
+        </div>
+        {% elif config.show_page_numbers or config.show_print_date %}
+        <div class="page-footer-minimal">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% else %}<span></span>{% endif %}
+            <span>{% if config.show_print_date %}Printed on {% now "d M Y" %}{% endif %}</span>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

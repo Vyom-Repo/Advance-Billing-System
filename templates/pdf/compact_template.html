@@ -172,15 +172,21 @@
 
             <!-- Company Header -->
             <div class="company-header border-bottom">
+                {% if config.show_company_logo %}
                 <div class="logo-container border-right">
-                    <div class="logo-box">BIG BAZAAR</div>
+                    {% if company.logo_url %}
+                        <img src="{{ company.logo_url }}" alt="Logo" style="max-height:60px;max-width:100px;">
+                    {% else %}
+                        <div class="logo-box">{{ company.name|slice:":2"|upper }}</div>
+                    {% endif %}
                 </div>
+                {% endif %}
                 <div class="company-details">
-                    <div style="font-size: 14px; font-weight: bold;">BIG BAZAAR</div>
-                    <div>GSTIN: 27AABCCT2727Q1ZX</div>
-                    <div>S-1, Whitefield Main Rd., Palm Meadows</div>
-                    <div>KARNATAKA, 560066</div>
-                    <div>Mobile: +91 9999999999</div>
+                    <div style="font-size: 14px; font-weight: bold;">{{ company.name }}</div>
+                    {% if company.gstin %}<div>GSTIN: {{ company.gstin }}</div>{% endif %}
+                    <div>{{ company.address }}</div>
+                    <div>{{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</div>
+                    {% if company.phone %}<div>Mobile: {{ company.phone }}</div>{% endif %}
                 </div>
             </div>
 
@@ -189,35 +195,39 @@
                 <tr>
                     <td width="50%" class="border-right">
                         <div>Customer Details:</div>
-                        <div style="font-weight: bold;">Kishore Biyani</div>
-                        <div style="font-weight: bold;">Ph: 9999999999</div>
+                        <div style="font-weight: bold;">{{ customer.name }}</div>
+                        {% if customer.phone %}<div style="font-weight: bold;">Ph: {{ customer.phone }}</div>{% endif %}
                         <div>Billing Address:</div>
-                        <div>64, Whitefield Main Rd</div>
-                        <div>Bengaluru, KARNATAKA, 560068</div>
+                        <div>{{ customer.address }}</div>
+                        <div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</div>
+                        {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
                     </td>
                     <td width="50%">
                         <table style="width: 100%;">
                             <tr>
                                 <td style="width: 35%; padding: 0;">Invoice #:</td>
-                                <td style="font-weight: bold; padding: 0;">INV-3</td>
+                                <td style="font-weight: bold; padding: 0;">{{ bill.number }}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 0;">Invoice Date:</td>
-                                <td style="font-weight: bold; padding: 0;">12 Apr 2025</td>
+                                <td style="font-weight: bold; padding: 0;">{{ bill.date }}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 0;">Due Date:</td>
-                                <td style="font-weight: bold; padding: 0;">12 Apr 2025</td>
+                                <td style="font-weight: bold; padding: 0;">{{ bill.due_date }}</td>
                             </tr>
+                            {% if bill.place_of_supply %}
                             <tr>
-                                <td style="padding: 0;">Prace of Supply:</td>
-                                <td style="font-weight: bold; padding: 0;">20-KARNATAKA</td>
+                                <td style="padding: 0;">Place of Supply:</td>
+                                <td style="font-weight: bold; padding: 0;">{{ bill.place_of_supply }}</td>
                             </tr>
+                            {% endif %}
+                            {% if config.has_dispatch_from %}
                             <tr>
                                 <td style="padding: 0; padding-top: 5px;">Dispatch From:</td>
-                                <td style="padding: 0; padding-top: 5px;"><b>BIG BAZAAR</b><br>64, Whitefield Main Rd
-                                    Palm Meadows<br>KARNATAKA, 560066</td>
+                                <td style="padding: 0; padding-top: 5px;"><b>{{ company.name }}</b><br>{{ company.address }}<br>{{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</td>
                             </tr>
+                            {% endif %}
                         </table>
                     </td>
                 </tr>
@@ -228,200 +238,80 @@
                 <thead>
                     <tr>
                         <th width="3%" align="left">#</th>
-                        <th width="37%" align="left">Item</th>
-                        <th width="10%" align="right">HSN/SAC</th>
-                        <th width="5%" align="right">Tax</th>
+                        <th width="{% if config.show_hsn_sac %}37{% else %}47{% endif %}%" align="left">Item</th>
+                        {% if config.show_hsn_sac %}<th width="10%" align="right">HSN/SAC</th>{% endif %}
+                        {% if config.show_gst_summary %}<th width="5%" align="right">Tax</th>{% endif %}
                         <th width="10%" align="right">Qty</th>
                         <th width="15%" align="right">Rate / Item</th>
                         <th width="20%" align="right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for item in items %}
                     <tr>
-                        <td>1</td>
-                        <td>Haldirams Samosa 200g</td>
-                        <td align="right">392210</td>
-                        <td align="right">3%</td>
-                        <td align="right">3 NOS</td>
-                        <td align="right">61.90</td>
-                        <td align="right">195.70</td>
+                        <td>{{ item.index }}</td>
+                        <td>{{ item.name }}</td>
+                        {% if config.show_hsn_sac %}<td align="right">{{ item.hsn }}</td>{% endif %}
+                        {% if config.show_gst_summary %}<td align="right">{{ item.tax_pct }}%</td>{% endif %}
+                        <td align="right">{{ item.quantity }} {{ item.unit }}</td>
+                        <td align="right">{{ item.rate }}</td>
+                        <td align="right">{{ item.amount }}</td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Britania Whole Wheat Bread</td>
-                        <td align="right">392210</td>
-                        <td align="right">3%</td>
-                        <td align="right">2 NOS</td>
-                        <td align="right">45.20</td>
-                        <td align="right">55.72</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Excl Eacel Celly Wash Detergent Powder 1 kg</td>
-                        <td align="right">392210</td>
-                        <td align="right">5%</td>
-                        <td align="right">1 KOS</td>
-                        <td align="right">122.03</td>
-                        <td align="right">122.03</td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>Sanitizer</td>
-                        <td align="right">392210</td>
-                        <td align="right">3%</td>
-                        <td align="right">2 NOS</td>
-                        <td align="right">12712</td>
-                        <td align="right">581.36</td>
-                    </tr>
-                    <tr>
-                        <td>5</td>
-                        <td>Usenels Set</td>
-                        <td align="right">76151430</td>
-                        <td align="right">72%</td>
-                        <td align="right">1 KGS</td>
-                        <td align="right">1,784.60</td>
-                        <td align="right">1,784.82</td>
-                    </tr>
-                    <tr>
-                        <td>6</td>
-                        <td>Kitchen Towel Set</td>
-                        <td align="right">392210</td>
-                        <td align="right">5%</td>
-                        <td align="right">5 NOS</td>
-                        <td align="right">34.29</td>
-                        <td align="right">471.43</td>
-                    </tr>
-                    <tr>
-                        <td>7</td>
-                        <td>Green Cotton Bodsheet</td>
-                        <td align="right">392210</td>
-                        <td align="right">5%</td>
-                        <td align="right">5 NOS</td>
-                        <td align="right">339.29</td>
-                        <td align="right">1,698.43</td>
-                    </tr>
-                    <tr>
-                        <td>8</td>
-                        <td>Premium Medjool Dates</td>
-                        <td align="right">392210</td>
-                        <td align="right">4%</td>
-                        <td align="right">1 KGS</td>
-                        <td align="right">1,875.00</td>
-                        <td align="right">1,875.00</td>
-                    </tr>
-                    <tr>
-                        <td>9</td>
-                        <td>Fortune Sunflower Oil</td>
-                        <td align="right">392210</td>
-                        <td align="right">5%</td>
-                        <td align="right">2 LTR</td>
-                        <td align="right">200.00</td>
-                        <td align="right">426.00</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-bottom: 20px;">10</td>
-                        <td style="padding-bottom: 20px;">Haldiram's Shujja Sev</td>
-                        <td align="right" style="padding-bottom: 20px;">9730</td>
-                        <td align="right" style="padding-bottom: 20px;">3%</td>
-                        <td align="right" style="padding-bottom: 20px;">10 NOS</td>
-                        <td align="right" style="padding-bottom: 20px;">190.40</td>
-                        <td align="right" style="padding-bottom: 20px;">1,904.70</td>
-                    </tr>
+                    {% endfor %}
 
-                    <!-- Summary section inside Items Table -->
+                    <!-- Totals summary section inside Items Table -->
                     <tr class="totals-row">
                         <td></td>
-                        <td align="right">Delivery/ Shipping Charges</td>
-                        <td align="right">9958</td>
+                        <td align="right">Taxable Amount</td>
+                        {% if config.show_hsn_sac %}<td align="right"></td>{% endif %}
+                        {% if config.show_gst_summary %}<td align="right"></td>{% endif %}
+                        <td align="right"></td>
+                        <td align="right"></td>
+                        <td align="right">{{ bill.subtotal }}</td>
+                    </tr>
+                    {% if config.show_gst_summary %}
+                    {% for row in gst_summary %}{% if not row.is_total %}
+                    <tr class="totals-row">
+                        <td></td>
+                        <td align="right">CGST {{ row.cgst_rate }}% @ {{ row.taxable }}</td>
+                        {% if config.show_hsn_sac %}<td align="right"></td>{% endif %}
                         <td align="right"></td>
                         <td align="right"></td>
                         <td align="right"></td>
-                        <td align="right">100.00</td>
+                        <td align="right">{{ row.cgst_amount }}</td>
                     </tr>
                     <tr class="totals-row">
                         <td></td>
-                        <td align="right">Packaging Charges</td>
-                        <td align="right">9967</td>
+                        <td align="right">SGST {{ row.sgst_rate }}% @ {{ row.taxable }}</td>
+                        {% if config.show_hsn_sac %}<td align="right"></td>{% endif %}
                         <td align="right"></td>
                         <td align="right"></td>
                         <td align="right"></td>
-                        <td align="right">100.00</td>
+                        <td align="right">{{ row.sgst_amount }}</td>
                     </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">Treable Amount</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">9,107.20</td>
-                    </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">CGST 2.5% @ 7122.42</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">178.06</td>
-                    </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">SGST 2.5% @ 7122.42</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">178.06</td>
-                    </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">CGST 6.0% @ 1784.92</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">107.90</td>
-                    </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">SGST 6.0% @ 1784.92</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">107.90</td>
-                    </tr>
-                    <tr class="totals-row">
-                        <td></td>
-                        <td align="right">Roued Off</td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right"></td>
-                        <td align="right">0.45</td>
-                    </tr>
+                    {% endif %}{% endfor %}
+                    {% endif %}
 
                     <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
-                        <td colspan="4" align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">Total
-                        </td>
-                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">33.000</td>
+                        <td colspan="{% if config.show_hsn_sac and config.show_gst_summary %}4{% elif config.show_hsn_sac or config.show_gst_summary %}3{% else %}2{% endif %}" align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">Total</td>
+                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;"></td>
                         <td align="right" style="padding: 6px;"></td>
-                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">₹9,678.00</td>
+                        <td align="right" style="font-weight: bold; font-size: 12px; padding: 6px;">{{ bill.currency_symbol }}{{ bill.grand_total }}</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Amount Chargeable -->
             <div class="border-bottom" style="padding: 4px 6px;">
-                Amount Chargeable (in words): INR Nine Thousand, Six Hundred And Seventy-Eight Rupees Only. E & O E
+                Amount Chargeable (in words): {{ bill.currency }} {{ bill.amount_in_words }} E &amp; O E
             </div>
 
-            <!-- Tax Breakdown Table -->
+            <!-- GST Tax Breakdown Table -->
+            {% if config.show_gst_summary %}
             <table class="tax-table" cellspacing="0" cellpadding="0">
                 <thead>
                     <tr>
-                        <th rowspan="2">HSN/SAC</th>
+                        <th rowspan="2">{% if config.show_hsn_sac %}HSN/SAC{% else %}Tax Group{% endif %}</th>
                         <th rowspan="2">Taxable Value</th>
                         <th colspan="2">Central Tax</th>
                         <th colspan="2">State/UT Tax</th>
@@ -435,106 +325,108 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for row in gst_summary %}
+                    {% if not row.is_total %}
                     <tr>
-                        <td>392210</td>
-                        <td>5217.77</td>
-                        <td>2.5%</td>
-                        <td>130.44</td>
-                        <td>2.5%</td>
-                        <td>130.44</td>
-                        <td>260.80</td>
+                        <td>{{ row.hsn }}</td>
+                        <td>{{ row.taxable }}</td>
+                        <td>{{ row.cgst_rate }}%</td>
+                        <td>{{ row.cgst_amount }}</td>
+                        <td>{{ row.sgst_rate }}%</td>
+                        <td>{{ row.sgst_amount }}</td>
+                        <td>{{ row.total_tax }}</td>
                     </tr>
-                    <tr>
-                        <td>78151030</td>
-                        <td>1784.82</td>
-                        <td>6%</td>
-                        <td>107.00</td>
-                        <td>6%</td>
-                        <td>107.00</td>
-                        <td>214.18</td>
-                    </tr>
-                    <tr>
-                        <td>R70R</td>
-                        <td>1904.76</td>
-                        <td>2.5%</td>
-                        <td>47.62</td>
-                        <td>2.5%</td>
-                        <td>47.62</td>
-                        <td>95.24</td>
-                    </tr>
+                    {% else %}
                     <tr style="font-weight: bold;">
                         <td align="right">TOTAL</td>
-                        <td>9,107.25</td>
+                        <td>{{ row.taxable }}</td>
                         <td></td>
-                        <td>285.15</td>
+                        <td>{{ row.cgst_amount }}</td>
                         <td></td>
-                        <td>285.13</td>
-                        <td>570.00</td>
+                        <td>{{ row.sgst_amount }}</td>
+                        <td>{{ row.total_tax }}</td>
                     </tr>
+                    {% endif %}
+                    {% endfor %}
                 </tbody>
             </table>
-
-            <!-- Amount Paid / UPI section -->
-            <div class="border-bottom"
-                style="text-align: right; padding: 4px 6px; font-weight: bold; background-color: #f0f0f0;">
-                <span style="color: #28a745;">✔</span> Amount Paid<br>
-                <span style="font-size: 10px; font-weight: normal;">₹9678 Paid via UPI on 12-04-2025</span>
-            </div>
+            {% endif %}
 
             <!-- Footer / Bank Details -->
             <table class="border-bottom" style="width: 100%;">
                 <tr>
+                    {% if config.show_bank_details %}
                     <td width="40%" class="border-right" style="padding: 10px;">
                         <div style="font-weight: bold; margin-bottom: 5px;">Bank Details:</div>
                         <table style="width: 100%;">
                             <tr>
                                 <td style="padding: 0 0 2px 0; width: 35%;">Bank:</td>
-                                <td style="padding: 0 0 2px 0;"><b>YES BANK</b></td>
+                                <td style="padding: 0 0 2px 0;"><b>{{ company.bank_name }}</b></td>
                             </tr>
                             <tr>
                                 <td style="padding: 0 0 2px 0;">Account #:</td>
-                                <td style="padding: 0 0 2px 0;"><b>86789999222445</b></td>
+                                <td style="padding: 0 0 2px 0;"><b>{{ company.acc_no }}</b></td>
                             </tr>
                             <tr>
                                 <td style="padding: 0 0 2px 0;">IFSC Code:</td>
-                                <td style="padding: 0 0 2px 0;"><b>YE88RM4S57</b></td>
+                                <td style="padding: 0 0 2px 0;"><b>{{ company.ifsc }}</b></td>
                             </tr>
+                            {% if company.branch %}
                             <tr>
                                 <td style="padding: 0 0 2px 0;">Branch:</td>
-                                <td style="padding: 0 0 2px 0;"><b>Kodhalii</b></td>
+                                <td style="padding: 0 0 2px 0;"><b>{{ company.branch }}</b></td>
                             </tr>
+                            {% endif %}
                         </table>
+                        {% if bill.notes %}
                         <div style="margin-top: 15px; font-weight: bold;">Notes:</div>
-                        <div>Thank you for shopping with us! We appreciate your business.</div>
+                        <div>{{ bill.notes }}</div>
+                        {% endif %}
                     </td>
-                    <td width="30%" class="border-right"
-                        style="padding: 10px; text-align: center; vertical-align: top;">
-                        <div style="font-weight: bold; text-align: left; margin-bottom: 5px;">Pay Using UPS</div>
-                        <div class="qr-box"></div>
+                    {% endif %}
+                    {% if config.show_qr_code %}
+                    <td width="30%" class="border-right" style="padding: 10px; text-align: center; vertical-align: top;">
+                        <div style="font-weight: bold; text-align: left; margin-bottom: 5px;">Pay Using UPI</div>
+                        {% if bill.qr_code_url %}
+                            <img src="{{ bill.qr_code_url }}" style="width:80px;height:80px;" alt="QR Code">
+                        {% else %}
+                            <div class="qr-box"></div>
+                        {% endif %}
                     </td>
+                    {% endif %}
+                    {% if config.show_signature %}
                     <td width="30%" style="padding: 10px; text-align: right; position: relative;">
-                        <div style="font-size: 10px; text-align: right;">For BIG BAZAAR</div>
+                        <div style="font-size: 10px; text-align: right;">For {{ company.name }}</div>
                         <div style="margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: flex-end;">
-                            <div class="stamp-box">SIGNATURE</div>
+                            {% if company.signature_url %}
+                                <img src="{{ company.signature_url }}" style="max-height:60px;max-width:120px;" alt="Signature">
+                            {% else %}
+                                <div class="stamp-box">SIGNATURE</div>
+                            {% endif %}
                         </div>
                         <div style="font-size: 10px; text-align: right;">Authorized Signatory</div>
                     </td>
+                    {% endif %}
                 </tr>
             </table>
 
             <!-- Terms and Conditions -->
+            {% if config.show_terms and bill.terms %}
             <div style="padding: 10px;">
                 <div style="font-weight: bold; margin-bottom: 4px;">Terms and Conditions:</div>
-                <div>1. All disputes must be reported within 15 days of invoice invoice.</div>
-                <div>2. Accepted payment methods include bank transfer, credit card, and PayPal.</div>
-                <div>3. In case of exchange, we only accept original receipt.</div>
+                <div>{{ bill.terms|linebreaksbr }}</div>
             </div>
+            {% endif %}
         </div>
 
         <!-- Page Footer -->
+        {% if config.show_company_footer %}
         <div style="margin-top: 10px; font-size: 10px; font-weight: bold;">
-            Page 1/1 • This is a digitally signed document.
+            {% if config.show_page_numbers %}Page 1/1 &bull; {% endif %}
+            {{ config.custom_footer_message }}
+            {% if config.show_print_date %}&bull; Printed on {% now "d M Y" %}{% endif %}
         </div>
+        {% endif %}
     </div>
 
 </body>

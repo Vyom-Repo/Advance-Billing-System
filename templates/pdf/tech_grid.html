@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tech Grid Invoice</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "JetBrains Mono", monospace, sans-serif;
+            font-size: 8px;
+            line-height: 1.35;
+        }
+
+        body {
+            padding: 10mm 12mm;
+        }
+
+        .tech-container {
+            width: 186mm;
+            min-height: 277mm;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Tech Top Bar */
+        .tech-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 5mm;
+            border-bottom: 2px solid #0f172a;
+            margin-bottom: 5mm;
+        }
+
+        .tech-brand {
+            max-width: 55%;
+        }
+
+        .tech-logo {
+            max-height: 15mm;
+            max-width: 45mm;
+            margin-bottom: 2mm;
+            object-fit: contain;
+        }
+
+        .tech-company-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .tech-company-info {
+            font-size: 7.2px;
+            color: #475569;
+            margin-top: 1mm;
+            line-height: 1.35;
+        }
+
+        .tech-badge-panel {
+            text-align: right;
+        }
+
+        .code-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #0284c7;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 1mm 2.5mm;
+            font-family: "Courier New", monospace;
+            font-size: 8px;
+            font-weight: 700;
+            margin-bottom: 2mm;
+        }
+
+        .tech-title {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+
+        .tech-meta-box {
+            font-size: 7.5px;
+            color: #334155;
+            margin-top: 1.5mm;
+            line-height: 1.4;
+        }
+
+        /* 2-Column Info Grid */
+        .tech-party-grid {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            gap: 4mm;
+            margin-bottom: 5mm;
+        }
+
+        .tech-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 3mm 3.5mm;
+        }
+
+        .tech-card-label {
+            font-size: 6.8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 1.5mm;
+        }
+
+        .tech-card-name {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.8mm;
+        }
+
+        .tech-card-text {
+            font-size: 7.5px;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        /* Item Cards (Card/Grid layout) */
+        .items-deck {
+            margin-bottom: 5mm;
+        }
+
+        .item-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 2.5mm 3.5mm;
+            margin-bottom: 2.5mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-left {
+            max-width: 60%;
+        }
+
+        .item-name-row {
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+        }
+
+        .item-num-tag {
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 7px;
+            padding: 0.5mm 1.8mm;
+            border-radius: 3px;
+        }
+
+        .item-main-title {
+            font-weight: 700;
+            font-size: 8.5px;
+            color: #0f172a;
+        }
+
+        .item-desc-text {
+            font-size: 7px;
+            color: #64748b;
+            margin-top: 0.5mm;
+            padding-left: 6mm;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 4mm;
+            text-align: right;
+        }
+
+        .pill-tag {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            padding: 0.5mm 1.5mm;
+            font-size: 6.8px;
+            color: #475569;
+        }
+
+        .item-qty-rate {
+            font-size: 7.2px;
+            color: #64748b;
+        }
+
+        .item-amount-val {
+            font-size: 10px;
+            font-weight: 800;
+            color: #0f172a;
+            min-width: 22mm;
+        }
+
+        /* Summary & Taxes */
+        .tech-summary-grid {
+            display: grid;
+            grid-template-columns: 55% 45%;
+            gap: 4mm;
+            margin-bottom: 5mm;
+        }
+
+        .tax-table-tech {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .tax-table-tech th {
+            padding: 1.2mm 1mm;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tax-table-tech td {
+            padding: 1.2mm 1mm;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .totals-tech-card {
+            background: #0f172a;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 3.5mm;
+        }
+
+        .totals-tech-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 1mm 0;
+            font-size: 7.8px;
+            color: #94a3b8;
+        }
+
+        .totals-tech-line.highlight {
+            border-top: 1px solid #334155;
+            padding-top: 2mm;
+            margin-top: 1.5mm;
+            font-size: 12px;
+            font-weight: 900;
+            color: #38bdf8;
+        }
+
+        /* Financial & Sign Section */
+        .tech-bottom-grid {
+            display: grid;
+            grid-template-columns: 46% 24% 30%;
+            gap: 4mm;
+            margin-bottom: 4mm;
+        }
+
+        .qr-card-tech {
+            text-align: center;
+        }
+
+        .qr-tech-img {
+            width: 22mm;
+            height: 22mm;
+            margin: auto;
+            object-fit: contain;
+        }
+
+        .sign-card-tech {
+            text-align: center;
+            height: 24mm;
+            position: relative;
+        }
+
+        .sign-tech-img {
+            max-height: 15mm;
+            max-width: 30mm;
+            margin: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .sign-caption-tech {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1mm;
+            font-size: 6.5px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Terms & Footer */
+        .tech-terms {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 2.5mm 3mm;
+            font-size: 7px;
+            color: #475569;
+            margin-bottom: 4mm;
+        }
+
+        .tech-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 6.5px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 2mm;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tech-container">
+        <div>
+            <!-- HEADER -->
+            <div class="tech-header">
+                <div class="tech-brand">
+                    {% if config.show_company_logo and company.logo_url %}
+                    <img class="tech-logo" src="{{ company.logo_url }}" alt="Logo">
+                    {% endif %}
+
+                    {% if config.show_company_header %}
+                    <div class="tech-company-name">{{ company.name }}</div>
+                    <div class="tech-company-info">
+                        {% if company.gstin %}<div>GSTIN: {{ company.gstin }}</div>{% endif %}
+                        {% if company.address %}<div>{{ company.address }}</div>{% endif %}
+                        {% if company.city %}<div>{{ company.city }}, {{ company.state }}{% if company.pincode %} {{ company.pincode }}{% endif %}</div>{% endif %}
+                        {% if company.phone %}<div>Tel: {{ company.phone }} | {{ company.email }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="tech-badge-panel">
+                    <div class="code-badge">ID: {{ bill.number }}</div>
+                    <div class="tech-title">TAX INVOICE</div>
+                    <div class="tech-meta-box">
+                        <div>Issue Date: <b>{{ bill.date }}</b></div>
+                        <div>Due Date: <b>{{ bill.due_date }}</b></div>
+                        {% if bill.place_of_supply %}<div>Place of Supply: <b>{{ bill.place_of_supply }}</b></div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTIES -->
+            <div class="tech-party-grid">
+                <div class="tech-card">
+                    <div class="tech-card-label">Billed To (Customer)</div>
+                    <div class="tech-card-name">{{ customer.name }}</div>
+                    <div class="tech-card-text">
+                        {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% if customer.phone %}<div>Tel: {{ customer.phone }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-label">Shipped To (Consignee)</div>
+                    <div class="tech-card-name">{% if customer.shipping_name %}{{ customer.shipping_name }}{% else %}{{ customer.name }}{% endif %}</div>
+                    <div class="tech-card-text">
+                        {% if customer.shipping_address %}
+                        <div>{{ customer.shipping_address }}</div>
+                        {% if customer.shipping_city %}<div>{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} {{ customer.shipping_pincode }}{% endif %}</div>{% endif %}
+                        {% else %}
+                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEM CARDS -->
+            <div class="items-deck">
+                {% for item in items %}
+                <div class="item-card">
+                    <div class="item-left">
+                        <div class="item-name-row">
+                            <span class="item-num-tag">#{{ item.index }}</span>
+                            <span class="item-main-title">{{ item.name }}</span>
+                            {% if config.show_hsn_sac and item.hsn %}
+                            <span class="pill-tag">HSN: {{ item.hsn }}</span>
+                            {% endif %}
+                        </div>
+                        {% if item.description %}
+                        <div class="item-desc-text">{{ item.description }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-right">
+                        <div class="item-qty-rate">
+                            {{ item.quantity }} {{ item.unit }} &times; {{ bill.currency_symbol }}{{ item.rate }}
+                        </div>
+                        <div class="item-amount-val">
+                            {{ bill.currency_symbol }}{{ item.amount }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- SUMMARY & TAXES -->
+            <div class="tech-summary-grid">
+                <div>
+                    {% if config.show_gst_summary and gst_summary %}
+                    <table class="tax-table-tech">
+                        <thead>
+                            <tr>
+                                <th>HSN/SAC</th>
+                                <th style="text-align: right;">Taxable</th>
+                                <th style="text-align: right;">CGST</th>
+                                <th style="text-align: right;">SGST</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in gst_summary %}
+                            {% if not row.is_total %}
+                            <tr>
+                                <td>{{ row.hsn }}</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right; font-weight: 700;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% else %}
+                            <tr style="font-weight: 700; background: #e2e8f0;">
+                                <td>Total</td>
+                                <td style="text-align: right;">{{ row.taxable }}</td>
+                                <td style="text-align: right;">{{ row.cgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.sgst_amount }}</td>
+                                <td style="text-align: right;">{{ row.total_tax }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+
+                    {% if bill.amount_in_words %}
+                    <div style="margin-top: 2.5mm; font-size: 7px; color: #64748b;">
+                        In words: <b style="color: #0f172a;">{{ bill.amount_in_words }}</b>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="totals-tech-card">
+                    <div class="totals-tech-line">
+                        <span>Subtotal</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span>
+                    </div>
+                    {% if config.show_gst_summary %}
+                    <div class="totals-tech-line">
+                        <span>Taxes</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.tax_total }}</span>
+                    </div>
+                    {% endif %}
+                    {% if bill.discount_total %}
+                    <div class="totals-tech-line">
+                        <span>Discount</span>
+                        <span style="color: #4ade80;">-{{ bill.currency_symbol }}{{ bill.discount_total }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="totals-tech-line highlight">
+                        <span>Total Payable</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
+                    </div>
+                    {% if config.show_payment_info and bill.amount_paid %}
+                    <div class="totals-tech-line">
+                        <span>Amount Paid</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.amount_paid }}</span>
+                    </div>
+                    <div class="totals-tech-line" style="font-weight: 700; color: #ffffff;">
+                        <span>Balance Due</span>
+                        <span>{{ bill.currency_symbol }}{{ bill.amount_due }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FINANCIAL DECK -->
+            <div class="tech-bottom-grid">
+                <div class="tech-card">
+                    {% if config.show_bank_details %}
+                    <div class="tech-card-label">Bank Settlement</div>
+                    <div class="tech-card-text">
+                        {% if company.bank_name %}<div>Bank: <b>{{ company.bank_name }}</b></div>{% endif %}
+                        {% if company.acc_no %}<div>Account #: <b>{{ company.acc_no }}</b></div>{% endif %}
+                        {% if company.ifsc %}<div>IFSC: <b>{{ company.ifsc }}</b></div>{% endif %}
+                        {% if company.branch %}<div>Branch: {{ company.branch }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="tech-card qr-card-tech">
+                    {% if config.show_qr_code %}
+                    <div class="tech-card-label">Quick Pay</div>
+                    {% if bill.qr_code_url %}
+                    <img class="qr-tech-img" src="{{ bill.qr_code_url }}" alt="QR Code">
+                    {% else %}
+                    <div style="border: 1px dashed #cbd5e1; width: 20mm; height: 20mm; margin: auto; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 6px; color: #94a3b8;">UPI QR</div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="tech-card sign-card-tech">
+                    {% if config.show_signature %}
+                    <div class="tech-card-label" style="text-align: center;">For {{ company.name }}</div>
+                    {% if company.signature_url %}
+                    <img class="sign-tech-img" src="{{ company.signature_url }}" alt="Signature">
+                    {% endif %}
+                    <div class="sign-caption-tech">Authorized Signatory</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TERMS -->
+            {% if config.show_terms and bill.terms %}
+            <div class="tech-terms">
+                <div style="font-weight: 700; color: #0284c7; margin-bottom: 0.5mm;">Terms &amp; Notes</div>
+                {{ bill.terms|linebreaksbr }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- FOOTER -->
+        {% if config.show_company_footer %}
+        <div class="tech-footer">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% endif %}
+            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; Printed on {% now "d M Y" %}{% endif %}</span>
+        </div>
+        {% elif config.show_page_numbers or config.show_print_date %}
+        <div class="tech-footer">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% else %}<span></span>{% endif %}
+            <span>{% if config.show_print_date %}Printed on {% now "d M Y" %}{% endif %}</span>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

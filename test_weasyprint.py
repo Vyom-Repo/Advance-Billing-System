@@ -42,15 +42,11 @@ context = InvoicePreviewService.get_preview_context(user, custom_prefs=prefs, pr
 
 template_files = [
     'compact_template.html',
-    'evergreen.html',
-    'flipkart_invoice.html',
     'genz.html',
-    'gst_classic.html',
     'landscape_template.html',
     'modern_template.html',
     'mrp_discount_template.html',
     'professional_template.html',
-    'retail_gst_compact.html',
     'service_template.html',
     'vintage.html'
 ]

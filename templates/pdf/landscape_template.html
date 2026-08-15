@@ -5,370 +5,63 @@
     <meta charset="UTF-8">
     <title>Landscape GST Invoice</title>
     <style>
-        @page {
-            size: A4 landscape;
-            margin: 0;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            background: #eee;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #111;
-        }
-
-        body {
-            padding: 8mm;
-        }
-
-        .invoice {
-            width: 281mm;
-            min-height: 194mm;
-            margin: auto;
-            background: #fff;
-            border: 1px solid #555;
-            font-size: 7px;
-            line-height: 1.15;
-        }
-
-        /* TOP */
-
-        .top {
-            display: grid;
-            grid-template-columns: 19% 56% 25%;
-            min-height: 27mm;
-            border-bottom: 1px solid #555;
-        }
-
-        .logo {
-            padding: 3mm;
-            border-right: 1px solid #555;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-mark {
-            width: 25mm;
-            height: 18mm;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #16842b;
-            font-size: 13px;
-        }
-
-        .logo-mark::before {
-            content: "R";
-            width: 9mm;
-            height: 9mm;
-            border-radius: 50%;
-            background: #1167b1;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 2mm;
-        }
-
-        .company {
-            padding: 2.5mm 3mm;
-            border-right: 1px solid #555;
-        }
-
-        .company h1 {
-            margin: 0 0 1mm;
-            font-size: 9px;
-        }
-
-        .company p {
-            margin: 0;
-            font-size: 6.5px;
-        }
-
-        .invoice-head {
-            padding: 2mm 3mm;
-            position: relative;
-        }
-
-        .invoice-head .title {
-            text-align: center;
-            color: #3158f5;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            font-size: 7px;
-            margin-bottom: 3mm;
-        }
-
-        .original {
-            position: absolute;
-            top: 2mm;
-            right: 2mm;
-            font-size: 5.5px;
-        }
-
-        .meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2mm;
-        }
-
-        .meta div {
-            padding: 1mm;
-            font-size: 6px;
-        }
-
-        /* ADDRESS */
-
-        .address {
-            display: grid;
-            grid-template-columns: 50% 50%;
-            border-bottom: 1px solid #555;
-        }
-
-        .address-box {
-            min-height: 25mm;
-            padding: 2.5mm;
-        }
-
-        .address-box:first-child {
-            border-right: 1px solid #555;
-        }
-
-        .heading {
-            font-weight: 700;
-            margin-bottom: 1mm;
-        }
-
-        .address-box p {
-            margin: 0;
-        }
-
-        /* ITEMS */
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .items th,
-        .items td {
-            border-right: 1px solid #777;
-            border-bottom: 1px solid #777;
-            padding: 1.4mm 1.2mm;
-            vertical-align: top;
-        }
-
-        .items th {
-            text-align: center;
-            font-weight: 700;
-            background: #fafafa;
-        }
-
-        .items th:last-child,
-        .items td:last-child {
-            border-right: none;
-        }
-
-        .items .center {
-            text-align: center;
-        }
-
-        .items .right {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .item-desc {
-            font-weight: 700;
-        }
-
-        .sub {
-            font-weight: 400;
-            margin-top: 1mm;
-        }
-
-        .taxable {
-            text-align: right;
-            padding-right: 2mm !important;
-        }
-
-        /* LOWER AREA */
-
-        .lower-summary {
-            display: grid;
-            grid-template-columns: 58% 42%;
-            border-bottom: 1px solid #555;
-        }
-
-        .words {
-            padding: 2mm;
-            border-right: 1px solid #555;
-        }
-
-        .words strong {
-            display: block;
-            margin-bottom: 1mm;
-        }
-
-        .total-box {
-            padding: 1.5mm 2mm;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.7mm 0;
-        }
-
-        .total-row.total {
-            font-weight: 700;
-            border-top: 1px solid #555;
-            border-bottom: 1px solid #555;
-            padding: 1.2mm 0;
-        }
-
-        .total-row.payable {
-            font-weight: 700;
-        }
-
-        /* TAX SUMMARY */
-
-        .tax-summary th,
-        .tax-summary td {
-            border-right: 1px solid #777;
-            border-bottom: 1px solid #777;
-            padding: 1.2mm;
-            text-align: center;
-        }
-
-        .tax-summary th:last-child,
-        .tax-summary td:last-child {
-            border-right: none;
-        }
-
-        .tax-summary .right {
-            text-align: right;
-        }
-
-        /* FOOTER */
-
-        .footer {
-            display: grid;
-            grid-template-columns: 42% 24% 34%;
-            min-height: 38mm;
-            border-bottom: 1px solid #555;
-        }
-
-        .footer-section {
-            padding: 2.5mm;
-            border-right: 1px solid #555;
-        }
-
-        .footer-section:last-child {
-            border-right: none;
-        }
-
-        .bank-line {
-            margin: 1mm 0;
-        }
-
-        .qr-title {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 1.5mm;
-        }
-
-        .qr {
-            width: 27mm;
-            height: 27mm;
-            margin: auto;
-            border: 2px solid #111;
-            background:
-                repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px),
-                repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px);
-        }
-
-        .signature {
-            position: relative;
-            height: 31mm;
-        }
-
-        .signature-stamp {
-            position: absolute;
-            right: 2mm;
-            top: 8mm;
-            width: 18mm;
-            height: 18mm;
-            border: 2px solid #3158f5;
-            border-radius: 50%;
-            color: #3158f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 5px;
-            transform: rotate(-12deg);
-        }
-
-        .signature-label {
-            position: absolute;
-            right: 2mm;
-            bottom: 0;
-            font-size: 6px;
-        }
-
-        /* NOTES */
-
-        .notes {
-            display: grid;
-            grid-template-columns: 43% 57%;
-            min-height: 25mm;
-        }
-
-        .notes>div {
-            padding: 2.5mm;
-        }
-
-        .notes>div:first-child {
-            border-right: 1px solid #555;
-        }
-
-        .notes ol {
-            margin: 1mm 0 0 4mm;
-            padding: 0;
-        }
-
-        .notes li {
-            margin-bottom: .7mm;
-        }
-
-        .bottom {
-            display: flex;
-            justify-content: space-between;
-            padding: 1.5mm 2.5mm;
-            font-size: 5.8px;
-        }
-
-        @media print {
-
-            html,
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .invoice {
-                border: 1px solid #555;
-            }
-        }
+        @page { size: A4 landscape; margin: 0 }
+        * { box-sizing: border-box }
+        html, body { margin: 0; padding: 0; background: #eee; font-family: Arial, Helvetica, sans-serif; color: #111 }
+        body { padding: 8mm }
+        .invoice { width: 281mm; min-height: 194mm; margin: auto; background: #fff; border: 1px solid #555; font-size: 7px; line-height: 1.15 }
+        .top { display: grid; grid-template-columns: 19% 56% 25%; min-height: 27mm; border-bottom: 1px solid #555 }
+        .logo { padding: 3mm; border-right: 1px solid #555; display: flex; align-items: center }
+        .logo-mark { width: 25mm; height: 18mm; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #16842b; font-size: 13px }
+        .logo-mark::before { content: ""; width: 9mm; height: 9mm; border-radius: 50%; background: #1167b1; color: white; display: flex; align-items: center; justify-content: center; margin-right: 2mm }
+        .company { padding: 2.5mm 3mm; border-right: 1px solid #555 }
+        .company h1 { margin: 0 0 1mm; font-size: 9px }
+        .company p { margin: 0; font-size: 6.5px }
+        .invoice-head { padding: 2mm 3mm; position: relative }
+        .invoice-head .title { text-align: center; color: #3158f5; font-weight: 700; letter-spacing: 1.5px; font-size: 7px; margin-bottom: 3mm }
+        .original { position: absolute; top: 2mm; right: 2mm; font-size: 5.5px }
+        .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm }
+        .meta div { padding: 1mm; font-size: 6px }
+        .address { display: grid; grid-template-columns: 50% 50%; border-bottom: 1px solid #555 }
+        .address-box { min-height: 25mm; padding: 2.5mm }
+        .address-box:first-child { border-right: 1px solid #555 }
+        .heading { font-weight: 700; margin-bottom: 1mm }
+        .address-box p { margin: 0 }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed }
+        .items th, .items td { border-right: 1px solid #777; border-bottom: 1px solid #777; padding: 1.4mm 1.2mm; vertical-align: top }
+        .items th { text-align: center; font-weight: 700; background: #fafafa }
+        .items th:last-child, .items td:last-child { border-right: none }
+        .items .center { text-align: center }
+        .items .right { text-align: right; white-space: nowrap }
+        .item-desc { font-weight: 700 }
+        .sub { font-weight: 400; margin-top: 1mm }
+        .taxable { text-align: right; padding-right: 2mm !important }
+        .lower-summary { display: grid; grid-template-columns: 58% 42%; border-bottom: 1px solid #555 }
+        .words { padding: 2mm; border-right: 1px solid #555 }
+        .words strong { display: block; margin-bottom: 1mm }
+        .total-box { padding: 1.5mm 2mm }
+        .total-row { display: flex; justify-content: space-between; padding: 0.7mm 0 }
+        .total-row.total { font-weight: 700; border-top: 1px solid #555; border-bottom: 1px solid #555; padding: 1.2mm 0 }
+        .total-row.payable { font-weight: 700 }
+        .tax-summary th, .tax-summary td { border-right: 1px solid #777; border-bottom: 1px solid #777; padding: 1.2mm; text-align: center }
+        .tax-summary th:last-child, .tax-summary td:last-child { border-right: none }
+        .tax-summary .right { text-align: right }
+        .footer { display: grid; grid-template-columns: 42% 24% 34%; min-height: 38mm; border-bottom: 1px solid #555 }
+        .footer-section { padding: 2.5mm; border-right: 1px solid #555 }
+        .footer-section:last-child { border-right: none }
+        .bank-line { margin: 1mm 0 }
+        .qr-title { text-align: center; font-weight: 700; margin-bottom: 1.5mm }
+        .qr { width: 27mm; height: 27mm; margin: auto; border: 2px solid #111; background: repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px) }
+        .signature { position: relative; height: 31mm }
+        .signature-stamp { position: absolute; right: 2mm; top: 8mm; width: 18mm; height: 18mm; border: 2px solid #3158f5; border-radius: 50%; color: #3158f5; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 5px; transform: rotate(-12deg) }
+        .signature-label { position: absolute; right: 2mm; bottom: 0; font-size: 6px }
+        .notes { display: grid; grid-template-columns: 43% 57%; min-height: 25mm }
+        .notes>div { padding: 2.5mm }
+        .notes>div:first-child { border-right: 1px solid #555 }
+        .notes ol { margin: 1mm 0 0 4mm; padding: 0 }
+        .notes li { margin-bottom: .7mm }
+        .bottom { display: flex; justify-content: space-between; padding: 1.5mm 2.5mm; font-size: 5.8px }
+        @media print { html, body { background: white; padding: 0 } .invoice { border: 1px solid #555 } }
     </style>
 </head>
 
@@ -377,50 +70,55 @@
 
         <!-- HEADER -->
         <div class="top">
+            {% if config.show_company_logo %}
             <div class="logo">
-                <div class="logo-mark">Reliance</div>
+                {% if company.logo_url %}
+                    <img src="{{ company.logo_url }}" alt="Logo" style="max-height:18mm;max-width:20mm;">
+                {% else %}
+                    <div class="logo-mark">{{ company.name }}</div>
+                {% endif %}
             </div>
+            {% endif %}
 
             <div class="company">
-                <h1>Reliance Industries Limited</h1>
-                <p>GSTIN: 27AABCR1718E1ZW</p>
-                <p>Maker Chambers IV, Nariman Point, Mumbai</p>
-                <p>Mumbai, MAHARASHTRA, 400018</p>
-                <p>Phone: 9999999999</p>
-                <p>Email: support@reliance.com</p>
+                <h1>{{ company.name }}</h1>
+                {% if company.gstin %}<p>GSTIN: {{ company.gstin }}</p>{% endif %}
+                {% if company.address %}<p>{{ company.address }}</p>{% endif %}
+                {% if company.city %}<p>{{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</p>{% endif %}
+                {% if company.phone %}<p>Phone: {{ company.phone }}</p>{% endif %}
+                {% if company.email %}<p>Email: {{ company.email }}</p>{% endif %}
             </div>
 
             <div class="invoice-head">
                 <div class="original">ORIGINAL FOR RECIPIENT</div>
                 <div class="title">TAX INVOICE</div>
-
                 <div class="meta">
-                    <div><b>Invoice No:</b><br>INV-3</div>
-                    <div><b>Invoice Date:</b><br>20 Dec 2023</div>
-                    <div><b>Due Date:</b><br>29 Dec 2023</div>
-                    <div><b>Place of Supply:</b><br>29-KARNATAKA</div>
+                    <div><b>Invoice No:</b><br>{{ bill.number }}</div>
+                    <div><b>Invoice Date:</b><br>{{ bill.date }}</div>
+                    <div><b>Due Date:</b><br>{{ bill.due_date }}</div>
+                    {% if bill.place_of_supply %}<div><b>Place of Supply:</b><br>{{ bill.place_of_supply }}</div>{% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- CUSTOMER / SUPPLIER -->
+        <!-- ADDRESSES -->
         <div class="address">
             <div class="address-box">
                 <div class="heading">Customer Details:</div>
-                <p>Reliance Retail</p>
-                <p>GSTIN: 29AABCR1718E1ZW</p>
-                <p>Phone: 9999999999</p>
-                <p>Address: Main Road</p>
-                <p>Bengaluru, KARNATAKA, 560001</p>
-                <p>Place of Supply: 29-KARNATAKA</p>
+                <p>{{ customer.name }}</p>
+                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
+                {% if customer.phone %}<p>Phone: {{ customer.phone }}</p>{% endif %}
+                {% if customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
+                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
+                {% if bill.place_of_supply %}<p>Place of Supply: {{ bill.place_of_supply }}</p>{% endif %}
             </div>
 
             <div class="address-box">
-                <div class="heading">Customer Details:</div>
-                <p>Reliance Retail</p>
-                <p>Address: Main Road</p>
-                <p>Bengaluru, KARNATAKA, 560001</p>
-                <p>GSTIN: 29AABCR1718E1ZW</p>
+                <div class="heading">Billing Address:</div>
+                <p>{{ customer.name }}</p>
+                {% if customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
+                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
+                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
             </div>
         </div>
 
@@ -428,8 +126,8 @@
         <table class="items">
             <colgroup>
                 <col style="width:5%">
-                <col style="width:39%">
-                <col style="width:9%">
+                <col style="width:{% if config.show_hsn_sac %}39{% else %}51{% endif %}%">
+                {% if config.show_hsn_sac %}<col style="width:9%">{% endif %}
                 <col style="width:12%">
                 <col style="width:10%">
                 <col style="width:13%">
@@ -439,7 +137,7 @@
                 <tr>
                     <th>#</th>
                     <th>Item</th>
-                    <th>HSN/SAC</th>
+                    {% if config.show_hsn_sac %}<th>HSN/SAC</th>{% endif %}
                     <th>Rate / Item</th>
                     <th>Qty</th>
                     <th>Taxable Value</th>
@@ -447,74 +145,51 @@
                 </tr>
             </thead>
             <tbody>
+                {% for item in items %}
                 <tr>
-                    <td class="center">1</td>
+                    <td class="center">{{ item.index }}</td>
                     <td>
-                        <div class="item-desc">Reliance Jio Phone</div>
-                        <div class="sub">
-                            4G connectivity, Battery Capacity 1800mAh<br>
-                            Reliance Jio JioFi
-                        </div>
+                        <div class="item-desc">{{ item.name }}</div>
+                        {% if item.description %}<div class="sub">{{ item.description }}</div>{% endif %}
                     </td>
-                    <td class="center">851712</td>
-                    <td class="right">₹7,681.71</td>
-                    <td class="center">1 PCS</td>
-                    <td class="right">₹7,681.71</td>
-                    <td class="right">₹1,382.71</td>
+                    {% if config.show_hsn_sac %}<td class="center">{{ item.hsn }}</td>{% endif %}
+                    <td class="right">{{ bill.currency_symbol }}{{ item.rate }}</td>
+                    <td class="center">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ item.taxable_value }}</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ item.tax_amount }}</td>
                 </tr>
-
-                <tr>
-                    <td class="center">2</td>
-                    <td>
-                        <div class="item-desc">Reliance JioFiber Set Top Box</div>
-                        <div class="sub">JioFiber broadband and entertainment service</div>
-                    </td>
-                    <td class="center">85176290</td>
-                    <td class="right">₹3,388.88</td>
-                    <td class="center">3 PCS</td>
-                    <td class="right">₹10,166.65</td>
-                    <td class="right">₹1,830.00</td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
 
         <!-- WORDS + TOTAL -->
         <div class="lower-summary">
             <div class="words">
-                <strong>Total Items: Qty / 2 / 13,000</strong>
-                <strong>Total Amount (in words): Ninety One Thousand Nine Hundred And Eighty Seven Rupees Only.</strong>
-                <p>Tax Details:</p>
-                <p>Bank: YES BANK</p>
-                <p>Account #: 987999222445</p>
-                <p>IFSC: YESB0001234</p>
-                <p>UPI ID: payments@reliance</p>
+                {% if items|length %}<strong>Total Items: {{ items|length }}</strong>{% endif %}
+                {% if bill.amount_in_words %}<strong>Total Amount (in words): {{ bill.amount_in_words }}</strong>{% endif %}
+                {% if config.show_bank_details %}
+                <p>Bank: {{ company.bank_name }}</p>
+                <p>Account #: {{ company.acc_no }}</p>
+                <p>IFSC: {{ company.ifsc }}</p>
+                {% if company.upi_id %}<p>UPI ID: {{ company.upi_id }}</p>{% endif %}
+                {% endif %}
             </div>
 
             <div class="total-box">
-                <div class="total-row">
-                    <span>Taxable Amount</span>
-                    <span>₹17,855.95</span>
-                </div>
-                <div class="total-row">
-                    <span>CGST 9.0%</span>
-                    <span>₹1,607.03</span>
-                </div>
-                <div class="total-row">
-                    <span>SGST 9.0%</span>
-                    <span>₹1,607.03</span>
-                </div>
-                <div class="total-row total">
-                    <span>Total</span>
-                    <span>₹91,987.00</span>
-                </div>
-                <div class="total-row payable">
-                    <span>Amount Payable</span>
-                    <span>₹91,987.00</span>
-                </div>
+                <div class="total-row"><span>Taxable Amount</span><span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span></div>
+                {% if config.show_gst_summary %}
+                {% for row in gst_summary %}{% if not row.is_total %}
+                <div class="total-row"><span>CGST {{ row.cgst_rate }}%</span><span>{{ bill.currency_symbol }}{{ row.cgst_amount }}</span></div>
+                <div class="total-row"><span>SGST {{ row.sgst_rate }}%</span><span>{{ bill.currency_symbol }}{{ row.sgst_amount }}</span></div>
+                {% endif %}{% endfor %}
+                {% endif %}
+                <div class="total-row total"><span>Total</span><span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span></div>
+                <div class="total-row payable"><span>Amount Payable</span><span>{{ bill.currency_symbol }}{{ bill.amount_payable }}</span></div>
             </div>
         </div>
 
-        <!-- TAX TABLE -->
+        <!-- GST TAX SUMMARY TABLE (has_tax_summary_table feature) -->
+        {% if config.show_gst_summary and config.has_tax_summary_table %}
         <table class="tax-summary">
             <colgroup>
                 <col style="width:17%">
@@ -544,85 +219,102 @@
                 </tr>
             </thead>
             <tbody>
+                {% for row in gst_summary %}
+                {% if not row.is_total %}
                 <tr>
-                    <td>851712</td>
-                    <td class="right">₹7,681.71</td>
-                    <td>9%</td>
-                    <td class="right">₹691.35</td>
-                    <td>9%</td>
-                    <td class="right">₹691.35</td>
-                    <td class="right">₹1,382.70</td>
+                    <td>{{ row.hsn }}</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ row.taxable }}</td>
+                    <td>{{ row.cgst_rate }}%</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ row.cgst_amount }}</td>
+                    <td>{{ row.sgst_rate }}%</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ row.sgst_amount }}</td>
+                    <td class="right">{{ bill.currency_symbol }}{{ row.total_tax }}</td>
                 </tr>
+                {% else %}
                 <tr>
-                    <td>85176290</td>
-                    <td class="right">₹10,174.65</td>
-                    <td>9%</td>
-                    <td class="right">₹915.72</td>
-                    <td>9%</td>
-                    <td class="right">₹915.72</td>
-                    <td class="right">₹1,831.44</td>
-                </tr>
-                <tr>
-                    <td colspan="1" class="center"><b>TOTAL</b></td>
-                    <td class="right"><b>₹17,856.36</b></td>
+                    <td colspan="1"><b>TOTAL</b></td>
+                    <td class="right"><b>{{ bill.currency_symbol }}{{ row.taxable }}</b></td>
                     <td></td>
-                    <td class="right"><b>₹1,607.07</b></td>
+                    <td class="right"><b>{{ bill.currency_symbol }}{{ row.cgst_amount }}</b></td>
                     <td></td>
-                    <td class="right"><b>₹1,607.07</b></td>
-                    <td class="right"><b>₹3,214.14</b></td>
+                    <td class="right"><b>{{ bill.currency_symbol }}{{ row.sgst_amount }}</b></td>
+                    <td class="right"><b>{{ bill.currency_symbol }}{{ row.total_tax }}</b></td>
                 </tr>
+                {% endif %}
+                {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
         <!-- BANK / QR / SIGNATURE -->
         <div class="footer">
+            {% if config.show_bank_details %}
             <div class="footer-section">
                 <div class="heading">Bank Details:</div>
-                <div class="bank-line"><b>Bank:</b> YES BANK</div>
-                <div class="bank-line"><b>Account #:</b> 987999222445</div>
-                <div class="bank-line"><b>IFSC:</b> YESB0001234</div>
-                <div class="bank-line"><b>Branch:</b> Mumbai</div>
-                <div class="bank-line"><b>UPI:</b> payments@reliance</div>
+                {% if company.bank_name %}<div class="bank-line"><b>Bank:</b> {{ company.bank_name }}</div>{% endif %}
+                {% if company.acc_no %}<div class="bank-line"><b>Account #:</b> {{ company.acc_no }}</div>{% endif %}
+                {% if company.ifsc %}<div class="bank-line"><b>IFSC:</b> {{ company.ifsc }}</div>{% endif %}
+                {% if company.branch %}<div class="bank-line"><b>Branch:</b> {{ company.branch }}</div>{% endif %}
+                {% if company.upi_id %}<div class="bank-line"><b>UPI:</b> {{ company.upi_id }}</div>{% endif %}
             </div>
+            {% endif %}
 
+            {% if config.show_qr_code %}
             <div class="footer-section">
                 <div class="qr-title">Pay using UPI</div>
-                <div class="qr"></div>
+                {% if bill.qr_code_url %}
+                    <img src="{{ bill.qr_code_url }}" style="width:27mm;height:27mm;display:block;margin:auto;" alt="QR">
+                {% else %}
+                    <div class="qr"></div>
+                {% endif %}
             </div>
+            {% endif %}
 
+            {% if config.show_signature %}
             <div class="footer-section">
                 <div class="signature">
-                    <div class="signature-stamp">AUTHORISED<br>SIGNATORY</div>
-                    <div class="signature-label">For Reliance Industries</div>
+                    {% if company.signature_url %}
+                        <img src="{{ company.signature_url }}" style="position:absolute;right:2mm;top:8mm;max-height:18mm;max-width:30mm;" alt="Signature">
+                    {% else %}
+                        <div class="signature-stamp">AUTHORISED<br>SIGNATORY</div>
+                    {% endif %}
+                    <div class="signature-label">For {{ company.name }}</div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <!-- NOTES / TERMS -->
         <div class="notes">
             <div>
+                {% if bill.notes %}
                 <div class="heading">Notes:</div>
-                Thank you for your business.
-                <br><br>
-                <b>Receiver's Signature</b>
-                <hr>
+                {{ bill.notes }}
+                {% endif %}
+                {% if config.has_receiver_signature %}
+                <br><br><b>Receiver's Signature</b><hr>
+                {% endif %}
             </div>
 
+            {% if config.show_terms and bill.terms %}
             <div>
                 <div class="heading">Terms and Conditions:</div>
-                <ol>
-                    <li>Goods once sold cannot be taken back or exchanged.</li>
-                    <li>We are not responsible for delays caused by third parties.</li>
-                    <li>Interest @ 18% p.a. will be charged for delayed payment.</li>
-                    <li>Subject to local jurisdiction.</li>
-                </ol>
+                {{ bill.terms|linebreaksbr }}
             </div>
+            {% endif %}
         </div>
 
+        {% if config.show_company_footer %}
         <div class="bottom">
-            <span>Page 1 / 1</span>
-            <span>This is a digitally signed document.</span>
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% endif %}
+            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; Printed on {% now "d M Y" %}{% endif %}</span>
         </div>
+        {% elif config.show_page_numbers or config.show_print_date %}
+        <div class="bottom">
+            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% else %}<span></span>{% endif %}
+            <span>{% if config.show_print_date %}Printed on {% now "d M Y" %}{% endif %}</span>
+        </div>
+        {% endif %}
 
     </div>
 </body>

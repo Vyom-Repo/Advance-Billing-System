@@ -116,6 +116,11 @@ class DocumentPreference(models.Model):
         ('professional_template', 'Professional Template'),
         ('service_template', 'Service Template'),
         ('vintage', 'Vintage Template'),
+        ('ledger_classic', 'Ledger Classic'),
+        ('minimal_mono', 'Minimal Mono'),
+        ('bold_header', 'Bold Header'),
+        ('elegant_serif', 'Elegant Serif'),
+        ('tech_grid', 'Tech Grid'),
     )
     template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='gst_classic')
     
@@ -176,3 +181,106 @@ class DocumentPreference(models.Model):
     def __str__(self):
         return f"{self.user.email} Document Preferences"
 
+
+# ---------------------------------------------------------------------------
+# BillTemplate — per-template capability declaration and default configuration
+# ---------------------------------------------------------------------------
+
+class BillTemplate(models.Model):
+    """
+    Represents one of the hand-designed bill/invoice templates stored under
+    templates/pdf/.  This table is the authoritative registry for every
+    template slug recognised by the system.
+
+    ``default_config`` captures:
+    - which optional elements this design supports (has_qr, has_signature …)
+    - the default value for every toggle this template exposes
+    - any template-specific keys (has_mrp_column, simplified_items …)
+
+    It does NOT capture layout/position information — that is baked into the
+    template's own HTML/CSS.
+    """
+
+    slug = models.SlugField(
+        max_length=60,
+        primary_key=True,
+        help_text="Must match the filename stem in templates/pdf/ (e.g. 'compact_template').",
+    )
+    name = models.CharField(max_length=100, help_text="Human-readable display name.")
+    description = models.TextField(blank=True)
+    template_file_path = models.CharField(
+        max_length=255,
+        help_text="Relative template path understood by Django's template loader (e.g. 'pdf/compact_template.html').",
+    )
+    preview_image = models.ImageField(
+        upload_to="bill_template_previews/",
+        blank=True,
+        null=True,
+        help_text="Thumbnail shown in the Invoice Design gallery.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Inactive templates are hidden from the gallery but still renderable.",
+    )
+    default_config = models.JSONField(
+        default=dict,
+        help_text=(
+            "JSON object describing this template's capabilities and default preference values. "
+            "Keys that are False/absent mean the template does not support that element. "
+            "Example: {\"has_qr\": true, \"has_signature\": true, \"show_gst_summary\": true}"
+        ),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.slug})"
+
+    def get_allowed_config_keys(self) -> set:
+        """Returns the set of config keys this template declares support for."""
+        return set(self.default_config.keys())
+
+
+# ---------------------------------------------------------------------------
+# UserBillPreference — per-user, per-template preference overrides
+# ---------------------------------------------------------------------------
+
+class UserBillPreference(models.Model):
+    """
+    Stores user-level overrides of a template's default_config, scoped to a
+    specific (user, template) pair.
+
+    Resolution order (lowest → highest priority):
+        BillTemplate.default_config
+        →  UserBillPreference.pref_overrides
+        →  one-off per-request overrides (passed at render time, never persisted)
+
+    Only keys present in the template's ``default_config`` are valid;
+    ``resolve_render_config()`` validates and strips unknown keys.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="bill_preferences",
+    )
+    template = models.ForeignKey(
+        BillTemplate,
+        on_delete=models.CASCADE,
+        related_name="user_preferences",
+        to_field="slug",
+    )
+    pref_overrides = models.JSONField(
+        default=dict,
+        help_text="User's overrides for this template's default_config.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("user", "template")]
+        ordering = ["template__name"]
+
+    def __str__(self) -> str:
+        return f"{self.user.email} → {self.template_id}"
