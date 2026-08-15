@@ -459,7 +459,8 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
 class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
     """
     Generates a PDF download using the user's saved DocumentPreference settings.
-    Uses the unified render_bill_pdf pipeline.
+    Supports query parameters e.g. ?letterhead=true or ?print_on_letterhead=1.
+    Uses the unified render_bill_pdf pipeline with automatic fallback.
     """
     def get(self, request, *args, **kwargs):
         if not HTML:
@@ -472,14 +473,20 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         from apps.common.services.layout_engine import PrintableFrameBuilder
         from apps.settings_app.models import DocumentPreference
 
-        try:
-            doc_pref = DocumentPreference.objects.get(user=request.user)
-            template_slug = doc_pref.template_name
-        except DocumentPreference.DoesNotExist:
-            template_slug = "gst_classic"
+        template_slug = "letterhead_invoice"
+        template_path = "pdf/letterhead_invoice.html"
 
-        template_path = f"pdf/{template_slug}.html"
-        config = InvoicePreviewService.resolve_render_config(template_slug, request.user)
+        # Check for letterhead GET parameter overrides
+        request_overrides = {}
+        lh_param = request.GET.get("letterhead") or request.GET.get("print_on_letterhead")
+        if lh_param is not None:
+            request_overrides["print_on_letterhead"] = lh_param.lower() in ("true", "1", "yes", "on")
+
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug=template_slug,
+            user=request.user,
+            request_overrides=request_overrides if request_overrides else None,
+        )
 
         org_data = OrganizationService.get_company_assets(request.user)
         if org_data:
@@ -517,7 +524,8 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = 'attachment; filename="Preview_Document.pdf"'
+        filename = f"Invoice_{bill_data.get('bill', {}).get('number', 'Document')}.pdf"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
 from django.template.exceptions import TemplateDoesNotExist

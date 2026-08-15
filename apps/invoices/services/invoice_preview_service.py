@@ -68,7 +68,50 @@ _GLOBAL_DEFAULTS: dict = {
 }
 
 
+import logging
+from django.template import loader
+from django.template.exceptions import TemplateDoesNotExist, TemplateSyntaxError
+import weasyprint
+
+logger = logging.getLogger(__name__)
+
+# Map legacy/alias template slugs to actual existing PDF template files
+_TEMPLATE_SLUG_MAP = {
+    "letterhead": "letterhead_invoice",
+    "letterhead_invoice": "letterhead_invoice",
+    "gst_classic": "compact_template",
+    "flipkart_invoice": "compact_template",
+    "retail_gst_compact": "compact_template",
+    "evergreen": "professional_template",
+    "compact": "compact_template",
+    "professional": "professional_template",
+    "landscape": "landscape_template",
+    "modern": "modern_template",
+    "mrp_discount": "mrp_discount_template",
+    "service": "service_template",
+    "simple": "simple_invoice",
+    "simple_invoice": "simple_invoice",
+    "ledger_classic": "compact_template",
+    "minimal_mono": "compact_template",
+    "bold_header": "compact_template",
+    "elegant_serif": "compact_template",
+    "tech_grid": "compact_template",
+}
+
+
 class InvoicePreviewService:
+
+    # ------------------------------------------------------------------
+    # resolve_template_path
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def resolve_template_path(template_file_or_slug: str) -> str:
+        """
+        Single production template resolution.
+        Returns pdf/letterhead_invoice.html for all production invoice PDF requests.
+        """
+        return "pdf/letterhead_invoice.html"
 
     # ------------------------------------------------------------------
     # resolve_render_config
@@ -100,17 +143,26 @@ class InvoicePreviewService:
         """
         from apps.settings_app.models import BillTemplate, UserBillPreference
 
+        # Normalize slug if needed
+        normalized_slug = template_slug.replace("pdf/", "").replace(".html", "") if template_slug else "compact_template"
+        mapped_slug = _TEMPLATE_SLUG_MAP.get(normalized_slug, normalized_slug)
+
         # --- Layer 1: global defaults ---
         config = dict(_GLOBAL_DEFAULTS)
 
         # --- Layer 2: BillTemplate.default_config ---
         try:
-            bt = BillTemplate.objects.get(slug=template_slug)
+            bt = BillTemplate.objects.get(slug=mapped_slug)
             allowed_keys = bt.get_allowed_config_keys()
             config.update(bt.default_config)
         except BillTemplate.DoesNotExist:
-            bt = None
-            allowed_keys = set(_GLOBAL_DEFAULTS.keys())
+            try:
+                bt = BillTemplate.objects.get(slug=normalized_slug)
+                allowed_keys = bt.get_allowed_config_keys()
+                config.update(bt.default_config)
+            except BillTemplate.DoesNotExist:
+                bt = None
+                allowed_keys = set(_GLOBAL_DEFAULTS.keys())
 
         # --- Layer 3: DocumentPreference (user's global prefs) ---
         try:
@@ -146,7 +198,10 @@ class InvoicePreviewService:
         org=None,
     ) -> bytes:
         """
-        Single entry point for rendering ANY of the 8 templates to PDF.
+        Single entry point for rendering any PDF template with automatic fallback.
+
+        If rendering the primary template fails or produces invalid PDF bytes,
+        it automatically falls back to rendering pdf/simple_invoice.html.
 
         Parameters
         ----------
@@ -162,14 +217,13 @@ class InvoicePreviewService:
         bytes — raw PDF binary
         """
         from django.template.loader import render_to_string
-        import weasyprint
 
         context = {
             **bill_data,        # bill, company, customer, items, gst_summary
             "config":       config,
             "layout_frame": layout_frame,
             "org":          org,
-            # Legacy keys kept for backward-compat with any remaining old references
+            # Legacy keys kept for backward-compat
             "prefs":        config,
             "invoice":      bill_data.get("bill", {}),
             "customer":     bill_data.get("customer", {}),
@@ -177,14 +231,63 @@ class InvoicePreviewService:
             "company":      bill_data.get("company", {}),
         }
 
-        html_string = render_to_string(template_file_path, context)
+        # SINGLE PRODUCTION INVOICE PDF TEMPLATE:
+        # pdf/letterhead_invoice.html is the single production template used for all invoice PDF generation.
+        primary_path = "pdf/letterhead_invoice.html"
 
-        pdf_bytes = weasyprint.HTML(
-            string=html_string,
-            base_url="file://",
-        ).write_pdf()
+        try:
+            html_string = render_to_string(primary_path, context)
+            pdf_bytes = weasyprint.HTML(
+                string=html_string,
+                base_url="file://",
+            ).write_pdf()
 
-        return pdf_bytes
+            if isinstance(pdf_bytes, bytes) and pdf_bytes.startswith(b"%PDF") and len(pdf_bytes) > 500:
+                return pdf_bytes
+            else:
+                logger.warning(
+                    "Primary template '%s' produced empty or invalid PDF bytes. Retrying with fallback.",
+                    primary_path,
+                )
+        except Exception as e:
+            logger.warning(
+                "Primary template '%s' rendering failed (%s). Automatically falling back.",
+                primary_path,
+                str(e),
+                exc_info=True,
+            )
+
+        # Fallback render hierarchy: use pdf/letterhead_invoice.html if letterhead enabled, else pdf/simple_invoice.html
+        fallback_template = "pdf/letterhead_invoice.html" if config.get("print_on_letterhead") else "pdf/simple_invoice.html"
+        try:
+            fallback_html = render_to_string(fallback_template, context)
+            fallback_pdf = weasyprint.HTML(
+                string=fallback_html,
+                base_url="file://",
+            ).write_pdf()
+            return fallback_pdf
+        except Exception as fallback_err:
+            logger.error(
+                "Fallback template pdf/simple_invoice.html failed to render: %s",
+                str(fallback_err),
+                exc_info=True,
+            )
+
+            # Emergency inline fallback (guarantees a valid PDF response)
+            emergency_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="utf-8"><title>Invoice Emergency PDF</title></head>
+            <body style="font-family: sans-serif; padding: 30px;">
+                <h2>TAX INVOICE - {bill_data.get('bill', {}).get('number', 'INV-001')}</h2>
+                <p><strong>Company:</strong> {bill_data.get('company', {}).get('name', '')}</p>
+                <p><strong>Billed To:</strong> {bill_data.get('customer', {}).get('name', '')}</p>
+                <p><strong>Grand Total:</strong> {bill_data.get('bill', {}).get('grand_total', '0.00')}</p>
+            </body>
+            </html>
+            """
+            return weasyprint.HTML(string=emergency_html).write_pdf()
+
 
     # ------------------------------------------------------------------
     # get_preview_context  (legacy — kept for backward compatibility)

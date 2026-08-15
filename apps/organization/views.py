@@ -169,41 +169,70 @@ class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
     """
     Returns an inline PDF for the letterhead safe area preview.
     Uses the saved letterhead but allows overriding offsets via GET parameters.
+    Uses the unified InvoicePreviewService rendering pipeline with automatic fallback.
     """
     def get(self, request, *args, **kwargs):
         from apps.invoices.services.invoice_preview_service import InvoicePreviewService
-        try:
-            from weasyprint import HTML
-        except ImportError:
-            return HttpResponse("WeasyPrint is not installed or configured correctly.", status=500)
-            
+        from apps.invoices.services.bill_serializer import serialize_bill_for_render
+        from apps.common.services.sample_data_service import SampleDataService
+        from apps.common.services.organization_service import OrganizationService
+        from apps.common.services.layout_engine import PrintableFrameBuilder
+        from apps.settings_app.models import DocumentPreference
+
         header_offset = request.GET.get('header', None)
         footer_offset = request.GET.get('footer', None)
-        
-        context = InvoicePreviewService.get_preview_context(request.user)
-        
-        if context.get('org'):
+
+        try:
+            doc_pref = DocumentPreference.objects.get(user=request.user)
+            template_slug = doc_pref.template_name
+        except DocumentPreference.DoesNotExist:
+            template_slug = "compact_template"
+
+        request_overrides = {"print_on_letterhead": True}
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug=template_slug,
+            user=request.user,
+            request_overrides=request_overrides,
+        )
+
+        org_data = OrganizationService.get_company_assets(request.user)
+        if org_data:
+            org_obj = org_data["organization"]
             if header_offset is not None:
-                context['org'].letterhead_header_offset = int(header_offset)
+                org_obj.letterhead_header_offset = int(header_offset)
             if footer_offset is not None:
-                context['org'].letterhead_footer_offset = int(footer_offset)
-                
-        if 'prefs' not in context or not context['prefs']:
-            context['prefs'] = {}
-            
-        if isinstance(context['prefs'], dict):
-            context['prefs']['print_on_letterhead'] = True
-            template_name = context['prefs'].get("template_name", "professional")
+                org_obj.letterhead_footer_offset = int(footer_offset)
+            company = {
+                "name":    org_data["business_name"],
+                "address": f"{org_data['address_line_1']} {org_data['address_line_2']}".strip(),
+                "city":    org_data["city"],
+                "state":   org_data["state"],
+                "gstin":   org_data["gstin"],
+                "email":   org_data["email"],
+                "phone":   org_data["phone"],
+            }
+            if org_data["default_bank"]:
+                company["bank_name"] = org_data["default_bank"].bank_name
+                company["acc_no"]    = org_data["default_bank"].account_number
+                company["ifsc"]      = org_data["default_bank"].ifsc_code
         else:
-            context['prefs'].print_on_letterhead = True
-            template_name = getattr(context['prefs'], "template_name", "professional")
-            
-        from apps.common.services.layout_engine import PrintableFrameBuilder
-        context['layout_frame'] = PrintableFrameBuilder.build_frame(context.get('org'), context.get('prefs'))
-            
-        template_path = f"pdf/{template_name}.html"
-        
-        html_string = render_to_string(template_path, context)
-        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-        
-        return HttpResponse(pdf_file, content_type='application/pdf')
+            org_obj = None
+            company = SampleDataService.sample_company()
+
+        invoice  = SampleDataService.sample_invoice(request.user)
+        customer = SampleDataService.sample_customer()
+        items    = SampleDataService.sample_items()
+
+        bill_data    = serialize_bill_for_render(invoice, customer, items, company, org_obj)
+        layout_frame = PrintableFrameBuilder.build_frame(org_obj, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=bill_data,
+            config=config,
+            template_file_path=f"pdf/{template_slug}.html",
+            layout_frame=layout_frame,
+            org=org_obj,
+        )
+
+        return HttpResponse(pdf_bytes, content_type='application/pdf')
+

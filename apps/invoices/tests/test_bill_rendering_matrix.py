@@ -20,19 +20,8 @@ class BillRenderingMatrixTestCase(TestCase):
     """
 
     TEMPLATES = [
-        "compact_template",
-        "genz",
-        "landscape_template",
-        "modern_template",
-        "mrp_discount_template",
-        "professional_template",
-        "service_template",
-        "vintage",
-        "ledger_classic",
-        "minimal_mono",
-        "bold_header",
-        "elegant_serif",
-        "tech_grid",
+        "letterhead_invoice",
+        "simple_invoice",
     ]
 
     PREFERENCES = [
@@ -71,7 +60,8 @@ class BillRenderingMatrixTestCase(TestCase):
             custom_prefs=custom_prefs,
             preview_mode="demo",
         )
-        return render_to_string(f"pdf/{template_slug}.html", context)
+        resolved_path = InvoicePreviewService.resolve_template_path(template_slug)
+        return render_to_string(resolved_path, context)
 
     def test_everything_on(self):
         """Test 1: All preferences enabled renders without error."""

@@ -104,6 +104,8 @@ class DocumentPreference(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='document_preference')
     
     TEMPLATE_CHOICES = (
+        ('letterhead_invoice', 'Company Letterhead Invoice'),
+        ('simple_invoice', 'Simple Invoice'),
         ('gst_classic', 'GST Classic'),
         ('flipkart_invoice', 'Flipkart Invoice'),
         ('retail_gst_compact', 'Retail GST Compact'),
@@ -122,7 +124,7 @@ class DocumentPreference(models.Model):
         ('elegant_serif', 'Elegant Serif'),
         ('tech_grid', 'Tech Grid'),
     )
-    template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='gst_classic')
+    template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='letterhead_invoice')
     
     PAPER_SIZE_CHOICES = (
         ('A4', 'A4'),

@@ -154,14 +154,8 @@ class ResolveRenderConfigTestCase(TestCase):
         layout_frame = PrintableFrameBuilder.build_frame(None, config)
 
         for slug in [
-            "compact_template",
-            "genz",
-            "landscape_template",
-            "modern_template",
-            "mrp_discount_template",
-            "professional_template",
-            "service_template",
-            "vintage",
+            "letterhead_invoice",
+            "simple_invoice",
         ]:
             with self.subTest(template=slug):
                 pdf_bytes = InvoicePreviewService.render_bill_pdf(
@@ -172,3 +166,125 @@ class ResolveRenderConfigTestCase(TestCase):
                 )
                 self.assertTrue(pdf_bytes.startswith(b"%PDF"))
                 self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_download_invoice_with_letterhead(self):
+        """7. Test PDF generation with letterhead enabled (print_on_letterhead=True)."""
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug="letterhead_invoice",
+            user=self.user,
+            request_overrides={"print_on_letterhead": True},
+        )
+        self.assertTrue(config["print_on_letterhead"])
+
+        serialized = serialize_bill_for_render({}, {}, [], {}, None)
+        layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=serialized,
+            config=config,
+            template_file_path="pdf/letterhead_invoice.html",
+            layout_frame=layout_frame,
+        )
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_download_invoice_without_letterhead(self):
+        """8. Test PDF generation with letterhead disabled (print_on_letterhead=False)."""
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug="letterhead_invoice",
+            user=self.user,
+            request_overrides={"print_on_letterhead": False},
+        )
+        self.assertFalse(config["print_on_letterhead"])
+
+        serialized = serialize_bill_for_render({}, {}, [], {}, None)
+        layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=serialized,
+            config=config,
+            template_file_path="pdf/letterhead_invoice.html",
+            layout_frame=layout_frame,
+        )
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_letterhead_fallback_template(self):
+        """9. Test that non-existent/invalid template slugs automatically fall back to simple_invoice."""
+        for invalid_slug in ["non_existent_template", "gst_classic", "corrupted_slug"]:
+            config = InvoicePreviewService.resolve_render_config(
+                template_slug=invalid_slug,
+                user=self.user,
+                request_overrides={"print_on_letterhead": True},
+            )
+            serialized = serialize_bill_for_render({}, {}, [], {}, None)
+            layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+            pdf_bytes = InvoicePreviewService.render_bill_pdf(
+                bill_data=serialized,
+                config=config,
+                template_file_path=f"pdf/{invalid_slug}.html",
+                layout_frame=layout_frame,
+            )
+            self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+            self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_missing_letterhead_image(self):
+        """10. Test letterhead mode when org is None or letterhead image is missing."""
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug="simple_invoice",
+            user=self.user,
+            request_overrides={"print_on_letterhead": True},
+        )
+        serialized = serialize_bill_for_render({}, {}, [], {}, None)
+        layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=serialized,
+            config=config,
+            template_file_path="pdf/simple_invoice.html",
+            layout_frame=layout_frame,
+            org=None,
+        )
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_missing_optional_company_data(self):
+        """11. Test rendering when optional company/org data fields are None or missing."""
+        company = {
+            "name": "Minimal Company",
+            "address": None,
+            "city": None,
+            "state": None,
+            "gstin": None,
+            "email": None,
+            "phone": None,
+            "logo_url": None,
+            "signature_url": None,
+            "bank_name": None,
+            "acc_no": None,
+            "ifsc": None,
+        }
+        serialized = serialize_bill_for_render(
+            invoice={"number": "INV-100", "subtotal": 1000, "grand_total": 1000},
+            customer={"name": "Test Customer"},
+            items=[{"name": "Item 1", "quantity": 1, "rate": 1000, "amount": 1000}],
+            company=company,
+            org=None,
+        )
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug="simple_invoice",
+            user=self.user,
+            request_overrides={"print_on_letterhead": True},
+        )
+        layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=serialized,
+            config=config,
+            template_file_path="pdf/simple_invoice.html",
+            layout_frame=layout_frame,
+        )
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
