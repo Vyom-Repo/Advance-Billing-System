@@ -10,12 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
     if (mobileToggle && sidebar && sidebarOverlay) {
-        function toggleSidebar() {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             sidebar.classList.toggle('open');
-        }
-        
-        mobileToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
     }
 
     // 2. User Dropdown Menu

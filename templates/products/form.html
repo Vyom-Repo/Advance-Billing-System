@@ -1,0 +1,813 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .product-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-24);
+        animation: fadeIn 0.4s var(--transition-base);
+        flex: 1;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .form-header {
+        margin-bottom: var(--space-8);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .form-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-1);
+    }
+
+    .form-subtitle {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+
+    .form-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .card-title-row h3 {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+
+    .card-title-row i { color: var(--color-accent); }
+
+    /* Segmented Controls */
+    .segmented-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+
+    .radio-card {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        cursor: pointer;
+        background: var(--color-bg-card);
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .radio-card:hover { border-color: var(--color-border-strong); background: var(--color-bg-raised); }
+
+    .radio-card.active {
+        border-color: var(--color-accent);
+        background: var(--color-accent-subtle);
+    }
+
+    .radio-card-icon {
+        width: 36px; height: 36px;
+        border-radius: var(--radius-md);
+        background: var(--color-bg-raised);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        color: var(--color-text-muted);
+        border: 1px solid var(--color-border);
+    }
+
+    .radio-card.active .radio-card-icon {
+        background: var(--color-accent-subtle);
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .radio-card-content { flex: 1; }
+    .radio-card-label { font-weight: var(--font-semibold); color: var(--color-text-primary); font-size: var(--text-sm); }
+    .radio-card-desc  { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+
+    .radio-card-check {
+        width: 20px; height: 20px;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-full);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+
+    .radio-card.active .radio-card-check {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .radio-card.active .radio-card-check::after {
+        content: "";
+        display: block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    /* Form fields */
+    .form-group { margin-bottom: var(--space-6); }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+    .form-label {
+        display: block;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+        margin-bottom: var(--space-2);
+    }
+
+    .form-label .required { color: var(--color-accent); margin-left: 2px; }
+
+    .form-control, .form-select {
+        width: 100%;
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-3) var(--space-4);
+        color: var(--color-text-primary);
+        font-size: var(--text-sm);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .form-control::placeholder { color: var(--color-text-muted); }
+
+    .input-prefix-group {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-prefix {
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-border);
+        border-right: none;
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+        font-weight: var(--font-medium);
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .input-prefix-group .form-control {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+
+    .field-error {
+        font-size: var(--text-xs);
+        color: #ef4444;
+        margin-top: var(--space-1);
+    }
+
+    /* Toggle switch for boolean fields */
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-4);
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--space-4);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .toggle-label-group .toggle-title {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+    }
+
+    .toggle-label-group .toggle-desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        margin-top: 2px;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 44px; height: 24px;
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-full);
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px; left: 2px;
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: var(--color-text-muted);
+        transition: all 0.2s;
+    }
+
+    .toggle-row.active .toggle-switch {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .toggle-row.active .toggle-switch::after {
+        transform: translateX(20px);
+        background: white;
+    }
+
+    /* Price basis radio */
+    .price-basis-group {
+        display: flex;
+        gap: var(--space-4);
+    }
+
+    .price-basis-option {
+        flex: 1;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s;
+        background: var(--color-bg-card);
+    }
+
+    .price-basis-option:hover { border-color: var(--color-border-strong); background: var(--color-bg-raised); }
+
+    .price-basis-option.active {
+        border-color: var(--color-accent);
+        background: var(--color-accent-subtle);
+    }
+
+    .price-basis-option label {
+        cursor: pointer;
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    .price-basis-radio {
+        width: 18px; height: 18px;
+        border: 2px solid var(--color-border);
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+        transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .price-basis-option.active .price-basis-radio {
+        border-color: var(--color-accent);
+        background: var(--color-accent);
+    }
+
+    .price-basis-option.active .price-basis-radio::after {
+        content: "";
+        display: block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    .price-basis-text strong { font-size: var(--text-sm); color: var(--color-text-primary); font-weight: var(--font-semibold); }
+    .price-basis-text span  { display: block; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+
+    /* Form actions */
+    .form-actions {
+        display: flex;
+        gap: var(--space-4);
+        justify-content: flex-end;
+        padding-top: var(--space-4);
+    }
+
+    /* Cess sub-section */
+    .cess-fields {
+        margin-top: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+        border: 1px solid var(--color-accent);
+        border-radius: var(--radius-lg);
+        background: var(--color-accent-subtle);
+        display: none;
+    }
+
+    .cess-fields.visible { display: block; }
+
+    /* Info note */
+    .field-note {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        margin-top: var(--space-1);
+        line-height: 1.5;
+    }
+
+        /* Mobile fixes */
+        @media (max-width: 640px) {
+            .product-form-container {
+                padding: var(--space-4) var(--space-3) var(--space-20);
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            .form-header {
+                flex-direction: column;
+                gap: var(--space-3);
+                margin-bottom: var(--space-6);
+            }
+            .form-header .btn { width: 100%; justify-content: center; }
+            .form-card {
+                padding: var(--space-5) var(--space-4);
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            .segmented-grid { grid-template-columns: 1fr !important; }
+            .form-grid-2 { grid-template-columns: 1fr !important; }
+            .form-control, .form-select, .input-prefix-group {
+                min-width: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .price-basis-group { flex-direction: column; }
+            .form-actions {
+                flex-direction: column-reverse;
+                gap: var(--space-3);
+            }
+            .form-actions .btn { width: 100%; justify-content: center; }
+        }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <!-- Mobile Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action" type="button">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="topbar-title">Products &amp; Services</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn" type="button">
+                        <div class="avatar avatar-sm">
+                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+                        </div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events: none;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
+                                <i data-lucide="log-out"></i> Sign Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="product-form-container">
+
+            <!-- Header -->
+            <div class="form-header">
+                <div>
+                    <h1 class="form-title">{% if form.instance.pk %}Edit Product{% else %}Create Product{% endif %}</h1>
+                    <p class="form-subtitle">{% if form.instance.pk %}Update billing information for {{ form.instance.name }}{% else %}Add a product or service master record for your organization.{% endif %}</p>
+                </div>
+                <a href="{% url 'products:index' %}" class="btn btn-outline">
+                    <i data-lucide="arrow-left"></i> Back
+                </a>
+            </div>
+
+            <form method="post" id="product-form" novalidate>
+                {% csrf_token %}
+
+                <!-- Hidden fields managed by JS -->
+                {{ form.product_type }}
+                {{ form.cess_applicable }}
+                {{ form.reverse_charge_applicable }}
+                {{ form.price_basis }}
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-6); color: #ef4444; font-size: var(--text-sm);">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- ======================================================
+                     CARD 1: Product Information
+                     ====================================================== -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="package"></i>
+                        <h3>Product Information</h3>
+                    </div>
+
+                    <!-- Product / Service Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.name.id_for_label }}">
+                            Product / Service Name <span class="required">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="field-error">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Product Type -->
+                    <div class="form-group">
+                        <label class="form-label">Product Type <span class="required">*</span></label>
+                        <div class="segmented-grid" id="product-type-grid">
+                            <div class="radio-card {% if form.instance.pk and form.instance.product_type == 'goods' %}active{% elif not form.instance.pk %}active{% endif %}"
+                                 data-type="goods" id="type-goods-card" role="button" tabindex="0">
+                                <div class="radio-card-icon">
+                                    <i data-lucide="package-2" style="width: 18px; height: 18px;"></i>
+                                </div>
+                                <div class="radio-card-content">
+                                    <div class="radio-card-label">Goods</div>
+                                    <div class="radio-card-desc">Physical items — HSN Code required</div>
+                                </div>
+                                <div class="radio-card-check"></div>
+                            </div>
+                            <div class="radio-card {% if form.instance.pk and form.instance.product_type == 'service' %}active{% endif %}"
+                                 data-type="service" id="type-service-card" role="button" tabindex="0">
+                                <div class="radio-card-icon">
+                                    <i data-lucide="briefcase" style="width: 18px; height: 18px;"></i>
+                                </div>
+                                <div class="radio-card-content">
+                                    <div class="radio-card-label">Service</div>
+                                    <div class="radio-card-desc">Intangible services — SAC Code required</div>
+                                </div>
+                                <div class="radio-card-check"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================================================
+                     CARD 2: Classification (HSN / SAC)
+                     ====================================================== -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="hash"></i>
+                        <h3>Classification</h3>
+                    </div>
+
+                    <!-- HSN Code (Goods) -->
+                    <div class="form-group" id="hsn-field-group" style="{% if form.instance.pk and form.instance.product_type == 'service' %}display:none;{% endif %}">
+                        <label class="form-label" for="{{ form.hsn_code.id_for_label }}">
+                            HSN Code <span class="required" id="hsn-required-star">*</span>
+                        </label>
+                        {{ form.hsn_code }}
+                        <div class="field-note">Harmonised System of Nomenclature code for Goods (2–8 numeric digits). e.g. 72, 7214, 721410</div>
+                        {% if form.hsn_code.errors %}
+                            <div class="field-error">{{ form.hsn_code.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- SAC Code (Services) -->
+                    <div class="form-group" id="sac-field-group" style="{% if not form.instance.pk or form.instance.product_type == 'goods' %}display:none;{% endif %}">
+                        <label class="form-label" for="{{ form.sac_code.id_for_label }}">
+                            SAC Code <span class="required" id="sac-required-star">*</span>
+                        </label>
+                        {{ form.sac_code }}
+                        <div class="field-note">Services Accounting Code (4–6 numeric digits). e.g. 9983, 998313</div>
+                        {% if form.sac_code.errors %}
+                            <div class="field-error">{{ form.sac_code.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ======================================================
+                     CARD 3: Tax Profile
+                     ====================================================== -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="percent"></i>
+                        <h3>Tax Profile</h3>
+                    </div>
+
+                    <!-- Taxability Type -->
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.taxability_type.id_for_label }}">
+                            Taxability Type <span class="required">*</span>
+                        </label>
+                        {{ form.taxability_type }}
+                        <div class="field-note">
+                            <strong>Taxable</strong>: standard GST applies &nbsp;|&nbsp;
+                            <strong>Exempt</strong>: specifically exempted by notification &nbsp;|&nbsp;
+                            <strong>Nil-rated</strong>: 0% GST by notification &nbsp;|&nbsp;
+                            <strong>Non-GST</strong>: outside GST scope
+                        </div>
+                        {% if form.taxability_type.errors %}
+                            <div class="field-error">{{ form.taxability_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- GST Rate -->
+                    <div class="form-group" id="gst-rate-group">
+                        <label class="form-label" for="{{ form.gst_rate.id_for_label }}">
+                            GST Rate <span class="required" id="gst-rate-required-star">*</span>
+                        </label>
+                        {{ form.gst_rate }}
+                        <div class="field-note" id="gst-rate-note">Rate applied to taxable value. For Exempt / Nil-rated / Non-GST, the rate is stored as 0% automatically.</div>
+                        {% if form.gst_rate.errors %}
+                            <div class="field-error">{{ form.gst_rate.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Cess Applicable -->
+                    <div class="toggle-row" id="cess-toggle-row" role="button" tabindex="0"
+                         {% if form.instance.pk and form.instance.cess_applicable %}class="toggle-row active"{% endif %}>
+                        <div class="toggle-label-group">
+                            <div class="toggle-title">Cess Applicable</div>
+                            <div class="toggle-desc">Enable when GST Cess applies to this product</div>
+                        </div>
+                        <div class="toggle-switch"></div>
+                    </div>
+
+                    <!-- Cess fields (conditional) -->
+                    <div class="cess-fields {% if form.instance.pk and form.instance.cess_applicable %}visible{% endif %}" id="cess-fields">
+                        <div class="form-grid-2">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="{{ form.cess_type.id_for_label }}">
+                                    Cess Type <span class="required">*</span>
+                                </label>
+                                {{ form.cess_type }}
+                                {% if form.cess_type.errors %}
+                                    <div class="field-error">{{ form.cess_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="{{ form.cess_rate_or_amount.id_for_label }}">
+                                    Cess Rate / Amount <span class="required">*</span>
+                                </label>
+                                {{ form.cess_rate_or_amount }}
+                                {% if form.cess_rate_or_amount.errors %}
+                                    <div class="field-error">{{ form.cess_rate_or_amount.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reverse Charge -->
+                    <div class="toggle-row" id="rcm-toggle-row" role="button" tabindex="0" style="margin-top: var(--space-4); margin-bottom: 0;"
+                         {% if form.instance.pk and form.instance.reverse_charge_applicable %}class="toggle-row active"{% endif %}>
+                        <div class="toggle-label-group">
+                            <div class="toggle-title">Reverse Charge Applicable</div>
+                            <div class="toggle-desc">Product-level RCM default. The Invoice Engine makes the final determination.</div>
+                        </div>
+                        <div class="toggle-switch"></div>
+                    </div>
+                </div>
+
+                <!-- ======================================================
+                     CARD 4: Pricing
+                     ====================================================== -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="indian-rupee"></i>
+                        <h3>Pricing</h3>
+                    </div>
+
+                    <!-- Unit Price -->
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.unit_price.id_for_label }}">
+                            Unit Price <span class="required">*</span>
+                        </label>
+                        <div class="input-prefix-group">
+                            <span class="input-prefix">₹</span>
+                            {{ form.unit_price }}
+                        </div>
+                        {% if form.unit_price.errors %}
+                            <div class="field-error">{{ form.unit_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Price Basis -->
+                    <div class="form-group">
+                        <label class="form-label">Price Basis <span class="required">*</span></label>
+                        <div class="price-basis-group">
+                            <div class="price-basis-option {% if form.instance.pk and form.instance.price_basis == 'exclusive' %}active{% elif not form.instance.pk %}active{% endif %}"
+                                 data-basis="exclusive" id="basis-exclusive" role="button" tabindex="0">
+                                <label>
+                                    <div class="price-basis-radio"></div>
+                                    <div class="price-basis-text">
+                                        <strong>Exclusive of GST</strong>
+                                        <span>₹1,000 + applicable GST on top</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="price-basis-option {% if form.instance.pk and form.instance.price_basis == 'inclusive' %}active{% endif %}"
+                                 data-basis="inclusive" id="basis-inclusive" role="button" tabindex="0">
+                                <label>
+                                    <div class="price-basis-radio"></div>
+                                    <div class="price-basis-text">
+                                        <strong>Inclusive of GST</strong>
+                                        <span>₹1,180 already includes 18% GST</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        {% if form.price_basis.errors %}
+                            <div class="field-error">{{ form.price_basis.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- UQC / Unit -->
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.uqc.id_for_label }}">
+                            Unit / UQC <span class="required" id="uqc-required-star">*</span>
+                        </label>
+                        {{ form.uqc }}
+                        <div class="field-note">Unique Quantity Code (CBIC). Required for Goods (GST invoice Rule 46).</div>
+                        {% if form.uqc.errors %}
+                            <div class="field-error">{{ form.uqc.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'products:index' %}" class="btn btn-outline">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <i data-lucide="check"></i>
+                        {% if form.instance.pk %}Save Changes{% else %}Create Product{% endif %}
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+(function() {
+    // ---------------------------------------------------------------
+    // State
+    // ---------------------------------------------------------------
+    const productTypeInput   = document.getElementById("id_product_type");
+    const cessInput          = document.getElementById("id_cess_applicable");
+    const rcmInput           = document.getElementById("id_reverse_charge_applicable");
+    const priceBasisInput    = document.getElementById("id_price_basis");
+
+    // Initialise from existing values or defaults
+    let currentType      = productTypeInput.value  || "goods";
+    let cessActive       = cessInput.value === "true" || cessInput.value === "True";
+    let rcmActive        = rcmInput.value === "true" || rcmInput.value === "True";
+    let currentBasis     = priceBasisInput.value || "exclusive";
+
+    // ---------------------------------------------------------------
+    // Product Type
+    // ---------------------------------------------------------------
+    function applyProductType(type) {
+        currentType = type;
+        productTypeInput.value = type;
+
+        document.querySelectorAll(".radio-card[data-type]").forEach(card => {
+            card.classList.toggle("active", card.dataset.type === type);
+        });
+
+        const isGoods = type === "goods";
+        document.getElementById("hsn-field-group").style.display = isGoods ? "" : "none";
+        document.getElementById("sac-field-group").style.display = isGoods ? "none" : "";
+        document.getElementById("uqc-required-star").style.display = isGoods ? "" : "none";
+    }
+
+    document.querySelectorAll(".radio-card[data-type]").forEach(card => {
+        card.addEventListener("click",    () => applyProductType(card.dataset.type));
+        card.addEventListener("keydown",  e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); applyProductType(card.dataset.type); }});
+    });
+
+    // ---------------------------------------------------------------
+    // Taxability → GST Rate visibility
+    // ---------------------------------------------------------------
+    const taxabilitySelect = document.getElementById("id_taxability_type");
+    const gstRateGroup     = document.getElementById("gst-rate-group");
+    const gstRateNote      = document.getElementById("gst-rate-note");
+
+    function applyTaxability() {
+        const val = taxabilitySelect ? taxabilitySelect.value : "taxable";
+        const isTaxable = val === "taxable";
+        if (gstRateNote) {
+            gstRateNote.textContent = isTaxable
+                ? "Rate applied to taxable value."
+                : "For Exempt / Nil-rated / Non-GST, GST rate is stored as 0% automatically.";
+        }
+        const star = document.getElementById("gst-rate-required-star");
+        if (star) star.style.display = isTaxable ? "" : "none";
+    }
+
+    if (taxabilitySelect) {
+        taxabilitySelect.addEventListener("change", applyTaxability);
+    }
+
+    // ---------------------------------------------------------------
+    // Cess toggle
+    // ---------------------------------------------------------------
+    const cessToggleRow = document.getElementById("cess-toggle-row");
+    const cessFields    = document.getElementById("cess-fields");
+
+    function applyCess(active) {
+        cessActive = active;
+        cessInput.value = active ? "true" : "false";
+        cessToggleRow.classList.toggle("active", active);
+        cessFields.classList.toggle("visible", active);
+    }
+
+    if (cessToggleRow) {
+        cessToggleRow.addEventListener("click", () => applyCess(!cessActive));
+        cessToggleRow.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); applyCess(!cessActive); }});
+    }
+
+    // ---------------------------------------------------------------
+    // RCM toggle
+    // ---------------------------------------------------------------
+    const rcmToggleRow = document.getElementById("rcm-toggle-row");
+
+    function applyRcm(active) {
+        rcmActive = active;
+        rcmInput.value = active ? "true" : "false";
+        rcmToggleRow.classList.toggle("active", active);
+    }
+
+    if (rcmToggleRow) {
+        rcmToggleRow.addEventListener("click", () => applyRcm(!rcmActive));
+        rcmToggleRow.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); applyRcm(!rcmActive); }});
+    }
+
+    // ---------------------------------------------------------------
+    // Price Basis
+    // ---------------------------------------------------------------
+    function applyPriceBasis(basis) {
+        currentBasis = basis;
+        priceBasisInput.value = basis;
+        document.querySelectorAll(".price-basis-option[data-basis]").forEach(opt => {
+            opt.classList.toggle("active", opt.dataset.basis === basis);
+        });
+    }
+
+    document.querySelectorAll(".price-basis-option[data-basis]").forEach(opt => {
+        opt.addEventListener("click", () => applyPriceBasis(opt.dataset.basis));
+        opt.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); applyPriceBasis(opt.dataset.basis); }});
+    });
+
+    // ---------------------------------------------------------------
+    // Initialise all state from current values
+    // ---------------------------------------------------------------
+    applyProductType(currentType);
+    applyCess(cessActive);
+    applyRcm(rcmActive);
+    applyPriceBasis(currentBasis);
+    applyTaxability();
+})();
+</script>
+{% endblock %}

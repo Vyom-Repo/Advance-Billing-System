@@ -289,12 +289,58 @@
     }
 
     @media (max-width: 768px) {
+        .settings-container {
+            padding: var(--space-4) var(--space-3) var(--space-20);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .settings-header {
+            margin-bottom: var(--space-6);
+        }
+        .settings-title {
+            font-size: var(--text-2xl);
+        }
         .settings-section {
             grid-template-columns: 1fr;
             gap: var(--space-4);
             padding: var(--space-6) 0;
         }
+        .section-meta {
+            padding-right: 0;
+        }
+        .settings-card {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
         .grid-2 { grid-template-columns: 1fr; }
+        
+        .desktop-breadcrumb {
+            display: none !important;
+        }
+        
+        /* Company Assets mobile containment */
+        .logo-upload-area {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-4);
+        }
+        .letterhead-hero {
+            max-width: 100% !important;
+        }
+        .letterhead-sliders-grid {
+            grid-template-columns: 1fr !important;
+            gap: var(--space-4) !important;
+        }
+        .letterhead-actions-row {
+            flex-wrap: wrap !important;
+            gap: var(--space-2) !important;
+        }
+        .letterhead-specs-grid {
+            grid-template-columns: 1fr !important;
+            gap: var(--space-4) !important;
+        }
     }
 </style>
 {% endblock %}
@@ -309,11 +355,13 @@
                 <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
                     <i data-lucide="menu"></i>
                 </button>
-                <div class="topbar-title" style="display: flex; align-items: center; gap: var(--space-2);">
-                    <i data-lucide="building-2" style="color: var(--color-text-muted); width: 18px; height: 18px;"></i>
-                    <span style="color: var(--color-text-muted); font-weight: var(--font-medium);">Configuration</span>
-                    <span style="color: var(--color-border-strong); margin: 0 4px;">/</span>
-                    <span style="color: var(--color-text-primary);">Organization Settings</span>
+                <div class="topbar-title">
+                    <span class="desktop-breadcrumb" style="display: flex; align-items: center; gap: var(--space-2);">
+                        <i data-lucide="building-2" style="color: var(--color-text-muted); width: 18px; height: 18px;"></i>
+                        <span style="color: var(--color-text-muted); font-weight: var(--font-medium);">Configuration</span>
+                        <span style="color: var(--color-border-strong); margin: 0 4px;">/</span>
+                        <span style="color: var(--color-text-primary);">Organization Settings</span>
+                    </span>
                 </div>
             </div>
         </header>
@@ -519,7 +567,7 @@
                             <div id="letterhead-validation-msg" style="font-size: 13px; margin-bottom: var(--space-6); display: none; align-items: center; gap: 6px; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); background: var(--color-bg-input);"></div>
                             
                             <!-- Sliders -->
-                            <div style="width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); margin-bottom: var(--space-8);">
+                            <div class="letterhead-sliders-grid" style="width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); margin-bottom: var(--space-8);">
                                 <div class="form-group" style="margin: 0;">
                                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-2);">
                                         <label class="form-label" style="font-size: 12px; margin: 0; color: var(--color-text-secondary);">Header Offset</label>
@@ -539,7 +587,7 @@
                             </div>
                             
                             <!-- Actions -->
-                            <div style="display: flex; gap: var(--space-4); margin-bottom: var(--space-8);">
+                            <div class="letterhead-actions-row" style="display: flex; gap: var(--space-4); margin-bottom: var(--space-8);">
                                 <button type="button" class="btn-primary" style="padding: var(--space-3) var(--space-8); font-size: var(--text-base); display: flex; align-items: center; gap: 8px; border-radius: var(--radius-full);" onclick="openLetterheadPreviewModal()">
                                     <i data-lucide="eye" style="width: 18px; height: 18px;"></i> Preview Final PDF
                                 </button>
@@ -573,7 +621,7 @@
                                         </div>
                                     </div>
 
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+                                    <div class="letterhead-specs-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
                                         <div>
                                             <div style="font-weight: var(--font-medium); color: var(--color-text-primary); margin-bottom: 4px;">Why exclude headers/footers?</div>
                                             <div style="font-size: 12px; line-height: 1.5;">Invoice details like items and totals will be printed in the center. The exclusion overlays prevent overlapping text on your logo and footer details.</div>
@@ -1150,6 +1198,20 @@
                         }, 1500);
                     }
                 });
+            });
+        }
+
+        // Mobile Sidebar Toggle
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        if (mobileToggle && sidebar && sidebarOverlay) {
+            mobileToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+            });
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
             });
         }
 

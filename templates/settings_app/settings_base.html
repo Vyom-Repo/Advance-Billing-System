@@ -15,6 +15,11 @@
     @media (max-width: 768px) {
         .settings-layout {
             grid-template-columns: 1fr;
+            gap: var(--space-4);
+        }
+        .settings-content {
+            min-width: 0;
+            max-width: 100%;
         }
     }
     
@@ -189,16 +194,33 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Mobile Sidebar Toggle
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        
+        if (mobileToggle && sidebar && sidebarOverlay) {
+            mobileToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+            });
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+            });
+        }
+
         // Toggle user dropdown
         const userBtn = document.getElementById('user-menu-btn');
         const userDropdown = document.getElementById('user-menu-dropdown');
         if (userBtn && userDropdown) {
             userBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                userDropdown.classList.toggle('show');
                 userDropdown.classList.toggle('active');
             });
             document.addEventListener('click', (e) => {
                 if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('show');
                     userDropdown.classList.remove('active');
                 }
             });

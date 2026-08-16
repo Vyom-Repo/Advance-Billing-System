@@ -1,0 +1,319 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .product-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-24);
+        animation: fadeIn 0.4s var(--transition-base);
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--space-8);
+        gap: var(--space-4);
+        flex-wrap: wrap;
+    }
+
+    .product-title-group {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+    }
+
+    .product-name {
+        font-family: var(--font-display);
+        font-size: var(--text-3xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+    }
+
+    .detail-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .card-heading {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .card-heading i { color: var(--color-accent); }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-6);
+    }
+
+    .info-item { display: flex; flex-direction: column; gap: var(--space-1); }
+
+    .info-label {
+        font-size: var(--text-xs);
+        font-weight: var(--font-medium);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-value {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: var(--font-medium);
+    }
+
+    .badge-goods    { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
+    .badge-service  { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+    .badge-taxable  { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-exempt, .badge-nil, .badge-nongst { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+    .badge-rcm      { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+    .badge-cess     { background: rgba(249,115,22,0.12); color: #f97316; border: 1px solid rgba(249,115,22,0.25); }
+
+    .price-display {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+    }
+
+        /* Mobile fixes */
+        @media (max-width: 640px) {
+            .product-detail-container {
+                padding: var(--space-4) var(--space-3) var(--space-20);
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            .detail-header {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+            .product-title-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+            .detail-card {
+                padding: var(--space-5) var(--space-4);
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <!-- Mobile Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action" type="button">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="topbar-title">Details</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn" type="button">
+                        <div class="avatar avatar-sm">
+                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+                        </div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events: none;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
+                                <i data-lucide="log-out"></i> Sign Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="product-detail-container">
+
+            <!-- Header -->
+            <div class="detail-header">
+                <div>
+                    <div class="product-title-group">
+                        <h1 class="product-name">{{ product.name }}</h1>
+                        {% if product.is_goods %}
+                            <span class="badge badge-goods">Goods</span>
+                        {% else %}
+                            <span class="badge badge-service">Service</span>
+                        {% endif %}
+                    </div>
+                    <div style="margin-top: var(--space-2); display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                        {% if product.taxability_type == 'taxable' %}
+                            <span class="badge badge-taxable"><i data-lucide="check" style="width:14px;height:14px;"></i> Taxable</span>
+                        {% elif product.taxability_type == 'exempt' %}
+                            <span class="badge badge-exempt">Exempt</span>
+                        {% elif product.taxability_type == 'nil_rated' %}
+                            <span class="badge badge-nil">Nil-rated</span>
+                        {% else %}
+                            <span class="badge badge-nongst">Non-GST</span>
+                        {% endif %}
+                        {% if product.reverse_charge_applicable %}
+                            <span class="badge badge-rcm">RCM</span>
+                        {% endif %}
+                        {% if product.cess_applicable %}
+                            <span class="badge badge-cess">Cess</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: var(--space-3);">
+                    <a href="{% url 'products:index' %}" class="btn btn-outline">
+                        <i data-lucide="arrow-left"></i> Back
+                    </a>
+                    <a href="{% url 'products:edit' product.uuid %}" class="btn btn-primary">
+                        <i data-lucide="edit-3"></i> Edit Product
+                    </a>
+                </div>
+            </div>
+
+            <!-- Classification Card -->
+            <div class="detail-card">
+                <div class="card-heading">
+                    <i data-lucide="hash"></i>
+                    <h3>Product Identity &amp; Classification</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Product / Service Name</span>
+                        <span class="info-value">{{ product.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Product Type</span>
+                        <span class="info-value">{{ product.get_product_type_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">{% if product.is_goods %}HSN Code{% else %}SAC Code{% endif %}</span>
+                        <span class="info-value">
+                            <code style="font-family: var(--font-mono); font-size: 14px; color: var(--color-accent);">
+                                {{ product.classification_code|default:"—" }}
+                            </code>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax Profile Card -->
+            <div class="detail-card">
+                <div class="card-heading">
+                    <i data-lucide="percent"></i>
+                    <h3>Tax Profile</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Taxability Type</span>
+                        <span class="info-value">{{ product.get_taxability_type_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GST Rate</span>
+                        <span class="info-value">
+                            {% if product.taxability_type == 'taxable' %}
+                                {{ product.gst_rate }}%
+                            {% else %}
+                                — ({{ product.get_taxability_type_display }})
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Cess Applicable</span>
+                        <span class="info-value">
+                            {% if product.cess_applicable %}
+                                Yes — {{ product.get_cess_type_display }}
+                                ({{ product.cess_rate_or_amount }}{% if product.cess_type == 'percentage' %}%{% endif %})
+                            {% else %}
+                                No
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Reverse Charge (RCM)</span>
+                        <span class="info-value">
+                            {% if product.reverse_charge_applicable %}Yes{% else %}No{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Card -->
+            <div class="detail-card">
+                <div class="card-heading">
+                    <i data-lucide="indian-rupee"></i>
+                    <h3>Pricing</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Unit Price</span>
+                        <span class="price-display">₹{{ product.unit_price }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Price Basis</span>
+                        <span class="info-value">{{ product.get_price_basis_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Unit / UQC</span>
+                        <span class="info-value"><code>{{ product.uqc }}</code></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Metadata -->
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-align: right; display: flex; justify-content: space-between; align-items: center;">
+                <a href="{% url 'products:delete' product.uuid %}"
+                   style="color: #ef4444; font-size: var(--text-xs); text-decoration: none; opacity: 0.7;">
+                    <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Delete
+                </a>
+                <span>Created {{ product.created_at|date:"d M Y, H:i" }} | Last updated {{ product.updated_at|date:"d M Y, H:i" }}</span>
+            </div>
+
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

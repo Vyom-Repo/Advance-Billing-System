@@ -1,0 +1,648 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .customer-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-24);
+        animation: fadeIn 0.4s var(--transition-base);
+        flex: 1;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .form-header {
+        margin-bottom: var(--space-8);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .form-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-1);
+    }
+
+    .form-subtitle {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+
+    /* Cards */
+    .form-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .card-title-row h3 {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+
+    .card-title-row i {
+        color: var(--color-accent);
+    }
+
+    /* Segmented Controls / Radio Cards */
+    .segmented-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+
+    .radio-card {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        cursor: pointer;
+        background: var(--color-bg-card);
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .radio-card:hover {
+        border-color: var(--color-border-strong);
+        background: var(--color-bg-raised);
+    }
+
+    .radio-card.active {
+        border-color: var(--color-accent);
+        background: var(--color-accent-subtle);
+    }
+
+    .radio-card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-secondary);
+        flex-shrink: 0;
+    }
+
+    .radio-card.active .radio-card-icon {
+        background: var(--color-accent);
+        color: var(--color-text-inverse);
+    }
+
+    .radio-card-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .radio-card-title {
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
+        color: var(--color-text-primary);
+    }
+
+    .radio-card-desc {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    /* Layout Grids */
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: var(--space-4);
+    }
+
+    /* Form Fields */
+    .form-group {
+        margin-bottom: var(--space-5);
+    }
+
+    .form-label {
+        display: block;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+    }
+
+    .form-label .required {
+        color: var(--color-warning);
+        margin-left: 2px;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--text-sm);
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .form-select option {
+        background: var(--color-bg-surface);
+        color: var(--color-text-primary);
+    }
+
+    .field-error {
+        color: #ef4444;
+        font-size: var(--text-xs);
+        margin-top: var(--space-1);
+    }
+
+    /* Validation Badge */
+    .gstin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: var(--space-2);
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        font-weight: var(--font-medium);
+    }
+
+    .gstin-badge.valid {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .gstin-badge.invalid {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Action Footer */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-4);
+        margin-top: var(--space-8);
+    }
+
+    /* ── Mobile responsive ── */
+    @media (max-width: 640px) {
+        .customer-form-container {
+            padding: var(--space-4) var(--space-3) var(--space-20);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-header {
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .form-header .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .form-card {
+            padding: var(--space-5) var(--space-4);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Stack radio cards vertically */
+        .segmented-grid {
+            grid-template-columns: 1fr;
+            gap: var(--space-3);
+        }
+
+        /* Billing address: single column */
+        .form-grid-2,
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        /* State + State Code: side by side but State wider */
+        .state-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .form-control,
+        .form-select {
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: var(--space-3);
+        }
+
+        .form-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+        /* Mobile fixes */
+        .state-row-wrapper { grid-column: span 2; }
+        .state-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-4);
+        }
+        @media (max-width: 640px) {
+            .state-row-wrapper { grid-column: span 1; }
+            .state-row { grid-template-columns: 1fr; gap: var(--space-3); }
+            .segmented-grid { grid-template-columns: 1fr !important; }
+        }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+
+    <main class="main-content">
+        <!-- Mobile Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="topbar-title">{% if form.instance.pk %}Edit Customer{% else %}Create Customer{% endif %}</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn">
+                        <div class="avatar avatar-sm">
+                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+                        </div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events: none;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
+                                <i data-lucide="log-out"></i> Sign Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="customer-form-container">
+            <!-- Header -->
+            <div class="form-header">
+                <div>
+                    <h1 class="form-title">{% if form.instance.pk %}Edit Customer{% else %}Create Customer{% endif %}</h1>
+                    <p class="form-subtitle">{% if form.instance.pk %}Update billing information for {{ form.instance.name }}{% else %}Add a customer master record for your organization.{% endif %}</p>
+                </div>
+                <a href="{% url 'customers:index' %}" class="btn btn-outline btn-sm">
+                    <i data-lucide="arrow-left"></i> Back to Customers
+                </a>
+            </div>
+
+            <form method="post" id="customer-form" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: var(--space-4); border-radius: var(--radius-lg); margin-bottom: var(--space-6); font-size: var(--text-sm);">
+                    {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Hidden form inputs synced with radio cards -->
+                {{ form.customer_type }}
+                {{ form.gst_status }}
+                {{ form.billing_state }}
+                {{ form.billing_state_code }}
+
+                <!-- Section 1: Customer Type & GST Registration -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="user-check"></i>
+                        <h3>Customer Information</h3>
+                    </div>
+
+                    <!-- Customer Type Control -->
+                    <div class="form-group">
+                        <label class="form-label">Customer Type</label>
+                        <div class="segmented-grid">
+                            <div class="radio-card {% if form.customer_type.value == 'business' or not form.customer_type.value %}active{% endif %}" id="card-type-business" onclick="selectCustomerType('business')">
+                                <div class="radio-card-icon"><i data-lucide="building-2"></i></div>
+                                <div class="radio-card-text">
+                                    <span class="radio-card-title">Business</span>
+                                    <span class="radio-card-desc">Companies, firms, organizations</span>
+                                </div>
+                            </div>
+                            <div class="radio-card {% if form.customer_type.value == 'individual' %}active{% endif %}" id="card-type-individual" onclick="selectCustomerType('individual')">
+                                <div class="radio-card-icon"><i data-lucide="user"></i></div>
+                                <div class="radio-card-text">
+                                    <span class="radio-card-title">Individual</span>
+                                    <span class="radio-card-desc">Individual buyers & consumers</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GST Registration Control -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">GST Registration Status</label>
+                        <div class="segmented-grid">
+                            <div class="radio-card {% if form.gst_status.value == 'registered' or not form.gst_status.value %}active{% endif %}" id="card-gst-registered" onclick="selectGSTStatus('registered')">
+                                <div class="radio-card-icon"><i data-lucide="file-check-2"></i></div>
+                                <div class="radio-card-text">
+                                    <span class="radio-card-title">GST Registered</span>
+                                    <span class="radio-card-desc">Has 15-character GSTIN</span>
+                                </div>
+                            </div>
+                            <div class="radio-card {% if form.gst_status.value == 'unregistered' %}active{% endif %}" id="card-gst-unregistered" onclick="selectGSTStatus('unregistered')">
+                                <div class="radio-card-icon"><i data-lucide="file-x-2"></i></div>
+                                <div class="radio-card-text">
+                                    <span class="radio-card-title">GST Unregistered</span>
+                                    <span class="radio-card-desc">Unregistered or consumer</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Identity & GST Details -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="badge-check"></i>
+                        <h3>Customer Identity</h3>
+                    </div>
+
+                    <!-- Name Field (Dynamic Label) -->
+                    <div class="form-group">
+                        <label class="form-label" id="name-label">
+                            <span id="name-label-text">Legal Registered Name</span> <span class="required">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="field-error">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- GSTIN Field (Conditional display) -->
+                    <div class="form-group" id="gstin-group" style="margin-bottom: 0;">
+                        <label class="form-label">GSTIN <span class="required">*</span></label>
+                        {{ form.gstin }}
+                        <div id="gstin-badge-wrapper" style="display: none;">
+                            <div class="gstin-badge" id="gstin-badge"></div>
+                        </div>
+                        {% if form.gstin.errors %}
+                        <div class="field-error">{{ form.gstin.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section 3: Billing Address -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="map-pin"></i>
+                        <h3>Billing Address</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address Line 1 <span class="required">*</span></label>
+                        {{ form.billing_address_line_1 }}
+                        {% if form.billing_address_line_1.errors %}
+                        <div class="field-error">{{ form.billing_address_line_1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address Line 2 <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
+                        {{ form.billing_address_line_2 }}
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">City <span class="required">*</span></label>
+                            {{ form.billing_city }}
+                            {% if form.billing_city.errors %}
+                            <div class="field-error">{{ form.billing_city.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group state-row state-row-wrapper" >
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">State <span class="required">*</span></label>
+                                {{ form.state_select }}
+                                {% if form.billing_state.errors %}
+                                <div class="field-error">{{ form.billing_state.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">State Code</label>
+                                <input type="text" id="display_state_code" class="form-control" readonly style="background: rgba(255, 255, 255, 0.03); color: var(--color-text-muted);" value="{{ form.billing_state_code.value|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">PIN Code <span class="required">*</span></label>
+                            {{ form.billing_pin_code }}
+                            {% if form.billing_pin_code.errors %}
+                            <div class="field-error">{{ form.billing_pin_code.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Country</label>
+                            {{ form.billing_country }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'customers:index' %}" class="btn btn-outline">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="btn-save-customer">
+                        {% if form.instance.pk %}Save Changes{% else %}Create Customer{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+    const STATE_CODES = {
+        "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab", "04": "Chandigarh",
+        "05": "Uttarakhand", "06": "Haryana", "07": "Delhi", "08": "Rajasthan", "09": "Uttar Pradesh",
+        "10": "Bihar", "11": "Sikkim", "12": "Arunachal Pradesh", "13": "Nagaland", "14": "Manipur",
+        "15": "Mizoram", "16": "Tripura", "17": "Meghalaya", "18": "Assam", "19": "West Bengal",
+        "20": "Jharkhand", "21": "Odisha", "22": "Chhattisgarh", "23": "Madhya Pradesh", "24": "Gujarat",
+        "25": "Daman and Diu", "26": "Dadra and Nagar Haveli", "27": "Maharashtra", "28": "Andhra Pradesh (Old)",
+        "29": "Karnataka", "30": "Goa", "31": "Lakshadweep", "32": "Kerala", "33": "Tamil Nadu",
+        "34": "Puducherry", "35": "Andaman and Nicobar Islands", "36": "Telangana", "37": "Andhra Pradesh",
+        "38": "Ladakh", "97": "Other Territory"
+    };
+
+    const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
+
+    function selectCustomerType(type) {
+        document.getElementById('id_customer_type').value = type;
+        document.getElementById('card-type-business').classList.toggle('active', type === 'business');
+        document.getElementById('card-type-individual').classList.toggle('active', type === 'individual');
+    }
+
+    function selectGSTStatus(status) {
+        document.getElementById('id_gst_status').value = status;
+        document.getElementById('card-gst-registered').classList.toggle('active', status === 'registered');
+        document.getElementById('card-gst-unregistered').classList.toggle('active', status === 'unregistered');
+
+        const gstinGroup = document.getElementById('gstin-group');
+        const nameLabelText = document.getElementById('name-label-text');
+
+        if (status === 'registered') {
+            gstinGroup.style.display = 'block';
+            nameLabelText.textContent = 'Legal Registered Name';
+        } else {
+            gstinGroup.style.display = 'none';
+            nameLabelText.textContent = 'Customer Name';
+            document.getElementById('id_gstin').value = '';
+            document.getElementById('gstin-badge-wrapper').style.display = 'none';
+        }
+    }
+
+    function validateGSTINFormat(gstin) {
+        const badgeWrapper = document.getElementById('gstin-badge-wrapper');
+        const badge = document.getElementById('gstin-badge');
+        
+        if (!gstin) {
+            badgeWrapper.style.display = 'none';
+            return;
+        }
+
+        gstin = gstin.trim().toUpperCase();
+        if (gstin.length === 15 && GSTIN_REGEX.test(gstin)) {
+            const stateCode = gstin.substring(0, 2);
+            const stateName = STATE_CODES[stateCode];
+
+            if (stateName) {
+                badge.className = 'gstin-badge valid';
+                badge.innerHTML = `<i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Valid GSTIN format (${stateName})`;
+                badgeWrapper.style.display = 'block';
+
+                // Auto-suggest state if not already selected
+                const stateSelect = document.getElementById('id_state_select');
+                if (stateSelect && !stateSelect.value) {
+                    stateSelect.value = stateCode;
+                    onStateSelected();
+                }
+            } else {
+                badge.className = 'gstin-badge invalid';
+                badge.innerHTML = `<i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Invalid state code in GSTIN`;
+                badgeWrapper.style.display = 'block';
+            }
+        } else if (gstin.length > 0) {
+            badge.className = 'gstin-badge invalid';
+            badge.innerHTML = `<i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Invalid GSTIN format`;
+            badgeWrapper.style.display = 'block';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function onStateSelected() {
+        const stateSelect = document.getElementById('id_state_select');
+        const selectedCode = stateSelect.value;
+        const stateName = STATE_CODES[selectedCode] || '';
+
+        document.getElementById('id_billing_state_code').value = selectedCode;
+        document.getElementById('id_billing_state').value = stateName;
+        document.getElementById('display_state_code').value = selectedCode;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const gstinInput = document.getElementById('id_gstin');
+        const stateSelect = document.getElementById('id_state_select');
+
+        if (gstinInput) {
+            gstinInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase();
+                validateGSTINFormat(e.target.value);
+            });
+            if (gstinInput.value) {
+                validateGSTINFormat(gstinInput.value);
+            }
+        }
+
+        if (stateSelect) {
+            stateSelect.addEventListener('change', onStateSelected);
+            if (stateSelect.value) {
+                onStateSelected();
+            }
+        }
+
+        // Init UI based on current form values
+        const currentType = document.getElementById('id_customer_type').value || 'business';
+        const currentStatus = document.getElementById('id_gst_status').value || 'registered';
+        selectCustomerType(currentType);
+        selectGSTStatus(currentStatus);
+        
+
+        
+
+        if (window.lucide) lucide.createIcons();
+    });
+</script>
+{% endblock %}

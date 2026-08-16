@@ -42,9 +42,44 @@ class LocalGSTValidator:
         pan = gstin[2:12]
         state_name = cls.STATE_CODES.get(state_code, "Unknown State")
         
+        if state_name == "Unknown State":
+            return {"is_valid": False, "error": "Invalid state code in GSTIN."}
+
+        is_checksum_valid = cls.verify_checksum(gstin)
+        
         return {
             "is_valid": True,
             "pan": pan,
             "state_code": state_code,
-            "state_name": state_name
+            "state_name": state_name,
+            "is_checksum_valid": is_checksum_valid
         }
+
+    @classmethod
+    def verify_checksum(cls, gstin: str) -> bool:
+        """
+        Validates the 15th checksum character of a 15-character GSTIN using Modulo 36 algorithm.
+        """
+        chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        char_map = {c: i for i, c in enumerate(chars)}
+        
+        if len(gstin) != 15:
+            return False
+            
+        factor = 1
+        total = 0
+        mod = len(chars)
+        
+        for i in range(14):
+            val = char_map.get(gstin[i], 0)
+            product = val * factor
+            quotient = product // mod
+            remainder = product % mod
+            total += quotient + remainder
+            factor = 2 if factor == 1 else 1
+            
+        remainder = total % mod
+        check_digit = (mod - remainder) % mod
+        expected_char = chars[check_digit]
+        
+        return gstin[14] == expected_char

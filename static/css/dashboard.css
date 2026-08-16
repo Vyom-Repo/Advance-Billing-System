@@ -201,7 +201,8 @@
   transition: all var(--transition-fast);
   z-index: var(--z-dropdown);
 }
-.dropdown-menu.show {
+.dropdown-menu.show,
+.dropdown-menu.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -232,6 +233,9 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-6) var(--space-8);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .page-header {
