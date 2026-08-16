@@ -89,11 +89,23 @@ class ProductCreateView(ProductOrganizationMixin, PageTitleMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.organization = self.get_organization()
-        messages.success(
-            self.request,
-            f"Product '{form.instance.name}' created successfully.",
-        )
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        product = self.object
+        messages.success(self.request, f"Product '{product.name}' created successfully.")
+
+        # If launched from invoice create, redirect back with new product in the right line
+        invoice_state = self.request.GET.get("invoice_state", "").strip()
+        line_index = self.request.GET.get("line_index", "").strip()
+        if invoice_state:
+            from django.urls import reverse
+            url = (
+                reverse("billing:create")
+                + f"?invoice_state={invoice_state}&new_product={product.pk}"
+            )
+            if line_index:
+                url += f"&line_index={line_index}"
+            return redirect(url)
+        return response
 
 
 class ProductDetailView(ProductOrganizationMixin, PageTitleMixin, DetailView):

@@ -108,10 +108,11 @@ class InvoicePreviewService:
     @staticmethod
     def resolve_template_path(template_file_or_slug: str) -> str:
         """
-        Single production template resolution.
-        Returns pdf/letterhead_invoice.html for all production invoice PDF requests.
+        Resolves a slug to a production template path.
         """
-        return "pdf/letterhead_invoice.html"
+        normalized_slug = template_file_or_slug.replace("pdf/", "").replace(".html", "") if template_file_or_slug else "compact_template"
+        mapped_slug = _TEMPLATE_SLUG_MAP.get(normalized_slug, normalized_slug)
+        return f"pdf/{mapped_slug}.html"
 
     # ------------------------------------------------------------------
     # resolve_render_config
@@ -231,9 +232,12 @@ class InvoicePreviewService:
             "company":      bill_data.get("company", {}),
         }
 
-        # SINGLE PRODUCTION INVOICE PDF TEMPLATE:
-        # pdf/letterhead_invoice.html is the single production template used for all invoice PDF generation.
-        primary_path = "pdf/letterhead_invoice.html"
+        # Use the specific letterhead template if letterhead printing is enabled,
+        # otherwise use the user's selected template.
+        if config.get("print_on_letterhead"):
+            primary_path = "pdf/letterhead_invoice.html"
+        else:
+            primary_path = template_file_path
 
         try:
             html_string = render_to_string(primary_path, context)

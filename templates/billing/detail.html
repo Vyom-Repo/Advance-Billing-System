@@ -1,0 +1,268 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .invoice-detail-container {
+        max-width: 960px; margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-24);
+        animation: fadeIn 0.4s var(--transition-base);
+    }
+    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-8); }
+    .detail-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--color-text-primary); letter-spacing: -0.02em; margin-bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-3); }
+    .detail-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .info-card { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm); }
+    .info-card-title { font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-4); }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .info-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+    .info-row { display: flex; flex-direction: column; gap: var(--space-1); }
+    .info-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .info-value { font-size: var(--text-sm); color: var(--color-text-primary); font-weight: var(--font-medium); }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: var(--font-medium); }
+    .badge-draft { background: rgba(251,191,36,0.12); color: #f59e0b; border: 1px solid rgba(251,191,36,0.25); }
+    .badge-issued { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-cancelled { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+    .lines-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lines-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    .lines-table th { font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+    .lines-table td { padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .lines-table tr:last-child td { border-bottom: none; }
+    .lines-table .mono { font-family: var(--font-mono); }
+    .lines-table .text-right { text-align: right; }
+    .summary-section { margin-left: auto; max-width: 360px; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-1.5) 0; font-size: var(--text-sm); }
+    .summary-row.grand { border-top: 2px solid var(--color-border); margin-top: var(--space-3); padding-top: var(--space-3); font-size: var(--text-lg); font-weight: var(--font-bold); }
+    .summary-label { color: var(--color-text-secondary); }
+    .summary-value { font-family: var(--font-mono); color: var(--color-text-primary); }
+    @media (max-width: 768px) {
+        .invoice-detail-container { padding: var(--space-4) var(--space-3) var(--space-16); }
+        .info-grid, .info-grid-3 { grid-template-columns: 1fr 1fr; }
+        .detail-actions { width: 100%; }
+        .detail-actions .btn { flex: 1; justify-content: center; }
+        .summary-section { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+        .info-grid, .info-grid-3 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action"><i data-lucide="menu"></i></button>
+                <h2 class="topbar-title">Invoice</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn">
+                        <div class="avatar avatar-sm">{{ request.user.first_name|default:request.user.email|make_list|first|upper }}</div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width:16px;height:16px;color:var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events:none;">
+                            <div>
+                                <div style="font-weight:500;color:var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size:var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display:block;width:100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width:100%;border:none;background:none;text-align:left;"><i data-lucide="log-out"></i> Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+        {% include "base/flash_messages.html" %}
+
+        <div class="invoice-detail-container">
+            <div class="detail-header">
+                <div>
+                    <h1 class="detail-title">
+                        {{ invoice.invoice_number|default:"Draft Invoice" }}
+                        {% if invoice.status == "draft" %}<span class="badge badge-draft">Draft</span>
+                        {% elif invoice.status == "issued" %}<span class="badge badge-issued">Issued</span>
+                        {% elif invoice.status == "cancelled" %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+                    </h1>
+                    <p style="font-size:var(--text-sm);color:var(--color-text-secondary);">
+                        {{ invoice.invoice_date|date:"d M Y" }}{% if invoice.due_date %} · Due {{ invoice.due_date|date:"d M Y" }}{% endif %}
+                    </p>
+                </div>
+                <div class="detail-actions">
+                    {% if invoice.status == "draft" %}
+                    <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i> Edit</a>
+                    <form method="post" action="{% url 'billing:issue' invoice.uuid %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('Issue this invoice? This cannot be undone.')">
+                            <i data-lucide="send"></i> Issue Invoice
+                        </button>
+                    </form>
+                    <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-outline" style="border-color:#f87171;color:#f87171;"><i data-lucide="trash-2"></i> Delete</a>
+                    {% elif invoice.status == "issued" %}
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview</a>
+                    <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline" style="border-color:#f87171;color:#f87171;" onclick="return confirm('Cancel this invoice?')">
+                            <i data-lucide="x-circle"></i> Cancel Invoice
+                        </button>
+                    </form>
+                    {% elif invoice.status == "cancelled" %}
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview</a>
+                    {% endif %}
+                    <a href="{% url 'billing:index' %}" class="btn btn-outline"><i data-lucide="arrow-left"></i> Back</a>
+                </div>
+            </div>
+
+            <!-- Invoice Info -->
+            <div class="info-card">
+                <div class="info-grid-3">
+                    <div class="info-row">
+                        <span class="info-label">Invoice Number</span>
+                        <span class="info-value" style="font-family:var(--font-mono);">{{ invoice.invoice_number|default:"Pending (Draft)" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Invoice Date</span>
+                        <span class="info-value">{{ invoice.invoice_date|date:"d M Y" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Due Date</span>
+                        <span class="info-value">{{ invoice.due_date|date:"d M Y"|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Place of Supply</span>
+                        <span class="info-value">{{ invoice.place_of_supply }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Currency</span>
+                        <span class="info-value">{{ invoice.currency }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bill To / Shipping -->
+            <div class="info-grid" style="margin-bottom:var(--space-6);">
+                <div class="info-card" style="margin-bottom:0;">
+                    <div class="info-card-title">Bill To</div>
+                    {% if invoice.status == "issued" or invoice.status == "cancelled" %}
+                    <div style="font-weight:var(--font-semibold);color:var(--color-text-primary);margin-bottom:4px;">{{ invoice.customer_name_snapshot }}</div>
+                    {% if invoice.customer_gstin_snapshot %}<div style="font-size:var(--text-xs);color:var(--color-accent);margin-bottom:4px;">GSTIN: {{ invoice.customer_gstin_snapshot }}</div>{% endif %}
+                    <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.customer_billing_address_snapshot }}</div>
+                    <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">State Code: {{ invoice.customer_state_code_snapshot }}</div>
+                    {% elif invoice.customer %}
+                    <div style="font-weight:var(--font-semibold);color:var(--color-text-primary);margin-bottom:4px;">{{ invoice.customer.name }}</div>
+                    {% if invoice.customer.gstin %}<div style="font-size:var(--text-xs);color:var(--color-accent);margin-bottom:4px;">GSTIN: {{ invoice.customer.gstin }}</div>{% endif %}
+                    <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.customer.billing_address_line_1 }}</div>
+                    <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.customer.billing_city }}, {{ invoice.customer.billing_state }} ({{ invoice.customer.billing_state_code }})</div>
+                    {% else %}
+                    <span style="color:var(--color-text-muted);font-size:var(--text-sm);">No customer selected.</span>
+                    {% endif %}
+                </div>
+                <div class="info-card" style="margin-bottom:0;">
+                    <div class="info-card-title">Shipping Address</div>
+                    {% if invoice.shipping_same_as_billing %}
+                    <span style="color:var(--color-text-muted);font-size:var(--text-sm);">Same as billing address.</span>
+                    {% elif invoice.shipping_address_line_1 %}
+                    <div style="font-size:var(--text-sm);color:var(--color-text-primary);">{{ invoice.shipping_address_line_1 }}</div>
+                    <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.shipping_city }}, {{ invoice.shipping_state }} {{ invoice.shipping_pincode }}</div>
+                    {% else %}
+                    <span style="color:var(--color-text-muted);font-size:var(--text-sm);">No shipping address.</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Line Items -->
+            <div class="info-card">
+                <div class="info-card-title">Line Items</div>
+                {% if lines %}
+                <div class="lines-table-wrapper">
+                    <table class="lines-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product / Service</th>
+                                <th>HSN/SAC</th>
+                                <th class="text-right">Qty</th>
+                                <th class="text-right">Rate</th>
+                                <th class="text-right">Discount</th>
+                                <th class="text-right">Taxable</th>
+                                <th class="text-right">GST</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in lines %}
+                            <tr>
+                                <td>{{ line.position }}</td>
+                                <td>
+                                    <div style="font-weight:var(--font-medium);">
+                                        {% if line.product_name_snapshot %}{{ line.product_name_snapshot }}{% elif line.product %}{{ line.product.name }}{% else %}—{% endif %}
+                                    </div>
+                                    {% if line.taxability_type_snapshot %}<div style="font-size:var(--text-xs);color:var(--color-text-muted);">{{ line.taxability_type_snapshot }}</div>{% endif %}
+                                </td>
+                                <td class="mono" style="font-size:var(--text-xs);">{{ line.hsn_sac_snapshot|default:"—" }}</td>
+                                <td class="text-right mono">{{ line.quantity }}</td>
+                                <td class="text-right mono">₹{{ line.unit_price|floatformat:2 }}</td>
+                                <td class="text-right mono" style="font-size:var(--text-xs);">
+                                    {% if line.discount_type != "none" %}
+                                    {{ line.discount_value }}{% if line.discount_type == "percentage" %}%{% else %}₹{% endif %}
+                                    {% if line.discount_amount %}(₹{{ line.discount_amount|floatformat:2 }}){% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="text-right mono">₹{{ line.taxable_value|floatformat:2 }}</td>
+                                <td class="text-right" style="font-size:var(--text-xs);color:var(--color-text-secondary);">
+                                    {% if line.cgst_amount %}<div>CGST: ₹{{ line.cgst_amount|floatformat:2 }}</div>{% endif %}
+                                    {% if line.sgst_amount %}<div>SGST: ₹{{ line.sgst_amount|floatformat:2 }}</div>{% endif %}
+                                    {% if line.igst_amount %}<div>IGST: ₹{{ line.igst_amount|floatformat:2 }}</div>{% endif %}
+                                    {% if line.cess_amount %}<div>Cess: ₹{{ line.cess_amount|floatformat:2 }}</div>{% endif %}
+                                    {% if not line.cgst_amount and not line.sgst_amount and not line.igst_amount %}—{% endif %}
+                                </td>
+                                <td class="text-right mono" style="font-weight:var(--font-medium);">₹{{ line.line_total|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:var(--color-text-muted);font-size:var(--text-sm);">No line items on this invoice.</p>
+                {% endif %}
+            </div>
+
+            <!-- Totals -->
+            <div class="info-card">
+                <div class="summary-section">
+                    <div class="summary-row"><span class="summary-label">Subtotal</span><span class="summary-value">₹{{ invoice.subtotal|floatformat:2 }}</span></div>
+                    {% if invoice.discount_total %}<div class="summary-row"><span class="summary-label">Discount</span><span class="summary-value">−₹{{ invoice.discount_total|floatformat:2 }}</span></div>{% endif %}
+                    <div class="summary-row"><span class="summary-label">Taxable Amount</span><span class="summary-value">₹{{ invoice.taxable_amount|floatformat:2 }}</span></div>
+                    {% if invoice.cgst_total %}<div class="summary-row"><span class="summary-label">CGST</span><span class="summary-value">₹{{ invoice.cgst_total|floatformat:2 }}</span></div>{% endif %}
+                    {% if invoice.sgst_total %}<div class="summary-row"><span class="summary-label">SGST/UTGST</span><span class="summary-value">₹{{ invoice.sgst_total|floatformat:2 }}</span></div>{% endif %}
+                    {% if invoice.igst_total %}<div class="summary-row"><span class="summary-label">IGST</span><span class="summary-value">₹{{ invoice.igst_total|floatformat:2 }}</span></div>{% endif %}
+                    {% if invoice.cess_total %}<div class="summary-row"><span class="summary-label">Cess</span><span class="summary-value">₹{{ invoice.cess_total|floatformat:2 }}</span></div>{% endif %}
+                    {% if invoice.round_off %}<div class="summary-row"><span class="summary-label">Round Off</span><span class="summary-value">₹{{ invoice.round_off|floatformat:2 }}</span></div>{% endif %}
+                    <div class="summary-row grand"><span>Grand Total</span><span class="summary-value">₹{{ invoice.grand_total|floatformat:2 }}</span></div>
+                </div>
+            </div>
+
+            <!-- Notes / Terms -->
+            {% if invoice.notes or invoice.terms %}
+            <div class="info-card">
+                <div class="info-grid">
+                    {% if invoice.notes %}<div class="info-row"><span class="info-label">Notes</span><span class="info-value" style="white-space:pre-line;">{{ invoice.notes }}</span></div>{% endif %}
+                    {% if invoice.terms %}<div class="info-row"><span class="info-label">Terms &amp; Conditions</span><span class="info-value" style="white-space:pre-line;">{{ invoice.terms }}</span></div>{% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); });</script>
+{% endblock %}

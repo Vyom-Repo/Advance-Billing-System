@@ -378,7 +378,7 @@
                     <table class="header-table">
                         <tr>
                             <td style="width: 60%;">
-                                {% if not layout_frame.letterhead_mode and config.show_company_header %}
+                                {% if config.show_company_header %}
                                     {% if config.show_company_logo and company.logo_url %}
                                         <img src="{{ company.logo_url }}" class="logo-img" alt="Logo">
                                     {% endif %}

@@ -95,6 +95,7 @@ class InvoicePreference(models.Model):
             parts.append(prefix)
         if fy_str:
             parts.append(fy_str)
+        parts.append(num_str)
         return "-".join(parts)
 
 class DocumentPreference(models.Model):

@@ -38,8 +38,8 @@ class DashboardView(BillingLoginRequiredMixin, PageTitleMixin, TemplateView):
         }
         context["recent_invoices"] = []
         context["quick_actions"] = [
-            {"label": "New Invoice", "url": "/invoices/new/", "icon": "file-plus"},
-            {"label": "Add Customer", "url": "/customers/new/", "icon": "user-plus"},
-            {"label": "Add Product", "url": "/products/new/", "icon": "package-plus"},
+            {"label": "New Invoice", "url": "/invoices/create/", "icon": "file-plus"},
+            {"label": "Add Customer", "url": "/customers/create/", "icon": "user-plus"},
+            {"label": "Add Product", "url": "/products/create/", "icon": "package-plus"},
         ]
         return context

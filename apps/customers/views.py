@@ -73,8 +73,20 @@ class CustomerCreateView(CustomerOrganizationMixin, PageTitleMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.organization = self.get_organization()
-        messages.success(self.request, f"Customer '{form.instance.name}' created successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        customer = self.object
+        messages.success(self.request, f"Customer '{customer.name}' created successfully.")
+
+        # If launched from invoice create, redirect back with new customer pre-selected
+        invoice_state = self.request.GET.get("invoice_state", "").strip()
+        if invoice_state:
+            from django.urls import reverse
+            url = (
+                reverse("billing:create")
+                + f"?invoice_state={invoice_state}&new_customer={customer.pk}"
+            )
+            return redirect(url)
+        return response
 
 
 class CustomerDetailView(CustomerOrganizationMixin, PageTitleMixin, DetailView):

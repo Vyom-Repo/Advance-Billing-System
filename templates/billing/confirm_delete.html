@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .delete-container { max-width: 540px; margin: var(--space-16) auto; padding: 0 var(--space-6); animation: fadeIn 0.4s var(--transition-base); }
+    .delete-card { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-md); text-align: center; }
+    .delete-icon { width: 56px; height: 56px; border-radius: var(--radius-full); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-6); border: 1px solid rgba(239,68,68,0.25); }
+    .delete-title { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-2); }
+    .delete-desc { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-6); }
+    .invoice-summary { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-8); text-align: left; }
+    .actions-row { display: flex; gap: var(--space-4); justify-content: center; }
+    .btn-danger { background: #ef4444; color: white; border: 1px solid #ef4444; }
+    .btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action" type="button"><i data-lucide="menu"></i></button>
+                <h2 class="topbar-title">Delete Invoice</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn" type="button">
+                        <div class="avatar avatar-sm">{{ request.user.first_name|default:request.user.email|make_list|first|upper }}</div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down" style="width:16px;height:16px;color:var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events:none;">
+                            <div>
+                                <div style="font-weight:500;color:var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size:var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display:block;width:100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item" style="width:100%;border:none;background:none;text-align:left;"><i data-lucide="log-out"></i> Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="delete-container">
+            <div class="delete-card">
+                <div class="delete-icon"><i data-lucide="alert-triangle" style="width:28px;height:28px;"></i></div>
+                <h1 class="delete-title">Delete Draft Invoice</h1>
+                <p class="delete-desc">Are you sure you want to permanently delete this draft invoice? This action cannot be undone.</p>
+                <div class="invoice-summary">
+                    <div style="font-weight:var(--font-semibold);color:var(--color-text-primary);font-size:var(--text-base);margin-bottom:4px;">
+                        {{ invoice.invoice_number|default:"Draft Invoice" }}
+                    </div>
+                    <div style="font-size:var(--text-xs);color:var(--color-text-muted);">
+                        Customer: {{ invoice.customer_name_snapshot|default:invoice.customer.name|default:"No customer" }}
+                        · Date: {{ invoice.invoice_date|date:"d M Y" }}
+                    </div>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="actions-row">
+                        <a href="{% url 'billing:detail' invoice.uuid %}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); });</script>
+{% endblock %}

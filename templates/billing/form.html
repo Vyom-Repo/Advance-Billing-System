@@ -1,0 +1,1143 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<style>
+    .invoice-form-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6) var(--space-24);
+        animation: fadeIn 0.4s var(--transition-base);
+    }
+
+    .form-header {
+        margin-bottom: var(--space-8);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+    }
+
+    .form-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-1);
+    }
+
+    .form-subtitle {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+
+    .form-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .card-title-row h3 {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+
+    .card-title-row i {
+        color: var(--color-accent);
+        width: 20px;
+        height: 20px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+    }
+
+    label .required {
+        color: #f87171;
+        margin-left: 2px;
+    }
+
+    .form-control {
+        background: var(--color-bg-input);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--text-sm);
+        padding: var(--space-2.5) var(--space-3);
+        transition: all 0.2s;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 40px;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+        background: var(--color-bg-card);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    input[type="date"].form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        position: relative;
+    }
+
+    input[type="date"].form-control::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: var(--space-8);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .errorlist li {
+        font-size: var(--text-xs);
+        color: #f87171;
+        margin-top: var(--space-1);
+    }
+
+    .field-error {
+        border-color: #f87171 !important;
+    }
+
+    /* Bill To Panel */
+    .bill-to-panel {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        min-height: 80px;
+    }
+
+    .bill-to-placeholder {
+        color: var(--color-text-muted);
+        font-size: var(--text-sm);
+        font-style: italic;
+    }
+
+    /* Input group with + button */
+    .input-group,
+    .product-cell {
+        display: flex;
+        gap: var(--space-2);
+        align-items: center;
+        width: 100%;
+    }
+
+    .input-group .form-control,
+    .product-cell .form-control {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .btn-add-inline {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        background: var(--color-accent-subtle);
+        border: 1px solid var(--color-accent);
+        color: var(--color-accent);
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 0;
+        margin-top: 0;
+    }
+
+    .btn-add-inline:hover {
+        background: var(--color-accent);
+        color: var(--color-bg-surface);
+    }
+
+    /* Place of supply derived hint */
+    .pos-hint {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        margin-top: var(--space-1);
+    }
+
+    .pos-hint strong {
+        color: var(--color-accent);
+    }
+
+    /* Line Items */
+    .lines-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: var(--space-4);
+        width: 100%;
+    }
+
+    .lines-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+    }
+
+    .lines-table th {
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+        white-space: nowrap;
+    }
+
+    .lines-table td {
+        padding: var(--space-2) var(--space-3);
+        vertical-align: top;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .lines-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .line-row.deleted-row {
+        opacity: 0.4;
+    }
+
+    .delete-row-btn {
+        background: none;
+        border: none;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        padding: var(--space-2);
+        border-radius: var(--radius-md);
+        transition: color 0.2s, background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-row-btn:hover {
+        color: #f87171;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-add-line {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        background: var(--color-bg-surface);
+        border: 1px dashed var(--color-border);
+        color: var(--color-accent);
+        padding: var(--space-2.5) var(--space-4);
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        margin-top: var(--space-4);
+        height: 40px;
+    }
+
+    .btn-add-line:hover {
+        background: var(--color-accent-subtle);
+        border-color: var(--color-accent);
+    }
+
+    /* Notes toggle */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .toggle-label {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        font-weight: var(--font-medium);
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 22px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--color-border);
+        border-radius: 22px;
+        transition: 0.3s;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        bottom: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+    .toggle-switch input:checked+.toggle-slider {
+        background: var(--color-accent);
+    }
+
+    .toggle-switch input:checked+.toggle-slider:before {
+        transform: translateX(18px);
+    }
+
+    /* Summary Panel */
+    .summary-panel {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-1.5) 0;
+        font-size: var(--text-sm);
+    }
+
+    .summary-row.divider {
+        border-top: 1px solid var(--color-border);
+        margin-top: var(--space-2);
+        padding-top: var(--space-3);
+    }
+
+    .summary-row.grand-total {
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+    }
+
+    .summary-label {
+        color: var(--color-text-secondary);
+    }
+
+    .summary-value {
+        font-family: var(--font-mono);
+        color: var(--color-text-primary);
+    }
+
+    .summary-note {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        margin-top: var(--space-2);
+        font-style: italic;
+    }
+
+    /* Actions */
+    .form-actions {
+        display: flex;
+        gap: var(--space-3);
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .checkbox-input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--color-accent);
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .invoice-form-container {
+            padding: var(--space-4) var(--space-3) var(--space-16);
+        }
+
+        .form-grid,
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .form-card {
+            padding: var(--space-5);
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-actions form,
+        .form-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="dashboard-layout">
+    {% include "base/sidebar.html" %}
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action"><i data-lucide="menu"></i></button>
+                <h2 class="topbar-title">{% if is_create %}New Invoice{% else %}Edit Invoice{% endif %}</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button class="user-menu-btn" id="user-menu-btn">
+                        <div class="avatar avatar-sm">{{ request.user.first_name|default:request.user.email|make_list|first|upper }}</div>
+                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                        <i data-lucide="chevron-down"
+                            style="width:16px;height:16px;color:var(--color-text-secondary);"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu-dropdown">
+                        <div class="dropdown-item" style="pointer-events:none;">
+                            <div>
+                                <div style="font-weight:500;color:var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                                <div style="font-size:var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <form action="{% url 'auth:logout' %}" method="post" style="display:block;width:100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item"
+                                style="width:100%;border:none;background:none;text-align:left;"><i
+                                    data-lucide="log-out"></i> Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+        {% include "base/flash_messages.html" %}
+
+        <div class="invoice-form-container">
+            <div class="form-header">
+                <div>
+                    <h1 class="form-title">{% if is_create %}Create Invoice{% else %}Edit Draft Invoice{% endif %}</h1>
+                    <p class="form-subtitle">{% if is_create %}Fill in the details below to create a new invoice.{% else %}Update the draft invoice details below.{% endif %}</p>
+                </div>
+                <a href="{% url 'billing:index' %}" class="btn btn-outline">
+                    <i data-lucide="arrow-left"></i> Back to Invoices
+                </a>
+            </div>
+
+            <form method="post" id="invoice-form" novalidate>
+                {% csrf_token %}
+                {# State token for Customer/Product return flow — uniquely identifies this form session #}
+                <input type="hidden" id="invoice-state-token" value="{{ state_token|default:'' }}">
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                <div
+                    style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4);">
+                    {% for error in form.non_field_errors %}<p style="color:#f87171;font-size:var(--text-sm);margin:0;">
+                        {{ error }}</p>{% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- 1. Invoice Details -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="file-text"></i>
+                        <h3>Invoice Details</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="id_invoice_date">Invoice Date <span class="required">*</span></label>
+                            {{ form.invoice_date }}
+                            {% if form.invoice_date.errors %}<ul class="errorlist">{% for e in form.invoice_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_due_date">Due Date</label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}<ul class="errorlist">{% for e in form.due_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Customer / Bill To -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="user"></i>
+                        <h3>Customer &amp; Bill To</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="id_customer">Customer <span class="required">*</span></label>
+                            <div class="input-group">
+                                {{ form.customer }}
+                                <a href="{% url 'customers:create' %}?from_invoice=1" class="btn-add-inline"
+                                    id="add-customer-btn" title="Create new customer"
+                                    onclick="stashAndRedirect(event, this.href, null)">
+                                    <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                                </a>
+                            </div>
+                            {% if form.customer.errors %}<ul class="errorlist">{% for e in form.customer.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label>Bill To</label>
+                            <div class="bill-to-panel" id="bill-to-panel">
+                                {% if invoice.customer %}
+                                <div
+                                    style="font-weight:var(--font-semibold);color:var(--color-text-primary);margin-bottom:4px;">
+                                    {{ invoice.customer.name }}</div>
+                                {% if invoice.customer.gstin %}<div
+                                    style="font-size:var(--text-xs);color:var(--color-accent);margin-bottom:4px;">GSTIN:
+                                    {{ invoice.customer.gstin }}</div>{% endif %}
+                                <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.customer.billing_address_line_1 }}</div>
+                                <div style="font-size:var(--text-sm);color:var(--color-text-secondary);">{{ invoice.customer.billing_city }}, {{ invoice.customer.billing_state }} {{ invoice.customer.billing_state_code }}</div>
+                                {% else %}
+                                <span class="bill-to-placeholder">Select a customer to populate billing details.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Shipping Address (Place of Supply derived from shipping state) -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="truck"></i>
+                        <h3>Shipping Address</h3>
+                    </div>
+                    <div class="form-group" style="margin-bottom:var(--space-4);">
+                        <div class="checkbox-row">
+                            {{ form.shipping_same_as_billing }}
+                            <label for="id_shipping_same_as_billing" style="margin:0;cursor:pointer;">Same as billing
+                                address</label>
+                        </div>
+                    </div>
+                    {# Place of Supply derived hint — shown always #}
+                    <div class="pos-hint" id="pos-hint">
+                        Place of Supply: <strong id="pos-display">{% if invoice.place_of_supply %}{{ invoice.place_of_supply }}{% else %}—{% endif %}</strong>
+                        <span style="color:var(--color-text-muted);">(auto-derived from shipping state)</span>
+                    </div>
+                    <div id="shipping-fields"
+                        style="margin-top:var(--space-4);{% if form.instance.shipping_same_as_billing or not form.instance.pk and not request.POST %}display:none;{% endif %}">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="id_shipping_address_line_1">Address</label>
+                                {{ form.shipping_address_line_1 }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_shipping_city">City</label>
+                                {{ form.shipping_city }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_shipping_state">State <span class="required">*</span></label>
+                                {{ form.shipping_state }}
+                                {% if form.shipping_state.errors %}<ul class="errorlist">{% for e in form.shipping_state.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_shipping_pincode">PIN Code</label>
+                                {{ form.shipping_pincode }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Line Items -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="list"></i>
+                        <h3>Line Items</h3>
+                    </div>
+                    {{ formset.management_form }}
+                    {% if formset.non_form_errors %}
+                    <div style="color:#f87171;font-size:var(--text-sm);margin-bottom:var(--space-4);">
+                        {% for e in formset.non_form_errors %}<p>{{ e }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="lines-table-wrapper">
+                        <table class="lines-table" id="lines-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:220px;">Product / Service</th>
+                                    <th style="min-width:80px;">Qty</th>
+                                    <th style="min-width:110px;">Rate (₹)</th>
+                                    <th style="min-width:110px;">Discount</th>
+                                    <th style="min-width:80px;">Disc. Value</th>
+                                    <th style="min-width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lines-tbody">
+                                {% for line_form in formset %}
+                                <tr class="line-row" id="line-row-{{ forloop.counter0 }}">
+                                    {% for hidden in line_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                    <td>
+                                        <div class="product-cell">
+                                            {{ line_form.product }}
+                                            <button type="button" class="btn-add-inline"
+                                                data-line-index="{{ forloop.counter0 }}" title="Create new product"
+                                                onclick="stashAndRedirectProduct(event, {{ forloop.counter0 }})"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
+                                        </div>
+                                        {% if line_form.product.errors %}<ul class="errorlist">{% for e in line_form.product.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                                    </td>
+                                    <td>{{ line_form.quantity }}{% if line_form.quantity.errors %}<ul class="errorlist">{% for e in line_form.quantity.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</td>
+                                    <td>{{ line_form.unit_price }}{% if line_form.unit_price.errors %}<ul class="errorlist">{% for e in line_form.unit_price.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</td>
+                                    <td>{{ line_form.discount_type }}</td>
+                                    <td>{{ line_form.discount_value }}</td>
+                                    <td>
+                                        {% if line_form.DELETE %}
+                                        <div style="display:flex;align-items:center;gap:4px;">
+                                            <span style="display:none;">{{ line_form.DELETE }}</span>
+                                            <button type="button" class="delete-row-btn"
+                                                onclick="markLineDeleted(this, {{ forloop.counter0 }})"
+                                                title="Remove line">
+                                                <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn-add-line" id="add-line-btn">
+                        <i data-lucide="plus"></i> Add Line Item
+                    </button>
+                    <div id="empty-form-template" style="display:none;">
+                        {# Empty form template for JS — prefix is replaced by JS #}
+                        <tr class="line-row new-line-row">
+                            <td>
+                                <div class="product-cell">
+                                    {{ formset.empty_form.product }}
+                                    <button type="button" class="btn-add-inline" data-line-index="__prefix__"
+                                        title="Create new product"
+                                        onclick="stashAndRedirectProduct(event, parseInt(this.dataset.lineIndex))"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
+                                </div>
+                            </td>
+                            <td><input type="number" name="lines-__prefix__-quantity" class="form-control line-qty"
+                                    step="0.001" min="0.001" value="1.000"></td>
+                            <td><input type="number" name="lines-__prefix__-unit_price" class="form-control line-rate"
+                                    step="0.01" min="0" value="0.00"></td>
+                            <td><select name="lines-__prefix__-discount_type" class="form-control line-discount-type">
+                                    <option value="none">None</option>
+                                    <option value="percentage">Percentage (%)</option>
+                                    <option value="fixed">Fixed (₹)</option>
+                                </select></td>
+                            <td><input type="number" name="lines-__prefix__-discount_value"
+                                    class="form-control line-discount-value" step="0.01" min="0" value="0.00"></td>
+                            <td><input type="hidden" name="lines-__prefix__-DELETE" value=""><button type="button"
+                                    class="delete-row-btn" onclick="removeNewLine(this)" title="Remove"><i
+                                        data-lucide="x" style="width:15px;height:15px;"></i></button></td>
+                        </tr>
+                    </div>
+                </div>
+
+                <!-- 5. Custom Notes (toggle) -->
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="align-left"></i>
+                        <h3>Notes</h3>
+                    </div>
+                    <div class="toggle-row" style="margin-bottom:var(--space-4);">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="custom-notes-toggle" {% if form.instance.notes %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Custom Notes</span>
+                    </div>
+                    <div id="notes-area" {% if not form.instance.notes %}style="display:none;" {% endif %}>
+                        <div class="form-group">
+                            <label for="id_notes">Note to Customer</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                    {# Terms kept on Edit Draft only #}
+                    {% if not is_create %}
+                    <div class="form-group" style="margin-top:var(--space-4);">
+                        <label for="id_terms">Terms &amp; Conditions</label>
+                        {{ form.terms }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 6. Calculation Summary (Edit Draft only — not shown on Create) -->
+                {% if not is_create and invoice.status == "draft" %}
+                <div class="form-card">
+                    <div class="card-title-row">
+                        <i data-lucide="calculator"></i>
+                        <h3>Calculation Summary</h3>
+                    </div>
+                    <div class="summary-panel">
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal</span>
+                            <span class="summary-value" id="sum-subtotal">₹{{ invoice.subtotal|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Discount</span>
+                            <span class="summary-value" id="sum-discount">−₹{{ invoice.discount_total|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Taxable Amount</span>
+                            <span class="summary-value" id="sum-taxable">₹{{ invoice.taxable_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row"><span class="summary-label">CGST</span><span class="summary-value"
+                                id="sum-cgst">₹{{ invoice.cgst_total|floatformat:2 }}</span></div>
+                        <div class="summary-row"><span class="summary-label">SGST/UTGST</span><span
+                                class="summary-value" id="sum-sgst">₹{{ invoice.sgst_total|floatformat:2 }}</span></div>
+                        <div class="summary-row"><span class="summary-label">IGST</span><span class="summary-value"
+                                id="sum-igst">₹{{ invoice.igst_total|floatformat:2 }}</span></div>
+                        <div class="summary-row"><span class="summary-label">Cess</span><span class="summary-value"
+                                id="sum-cess">₹{{ invoice.cess_total|floatformat:2 }}</span></div>
+                        <div class="summary-row"><span class="summary-label">Round Off</span><span class="summary-value"
+                                id="sum-round">₹{{ invoice.round_off|floatformat:2 }}</span></div>
+                        <div class="summary-row divider grand-total">
+                            <span>Grand Total</span>
+                            <span id="sum-grand" style="font-family:var(--font-mono);">₹{{ invoice.grand_total|floatformat:2 }}</span>
+                        </div>
+                        <p class="summary-note">Place of Supply: {{ invoice.place_of_supply }}. Backend calculation
+                            engine is authoritative.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 7. Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="save-draft-btn">
+                        <i data-lucide="save"></i> {% if is_create %}Create Draft{% else %}Save Draft{% endif %}
+                    </button>
+                    {% if not is_create %}
+                    <form method="post" action="{% url 'billing:issue' invoice.uuid %}" style="display:inline;"
+                        id="issue-invoice-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline"
+                            style="border-color:var(--color-accent);color:var(--color-accent);"
+                            onclick="return confirm('Issue this invoice? This will finalize it and cannot be undone.')">
+                            <i data-lucide="send"></i> Issue Invoice
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'billing:index' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+    // ---------------------------------------------------------------------------
+    // Org default note (injected from context for Custom Notes pre-fill)
+    // ---------------------------------------------------------------------------
+    const ORG_DEFAULT_NOTE = {{ org_default_note_json|safe|default:"null" }};
+
+    // ---------------------------------------------------------------------------
+    // State-code map for Place of Supply display hint
+    // ---------------------------------------------------------------------------
+    const STATE_CODE_NAMES = {
+{% for code, name in state_code_names.items %} "{{ code }}": "{{ name|escapejs }}"{% if not forloop.last %}, {% endif %}
+{% endfor %}
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons();
+
+        // --- Due Date Minimum constraint ---
+        const invoiceDateInput = document.getElementById('id_invoice_date');
+        const dueDateInput = document.getElementById('id_due_date');
+
+        function updateDueDateMin() {
+            if (!invoiceDateInput || !dueDateInput) return;
+            const invDate = invoiceDateInput.value;
+            if (invDate) {
+                dueDateInput.min = invDate;
+                if (dueDateInput.value && dueDateInput.value < invDate) {
+                    dueDateInput.value = '';
+                }
+            } else {
+                dueDateInput.removeAttribute('min');
+            }
+        }
+
+        // --- Native Date Picker click enhancement ---
+        function openNativeDatePicker(input) {
+            if (input && typeof input.showPicker === 'function') {
+                input.showPicker();
+            }
+        }
+
+        if (invoiceDateInput) {
+            invoiceDateInput.addEventListener('click', () => openNativeDatePicker(invoiceDateInput));
+            invoiceDateInput.addEventListener('change', updateDueDateMin);
+            updateDueDateMin();
+        }
+
+        if (dueDateInput) {
+            dueDateInput.addEventListener('click', () => openNativeDatePicker(dueDateInput));
+        }
+
+        // --- Shipping toggle ---
+        const shippingCheck = document.getElementById('id_shipping_same_as_billing');
+        const shippingFields = document.getElementById('shipping-fields');
+        const shippingStateSelect = document.getElementById('id_shipping_state');
+        const customerSelect = document.getElementById('id_customer');
+
+        function updatePosHint(stateCode) {
+            const display = document.getElementById('pos-display');
+            if (!display) return;
+            if (stateCode && STATE_CODE_NAMES[stateCode]) {
+                display.textContent = stateCode + ' — ' + STATE_CODE_NAMES[stateCode];
+            } else {
+                display.textContent = '—';
+            }
+        }
+
+        function getBillingStateCode() {
+            // Read billing_state_code from the Bill To panel data attribute (set on customer select)
+            return document.getElementById('bill-to-panel') ?
+                document.getElementById('bill-to-panel').dataset.stateCode || '' : '';
+        }
+
+        if (shippingCheck && shippingFields) {
+            function applyShippingToggle() {
+                const same = shippingCheck.checked;
+                shippingFields.style.display = same ? 'none' : 'block';
+                if (same) {
+                    // Auto-derive POS from billing state
+                    const bsc = getBillingStateCode();
+                    updatePosHint(bsc);
+                    // Mirror billing state code into shipping_state select so backend gets it
+                    if (shippingStateSelect && bsc) {
+                        shippingStateSelect.value = bsc;
+                    }
+                } else {
+                    updatePosHint(shippingStateSelect ? shippingStateSelect.value : '');
+                }
+            }
+            applyShippingToggle();
+            shippingCheck.addEventListener('change', applyShippingToggle);
+        }
+
+        if (shippingStateSelect) {
+            shippingStateSelect.addEventListener('change', () => {
+                if (!shippingCheck || !shippingCheck.checked) {
+                    updatePosHint(shippingStateSelect.value);
+                }
+            });
+        }
+
+        // --- Customer selection → populate Bill To panel + auto-derive POS ---
+        const billToPanel = document.getElementById('bill-to-panel');
+
+        function fetchCustomerDetails(customerId) {
+            if (!customerId) {
+                billToPanel.innerHTML = '<span class="bill-to-placeholder">Select a customer to populate billing details.</span>';
+                billToPanel.dataset.stateCode = '';
+                updatePosHint('');
+                return;
+            }
+            fetch(`{% url 'billing:api_customers' %}`.replace('api/customers/', `api/customers/${customerId}/`), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) { billToPanel.innerHTML = '<span class="bill-to-placeholder">Customer not found.</span>'; return; }
+                    let html = `<div style="font-weight:var(--font-semibold);color:var(--color-text-primary);margin-bottom:4px;">${data.name}</div>`;
+                    if (data.gstin) html += `<div style="font-size:var(--text-xs);color:var(--color-accent);margin-bottom:4px;">GSTIN: ${data.gstin}</div>`;
+                    if (data.billing_address_line_1) html += `<div style="font-size:var(--text-sm);color:var(--color-text-secondary);">${data.billing_address_line_1}</div>`;
+                    html += `<div style="font-size:var(--text-sm);color:var(--color-text-secondary);">${data.billing_city || ''}, ${data.billing_state || ''} ${data.billing_state_code || ''}</div>`;
+                    billToPanel.innerHTML = html;
+                    billToPanel.dataset.stateCode = data.billing_state_code || '';
+                    // Update POS hint
+                    if (shippingCheck && shippingCheck.checked) {
+                        updatePosHint(data.billing_state_code || '');
+                        if (shippingStateSelect) shippingStateSelect.value = data.billing_state_code || '';
+                    }
+                })
+                .catch(() => { billToPanel.innerHTML = '<span class="bill-to-placeholder">Could not load customer details.</span>'; });
+        }
+
+        if (customerSelect && billToPanel) {
+            customerSelect.addEventListener('change', () => fetchCustomerDetails(customerSelect.value));
+
+            // On load, if customer is selected but bill-to is missing data (e.g. session restore), fetch it
+            if (customerSelect.value && billToPanel.querySelector('.bill-to-placeholder')) {
+                fetchCustomerDetails(customerSelect.value);
+            }
+        }
+
+        // --- Product selection → populate rate field ---
+        function fetchProductRate(productSelect) {
+            const productId = productSelect.value;
+            if (!productId) return;
+            const row = productSelect.closest('tr');
+            if (!row) return;
+
+            const rateField = row.querySelector('.line-rate');
+            if (rateField && (!rateField.value || rateField.value === '0.00' || rateField.value === '0' || rateField.value === '0.0')) {
+                fetch(`{% url 'billing:api_products' %}`.replace('api/products/', `api/products/${productId}/`), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.json())
+                    .then(product => {
+                        if (product && !product.error) {
+                            rateField.value = product.unit_price;
+                        }
+                    });
+            }
+        }
+
+        document.addEventListener('change', (e) => {
+            if (!e.target.classList.contains('line-product-select')) return;
+            fetchProductRate(e.target);
+        });
+
+        document.querySelectorAll('.line-product-select').forEach(select => {
+            if (select.value) fetchProductRate(select);
+        });
+
+        // --- Add new line row ---
+        const addLineBtn = document.getElementById('add-line-btn');
+        const linesTbody = document.getElementById('lines-tbody');
+        const templateContainer = document.getElementById('empty-form-template');
+        const totalFormsInput = document.getElementById('id_lines-TOTAL_FORMS');
+
+        if (addLineBtn && linesTbody && templateContainer && totalFormsInput) {
+            addLineBtn.addEventListener('click', () => {
+                const totalForms = parseInt(totalFormsInput.value, 10);
+                const templateRow = templateContainer.querySelector('tr').cloneNode(true);
+                templateRow.innerHTML = templateRow.innerHTML.replaceAll('__prefix__', String(totalForms));
+                // Fix data-line-index on + button
+                const addBtn = templateRow.querySelector('.btn-add-inline');
+                if (addBtn) addBtn.dataset.lineIndex = String(totalForms);
+                linesTbody.appendChild(templateRow);
+                totalFormsInput.value = String(totalForms + 1);
+                if (window.lucide) lucide.createIcons();
+            });
+        }
+
+        // --- Mark existing formset line as deleted ---
+        window.markLineDeleted = function (btn, index) {
+            const row = document.getElementById('line-row-' + index);
+            const deleteCheckbox = row ? row.querySelector('input[name$="-DELETE"]') : null;
+            if (deleteCheckbox) {
+                if (deleteCheckbox.type === 'checkbox') {
+                    deleteCheckbox.checked = !deleteCheckbox.checked;
+                    if (deleteCheckbox.checked) {
+                        row.classList.add('deleted-row');
+                    } else {
+                        row.classList.remove('deleted-row');
+                    }
+                } else {
+                    deleteCheckbox.value = deleteCheckbox.value === 'on' ? '' : 'on';
+                    if (deleteCheckbox.value === 'on') {
+                        row.classList.add('deleted-row');
+                    } else {
+                        row.classList.remove('deleted-row');
+                    }
+                }
+            }
+        };
+
+        // --- Remove newly added line (not yet saved) ---
+        window.removeNewLine = function (btn) {
+            const row = btn.closest('tr');
+            if (row) row.remove();
+        };
+
+        // --- Custom Notes toggle ---
+        const notesToggle = document.getElementById('custom-notes-toggle');
+        const notesArea = document.getElementById('notes-area');
+        const notesTextarea = document.getElementById('id_notes');
+
+        function applyNotesToggle() {
+            if (!notesToggle || !notesArea) return;
+            if (notesToggle.checked) {
+                notesArea.style.display = 'block';
+                // Pre-fill with org default only if textarea is empty
+                if (notesTextarea && !notesTextarea.value && ORG_DEFAULT_NOTE) {
+                    notesTextarea.value = ORG_DEFAULT_NOTE;
+                }
+            } else {
+                notesArea.style.display = 'none';
+            }
+        }
+
+        if (notesToggle && notesArea) {
+            notesToggle.addEventListener('change', applyNotesToggle);
+
+            // Check session restored notes data
+            if (notesTextarea && notesTextarea.value && notesTextarea.value.trim() !== "") {
+                notesToggle.checked = true;
+            }
+            applyNotesToggle();
+        }
+    });
+
+    // ---------------------------------------------------------------------------
+    // State stash for Customer + / Product + return flow
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Serialize the entire invoice form into a plain object.
+     */
+    function serializeInvoiceForm() {
+        const form = document.getElementById('invoice-form');
+        if (!form) return {};
+        const data = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(el => {
+            if (!el.name) return;
+            if (el.type === 'checkbox') {
+                if (el.checked) {
+                    data[el.name] = 'on';
+                }
+                return;
+            }
+            if (el.type === 'radio') { if (el.checked) data[el.name] = el.value; return; }
+            // For arrays (multiple selects / duplicate names), collect as array
+            if (data[el.name] !== undefined) {
+                if (!Array.isArray(data[el.name])) data[el.name] = [data[el.name]];
+                data[el.name].push(el.value);
+            } else {
+                data[el.name] = el.value;
+            }
+        });
+        return data;
+    }
+
+    /**
+     * Stash form state to session, then redirect to destination.
+     * Used for Customer + button.
+     */
+    function stashAndRedirect(event, destination, lineIndex) {
+        event.preventDefault();
+        const state = serializeInvoiceForm();
+        const token = generateToken();
+        const payload = { token: token, state: state, line_index: lineIndex };
+        fetch('{% url "billing:session_stash" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    // Append state token to destination URL so we can restore on return
+                    const url = new URL(destination, window.location.origin);
+                    url.searchParams.set('invoice_state', token);
+                    window.location.href = url.toString();
+                } else {
+                    console.error('Stash failed', data);
+                    window.location.href = destination;
+                }
+            })
+            .catch(() => { window.location.href = destination; });
+    }
+
+    /**
+     * Stash form state to session, then redirect to product create.
+     * Used for Product + button on each line.
+     */
+    function stashAndRedirectProduct(event, lineIndex) {
+        event.preventDefault();
+        const destination = '{% url "products:create" %}';
+        stashAndRedirect(event, destination, lineIndex);
+    }
+
+    function generateToken() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+    }
+</script>
+{% endblock %}

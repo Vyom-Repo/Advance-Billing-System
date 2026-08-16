@@ -286,8 +286,8 @@
                         </tr>
                     </table>
 
-                    <!-- Optional Company Header Info (only if letterhead background is OFF) -->
-                    {% if not layout_frame.has_letterhead_background and config.show_company_header %}
+                    <!-- Optional Company Header Info -->
+                    {% if config.show_company_header %}
                     <table style="width: 100%; margin-bottom: 12px; border-bottom: 1px solid #cccccc; padding-bottom: 8px;">
                         <tr>
                             {% if config.show_company_logo and company.logo_url %}

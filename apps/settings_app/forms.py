@@ -117,3 +117,14 @@ class DocumentPreferenceForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-input', 'rows': 2})
             else:
                 field.widget.attrs.update({'class': 'form-input'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print_on_letterhead = cleaned_data.get("print_on_letterhead")
+
+        if print_on_letterhead:
+            cleaned_data["show_company_logo"] = False
+            cleaned_data["show_company_header"] = False
+            cleaned_data["show_company_footer"] = False
+
+        return cleaned_data
