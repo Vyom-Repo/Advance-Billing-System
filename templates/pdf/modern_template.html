@@ -437,18 +437,34 @@
 
             {% if config.show_signature %}
             <div>
-                <div style="font-weight:700;">For {{ company.name }}</div>
-                <div class="signature">
-                    {% if company.signature_url %}
+                {% if company.signature_mode == 'image' and company.signature_url %}
+                    <div style="font-weight:700;">For {{ company.name }}</div>
+                    <div class="signature">
                         <img src="{{ company.signature_url }}" style="position:absolute;right:1mm;top:6mm;max-height:17mm;max-width:30mm;" alt="Signature">
-                    {% else %}
-                        <div class="signature-circle">AUTHORISED<br>SIGNATORY</div>
-                    {% endif %}
-                    <div class="signature-text">Authorized Signatory</div>
-                </div>
+                        <div class="signature-text">Authorized Signatory</div>
+                    </div>
+                {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                    <div style="font-weight:700;">For {{ company.authorized_signatory_name }}</div>
+                    <div class="signature">
+                        <div style="border-top:1px solid #777; width:100px; position:absolute; right:1mm; top:12mm;"></div>
+                        <div class="signature-text">Authorized Signatory</div>
+                    </div>
+                {% elif company.signature_url %}
+                    <div style="font-weight:700;">For {{ company.name }}</div>
+                    <div class="signature">
+                        <img src="{{ company.signature_url }}" style="position:absolute;right:1mm;top:6mm;max-height:17mm;max-width:30mm;" alt="Signature">
+                        <div class="signature-text">Authorized Signatory</div>
+                    </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
+
+        {% if company.show_computer_generated_disclaimer %}
+        <div style="font-size: 8px; color: #666666; font-style: italic; margin-top: 4px; text-align: center;">
+            This is a computer-generated invoice and does not require a signature.
+        </div>
+        {% endif %}
 
         <!-- NOTES -->
         <div class="notes">

@@ -40,29 +40,17 @@ def serialize_bill_for_render(
     company: dict | None,
     org: Any = None,
 ) -> dict:
-    """
-    Merge raw data dicts into the canonical render context.
-
-    Parameters
-    ----------
-    invoice  : dict  — fields from Invoice model or SampleDataService.sample_invoice()
-    customer : dict  — fields from Customer model or SampleDataService.sample_customer()
-    items    : list  — list of item dicts from SampleDataService.sample_items() or real items
-    company  : dict  — assembled by OrganizationService or SampleDataService.sample_company()
-    org      : Organization ORM instance or None
-
-    Returns
-    -------
-    dict with keys: bill, company, customer, items, gst_summary
-    """
     inv_dict = invoice if isinstance(invoice, dict) else {}
     cust_dict = customer if isinstance(customer, dict) else {}
     items_list = [i for i in items if isinstance(i, dict)] if isinstance(items, (list, tuple)) else []
     comp_dict = company if isinstance(company, dict) else {}
 
+    company_serialized = _serialize_company(comp_dict, org)
+    bill_serialized = _serialize_invoice(inv_dict, company_serialized, org)
+
     return {
-        "bill":        _serialize_invoice(inv_dict),
-        "company":     _serialize_company(comp_dict, org),
+        "bill":        bill_serialized,
+        "company":     company_serialized,
         "customer":    _serialize_customer(cust_dict),
         "items":       [_serialize_item(i, idx) for idx, i in enumerate(items_list, start=1)],
         "gst_summary": _build_gst_summary(items_list),
@@ -73,13 +61,17 @@ def serialize_bill_for_render(
 # Private serializers
 # ---------------------------------------------------------------------------
 
-def _serialize_invoice(inv: dict) -> dict:
+def _serialize_invoice(inv: dict, company: dict | None = None, org: Any = None) -> dict:
     """
     Canonical invoice-level dict.  All templates read from this shape.
 
     Fields prefixed with ``raw_`` are accepted from legacy data sources and
     normalised here so templates never need to know the original key name.
     """
+    comp = company if isinstance(company, dict) else {}
+    qr_code_url = inv.get("qr_code_url") or _file_url(getattr(org, "qr_code", None)) or comp.get("qr_code_url")
+    terms = inv.get("terms") or comp.get("terms_and_conditions") or getattr(org, "terms_and_conditions", "")
+
     return {
         # Identification
         "number":          inv.get("number") or inv.get("invoice_number") or "",
@@ -103,14 +95,10 @@ def _serialize_invoice(inv: dict) -> dict:
 
         # Narrative
         "notes":           inv.get("notes", ""),
-        "terms":           inv.get("terms", ""),
+        "terms":           terms,
 
         # Assets
-        "qr_code_url":     inv.get("qr_code_url"),
-
-        # Payment info
-        "payment_method":  inv.get("payment_method", ""),
-        "payment_date":    inv.get("payment_date", ""),
+        "qr_code_url":     qr_code_url,
     }
 
 
@@ -125,14 +113,23 @@ def _serialize_company(company: dict, org=None) -> dict:
     logo_url      = _file_url(getattr(org, "logo", None))      or company.get("logo_url")
     signature_url = _file_url(getattr(org, "signature", None))  or company.get("signature_url")
     letterhead_url= _file_url(getattr(org, "letterhead", None)) or company.get("letterhead_url")
+    qr_code_url   = _file_url(getattr(org, "qr_code", None))   or company.get("qr_code_url")
+    terms_and_conditions = getattr(org, "terms_and_conditions", "") or company.get("terms_and_conditions", "")
+    signature_mode = company.get("signature_mode") or getattr(org, "signature_mode", "none")
+    authorized_signatory_name = company.get("authorized_signatory_name") or getattr(org, "authorized_signatory_name", "")
+    show_disclaimer = company.get("show_computer_generated_disclaimer") if "show_computer_generated_disclaimer" in company else getattr(org, "show_computer_generated_disclaimer", False)
 
     return {
         # Identity
-        "name":           company.get("name", ""),
-        "legal_name":     company.get("legal_name") or company.get("name", ""),
-        "gstin":          company.get("gstin", ""),
-        "pan":            company.get("pan", ""),
-        "state_code":     company.get("state_code", ""),
+        "name":                               company.get("name", ""),
+        "legal_name":                         company.get("legal_name") or company.get("name", ""),
+        "gstin":                              company.get("gstin", ""),
+        "pan":                                company.get("pan", ""),
+        "state_code":                         company.get("state_code", ""),
+        "terms_and_conditions":               terms_and_conditions,
+        "signature_mode":                     signature_mode,
+        "authorized_signatory_name":          authorized_signatory_name,
+        "show_computer_generated_disclaimer": show_disclaimer,
 
         # Address
         "address":        company.get("address", ""),
@@ -150,6 +147,7 @@ def _serialize_company(company: dict, org=None) -> dict:
         "logo_url":       logo_url,
         "signature_url":  signature_url,
         "letterhead_url": letterhead_url,
+        "qr_code_url":   qr_code_url,
 
         # Bank details
         "bank_name":      company.get("bank_name", ""),

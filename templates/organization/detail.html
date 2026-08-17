@@ -645,26 +645,98 @@
 
                     <hr style="border: 0; border-top: 1px solid var(--color-border); margin: var(--space-6) 0;">
 
-                    <!-- Authorized Signature -->
+                    <!-- Authorized Signature & Mode Settings -->
+                    <div class="form-group" style="margin-bottom: var(--space-6);">
+                        <label class="form-label" style="font-weight: var(--font-semibold); margin-bottom: var(--space-3); display: block;">Signature / Authorization</label>
+                        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4);">
+                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                                <input type="radio" name="signature_mode" value="none" {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}checked{% endif %} onchange="updateSignatureModeUI()">
+                                <div>
+                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">None</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Do not display a signature or authorization section on invoices.</div>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                                <input type="radio" name="signature_mode" value="image" {% if form.signature_mode.value == 'image' %}checked{% endif %} onchange="updateSignatureModeUI()">
+                                <div>
+                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Signature Image</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Use an uploaded signature image on invoices.</div>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                                <input type="radio" name="signature_mode" value="authorized_signatory" {% if form.signature_mode.value == 'authorized_signatory' %}checked{% endif %} onchange="updateSignatureModeUI()">
+                                <div>
+                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Authorized Signatory</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Display a professional signatory section using text instead of an uploaded image.</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Signature Image Container -->
+                        <div id="sig-image-container" style="margin-top: var(--space-4); {% if form.signature_mode.value != 'image' %}display: none;{% endif %}">
+                            <label class="form-label">Signature Image Asset</label>
+                            <div class="logo-upload-area">
+                                <div class="logo-preview" style="width: 140px; height: 60px;"> <!-- signature ratio -->
+                                    {% if object.signature %}
+                                        <img src="{{ object.signature.url }}" alt="Signature" id="signature-img-preview">
+                                    {% else %}
+                                        <i data-lucide="pen-tool" style="color: var(--color-text-muted); width: 32px; height: 32px;" id="signature-placeholder-icon"></i>
+                                        <img src="" alt="Signature" id="signature-img-preview" style="display: none;">
+                                    {% endif %}
+                                </div>
+                                <div class="logo-actions">
+                                    <input type="file" name="signature" id="signature-input" accept="image/png, image/jpeg" style="display: none;">
+                                    <input type="hidden" name="remove_signature" id="remove-signature-flag" value="False">
+                                    <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                        <button type="button" class="btn-outline" onclick="document.getElementById('signature-input').click()">Replace Signature</button>
+                                        <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-signature">Remove</button>
+                                    </div>
+                                    <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended format: Transparent PNG.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Authorized Signatory Name Container -->
+                        <div id="sig-text-container" style="margin-top: var(--space-4); {% if form.signature_mode.value != 'authorized_signatory' %}display: none;{% endif %}">
+                            <label class="form-label">Authorized Signatory / Organization Text</label>
+                            <input type="text" name="authorized_signatory_name" class="form-control" placeholder="e.g. Samruddhi Enterprises or John Doe" value="{{ form.authorized_signatory_name.value|default:'' }}">
+                            <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 4px;">Displayed under Authorized Signatory on invoices.</p>
+                        </div>
+
+                        <!-- Computer-Generated Disclaimer Checkbox -->
+                        <div style="margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px dashed var(--color-border);">
+                            <label style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer;">
+                                <input type="checkbox" name="show_computer_generated_disclaimer" value="True" {% if form.show_computer_generated_disclaimer.value %}checked{% endif %}>
+                                <div>
+                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Show computer-generated invoice disclaimer</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Prints: "This is a computer-generated invoice and does not require a signature."</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid var(--color-border); margin: var(--space-6) 0;">
+
+                    <!-- QR Code -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label">Authorized Signature</label>
+                        <label class="form-label">QR Code</label>
                         <div class="logo-upload-area">
-                            <div class="logo-preview" style="width: 140px; height: 60px;"> <!-- signature ratio -->
-                                {% if object.signature %}
-                                    <img src="{{ object.signature.url }}" alt="Signature" id="signature-img-preview">
+                            <div class="logo-preview" style="width: 80px; height: 80px;">
+                                {% if object.qr_code %}
+                                    <img src="{{ object.qr_code.url }}" alt="QR Code" id="qr-img-preview">
                                 {% else %}
-                                    <i data-lucide="pen-tool" style="color: var(--color-text-muted); width: 32px; height: 32px;" id="signature-placeholder-icon"></i>
-                                    <img src="" alt="Signature" id="signature-img-preview" style="display: none;">
+                                    <i data-lucide="qr-code" style="color: var(--color-text-muted); width: 32px; height: 32px;" id="qr-placeholder-icon"></i>
+                                    <img src="" alt="QR Code" id="qr-img-preview" style="display: none;">
                                 {% endif %}
                             </div>
                             <div class="logo-actions">
-                                <input type="file" name="signature" id="signature-input" accept="image/png, image/jpeg" style="display: none;">
-                                <input type="hidden" name="remove_signature" id="remove-signature-flag" value="False">
+                                <input type="file" name="qr_code" id="qr-input" accept="image/png, image/jpeg, image/svg+xml" style="display: none;">
+                                <input type="hidden" name="remove_qr_code" id="remove-qr-flag" value="False">
                                 <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
-                                    <button type="button" class="btn-outline" onclick="document.getElementById('signature-input').click()">Replace Signature</button>
-                                    <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-signature">Remove</button>
+                                    <button type="button" class="btn-outline" onclick="document.getElementById('qr-input').click()">Replace QR Code</button>
+                                    <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-qr">Remove</button>
                                 </div>
-                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended format: Transparent PNG.</p>
+                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended size: 500x500px. Supported formats: PNG, JPG, SVG.</p>
                             </div>
                         </div>
                     </div>
@@ -703,18 +775,12 @@
                             
                             <div style="display: flex; gap: var(--space-2);">
                                 {% if not bank.is_default %}
-                                <form method="post" action="{% url 'organization:bank_default' bank.pk %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Set as Default"><i data-lucide="check" style="width:14px; height:14px;"></i></button>
-                                </form>
+                                <button type="submit" form="bank-default-form-{{ bank.pk }}" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Set as Default"><i data-lucide="check" style="width:14px; height:14px;"></i></button>
                                 {% endif %}
                                 <button type="button" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Edit" onclick="openBankEdit('{{ bank.pk }}', '{{ bank.bank_name|escapejs }}', '{{ bank.account_name|escapejs }}', '{{ bank.account_number|escapejs }}', '{{ bank.ifsc_code|escapejs }}', '{{ bank.branch|escapejs }}')">
                                     <i data-lucide="edit-2" style="width:14px; height:14px;"></i>
                                 </button>
-                                <form method="post" action="{% url 'organization:bank_delete' bank.pk %}" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this bank account?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px; border-color: transparent; color: var(--color-error);" title="Delete"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>
-                                </form>
+                                <button type="submit" form="bank-delete-form-{{ bank.pk }}" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px; border-color: transparent; color: var(--color-error);" title="Delete"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>
                             </div>
                         </div>
                         {% empty %}
@@ -723,6 +789,20 @@
                             <p>No bank accounts configured yet.</p>
                         </div>
                         {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Terms & Conditions -->
+            <section class="settings-section">
+                <div class="section-meta">
+                    <h3><i data-lucide="file-text"></i> Terms &amp; Conditions</h3>
+                    <p>Default terms and conditions printed on your invoices.</p>
+                </div>
+                <div class="settings-card">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Default Invoice Terms &amp; Conditions</label>
+                        <textarea name="terms_and_conditions" class="form-control" rows="4" placeholder="Enter default terms &amp; conditions to display on invoices">{{ form.terms_and_conditions.value|default:'' }}</textarea>
                     </div>
                 </div>
             </section>
@@ -759,6 +839,19 @@
 
         </form>
         </div>
+
+        <!-- Standalone Bank Account Action Forms (outside outer #org-settings-form to prevent form nesting) -->
+        {% for bank in bank_accounts %}
+            {% if not bank.is_default %}
+            <form id="bank-default-form-{{ bank.pk }}" method="post" action="{% url 'organization:bank_default' bank.pk %}" style="display: none;">
+                {% csrf_token %}
+            </form>
+            {% endif %}
+            <form id="bank-delete-form-{{ bank.pk }}" method="post" action="{% url 'organization:bank_delete' bank.pk %}" style="display: none;" onsubmit="return confirm('Are you sure you want to delete this bank account?');">
+                {% csrf_token %}
+            </form>
+        {% endfor %}
+
     </main>
 
     <!-- Delete Confirmation Modal -->
@@ -1024,9 +1117,18 @@
             }
         }
 
+        function updateSignatureModeUI() {
+            const selectedMode = document.querySelector('input[name="signature_mode"]:checked')?.value || 'none';
+            const imgContainer = document.getElementById('sig-image-container');
+            const textContainer = document.getElementById('sig-text-container');
+            if (imgContainer) imgContainer.style.display = (selectedMode === 'image') ? 'block' : 'none';
+            if (textContainer) textContainer.style.display = (selectedMode === 'authorized_signatory') ? 'block' : 'none';
+        }
+
         setupImageUpload('logo-input', 'logo-img-preview', 'logo-placeholder-icon', 'btn-remove-logo', 'remove-logo-flag');
         setupImageUpload('letterhead-input', 'letterhead-img-preview', 'letterhead-placeholder-icon', 'btn-remove-letterhead', 'remove-letterhead-flag');
         setupImageUpload('signature-input', 'signature-img-preview', 'signature-placeholder-icon', 'btn-remove-signature', 'remove-signature-flag');
+        setupImageUpload('qr-input', 'qr-img-preview', 'qr-placeholder-icon', 'btn-remove-qr', 'remove-qr-flag');
         
         // Safe Area Sliders
         const headerSlider = document.getElementById('header-slider');

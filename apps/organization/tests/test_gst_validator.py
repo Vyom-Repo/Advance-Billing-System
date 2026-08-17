@@ -1,5 +1,8 @@
+"""
+apps/organization/tests/test_gst_validator.py
+"""
 from django.test import TestCase
-from .services import LocalGSTValidator
+from apps.organization.services import LocalGSTValidator
 
 class LocalGSTValidatorTests(TestCase):
     def test_valid_gstin(self):

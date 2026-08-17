@@ -5,6 +5,12 @@ from django.conf import settings
 from django.db import models
 from apps.common.models import TimeStampedModel
 
+class SignatureMode(models.TextChoices):
+    NONE = "none", "None"
+    IMAGE = "image", "Signature Image"
+    AUTHORIZED_SIGNATORY = "authorized_signatory", "Authorized Signatory"
+
+
 class Organization(TimeStampedModel):
     """
     Represents the business entity using the Advance Billing platform.
@@ -43,6 +49,28 @@ class Organization(TimeStampedModel):
     letterhead_header_offset = models.IntegerField(default=30, help_text="Header safe area offset in mm")
     letterhead_footer_offset = models.IntegerField(default=25, help_text="Footer safe area offset in mm")
     signature = models.ImageField(upload_to="organization_signatures/", blank=True, null=True, help_text="Authorized signatory image.")
+    qr_code = models.ImageField(upload_to="organization_qr_codes/", blank=True, null=True, help_text="QR Code image displayed on invoices.")
+
+    # Signature / Authorization & Disclaimer Settings
+    signature_mode = models.CharField(
+        max_length=20,
+        choices=SignatureMode.choices,
+        default=SignatureMode.NONE,
+        help_text="Signature / Authorization mode for invoices."
+    )
+    authorized_signatory_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Organization / Signatory text displayed when Authorized Signatory mode is selected."
+    )
+    show_computer_generated_disclaimer = models.BooleanField(
+        default=False,
+        help_text="Show disclaimer stating invoice is computer-generated and does not require signature."
+    )
+
+    # Terms & Conditions
+    terms_and_conditions = models.TextField(blank=True, default="", help_text="Default Terms & Conditions for invoices.")
 
     def __str__(self) -> str:
         return self.business_name
@@ -76,3 +104,6 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
         instance.letterhead.delete(save=False)
     if instance.signature:
         instance.signature.delete(save=False)
+    if instance.qr_code:
+        instance.qr_code.delete(save=False)
+

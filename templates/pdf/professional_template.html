@@ -184,18 +184,34 @@
             {% endif %}
             {% if config.show_signature %}
             <div>
-                <b>For {{ company.name }}</b>
-                <div class="signature">
-                    {% if company.signature_url %}
+                {% if company.signature_mode == 'image' and company.signature_url %}
+                    <b>For {{ company.name }}</b>
+                    <div class="signature">
                         <img src="{{ company.signature_url }}" style="position:absolute;right:2mm;top:4mm;max-height:17mm;max-width:35mm;" alt="Signature">
-                    {% else %}
-                        <div class="stamp">AUTHORISED<br>SIGNATORY</div>
-                    {% endif %}
-                    <div class="auth">Authorized Signatory</div>
-                </div>
+                        <div class="auth">Authorized Signatory</div>
+                    </div>
+                {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                    <b>For {{ company.authorized_signatory_name }}</b>
+                    <div class="signature">
+                        <div style="border-top:1px solid #777; width:100px; position:absolute; right:2mm; top:12mm;"></div>
+                        <div class="auth">Authorized Signatory</div>
+                    </div>
+                {% elif company.signature_url %}
+                    <b>For {{ company.name }}</b>
+                    <div class="signature">
+                        <img src="{{ company.signature_url }}" style="position:absolute;right:2mm;top:4mm;max-height:17mm;max-width:35mm;" alt="Signature">
+                        <div class="auth">Authorized Signatory</div>
+                    </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
+
+        {% if company.show_computer_generated_disclaimer %}
+        <div style="font-size: 8px; color: #666666; font-style: italic; margin-top: 4px; text-align: center;">
+            This is a computer-generated invoice and does not require a signature.
+        </div>
+        {% endif %}
 
         <div class="notes">
             {% if bill.notes %}<b>Notes</b><p>{{ bill.notes }}</p>{% endif %}

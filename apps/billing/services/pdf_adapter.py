@@ -80,6 +80,10 @@ def invoice_to_pdf_dicts(invoice: Invoice):
         "country": org.country,
         "email": org.business_email,
         "phone": org.phone_number,
+        "terms_and_conditions": getattr(org, "terms_and_conditions", ""),
+        "signature_mode": getattr(org, "signature_mode", "none"),
+        "authorized_signatory_name": getattr(org, "authorized_signatory_name", ""),
+        "show_computer_generated_disclaimer": getattr(org, "show_computer_generated_disclaimer", False),
     }
     
     bank = org.bank_accounts.filter(is_default=True).first()

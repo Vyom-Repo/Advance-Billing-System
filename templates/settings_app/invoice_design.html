@@ -696,11 +696,20 @@
             <div class="accordion-content">
                 <div style="padding: 0 var(--space-6) var(--space-6);">
                     <div class="elements-grid">
-                        <label class="element-card {% if form.show_qr_code.value %}checked{% endif %}">{{ form.show_qr_code }}<div class="custom-checkbox"><svg width="14" height="14"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <label class="element-card {% if form.show_qr_code.value and has_qr %}checked{% endif %}"
+                            {% if not has_qr %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                            <input type="checkbox" name="show_qr_code" class="toggle-input" {% if form.show_qr_code.value and has_qr %}checked{% endif %} {% if not has_qr %}disabled{% endif %}>
+                            <div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg></div>
-                            <div class="element-label">QR Code</div>
+                            <div class="element-label">QR Code
+                                {% if not has_qr %}
+                                <div style="font-size: 10px; color: var(--color-warning); font-weight: normal; margin-top: 4px;">
+                                    No QR code uploaded. <a href="{% url 'organization:index' %}" style="color:var(--color-accent);text-decoration:underline; pointer-events: auto;">Configure</a>
+                                </div>
+                                {% endif %}
+                            </div>
                         </label>
                         <label class="element-card {% if form.show_bank_details.value and has_bank %}checked{% endif %}"
                             {% if not has_bank %}style="opacity: 0.5; pointer-events: none;" {% endif %}>
@@ -739,29 +748,30 @@
                                     stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg></div>
-                            <div class="element-label">Signature
+                            <div class="element-label">Signature / Authorization
                                 {% if not has_signature %}
                                 <div
                                     style="font-size: 10px; color: var(--color-warning); font-weight: normal; margin-top: 4px;">
-                                    No signature uploaded. <a href="{% url 'organization:index' %}"
+                                    No signature or authorized signatory configured. <a href="{% url 'organization:index' %}"
                                         style="color:var(--color-accent);text-decoration:underline; pointer-events: auto;">Configure</a>
                                 </div>
                                 {% endif %}
                             </div>
                         </label>
-                        <label class="element-card {% if form.show_payment_info.value %}checked{% endif %}">{{ form.show_payment_info }}<div class="custom-checkbox"><svg width="14" height="14"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg></div>
-                            <div class="element-label">Payment Info</div>
-                        </label>
-                        <label class="element-card {% if form.show_terms.value %}checked{% endif %}">
-                            {{ form.show_terms }}
+                        <label class="element-card {% if form.show_terms.value and has_terms %}checked{% endif %}"
+                            {% if not has_terms %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                            <input type="checkbox" name="show_terms" class="toggle-input" {% if form.show_terms.value and has_terms %}checked{% endif %} {% if not has_terms %}disabled{% endif %}>
                             <div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg></div>
-                            <div class="element-label">Terms & Conditions</div>
+                            <div class="element-label">Terms & Conditions
+                                {% if not has_terms %}
+                                <div style="font-size: 10px; color: var(--color-warning); font-weight: normal; margin-top: 4px;">
+                                    No terms configured. <a href="{% url 'organization:index' %}" style="color:var(--color-accent);text-decoration:underline; pointer-events: auto;">Configure</a>
+                                </div>
+                                {% endif %}
+                            </div>
                         </label>
                         <label class="element-card {% if form.show_page_numbers.value %}checked{% endif %}">{{ form.show_page_numbers }}<div class="custom-checkbox"><svg width="14" height="14"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">

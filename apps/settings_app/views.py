@@ -334,17 +334,29 @@ class SettingsInvoiceDesignView(BillingLoginRequiredMixin, PageTitleMixin, Updat
         has_letterhead = False
         has_signature = False
         has_bank = False
+        has_qr = False
+        has_terms = False
         
         if org_data:
             has_logo = bool(org_data.get("logo"))
             has_letterhead = bool(org_data.get("letterhead"))
-            has_signature = bool(org_data.get("signature"))
+            sig_mode = org_data.get("signature_mode") or "none"
+            if sig_mode == "image":
+                has_signature = bool(org_data.get("signature"))
+            elif sig_mode == "authorized_signatory":
+                has_signature = bool((org_data.get("authorized_signatory_name") or "").strip())
+            else:
+                has_signature = False
             has_bank = bool(org_data.get("default_bank"))
+            has_qr = bool(org_data.get("qr_code"))
+            has_terms = bool((org_data.get("terms_and_conditions") or "").strip())
             
         context['has_logo'] = has_logo
         context['has_letterhead'] = has_letterhead
         context['has_signature'] = has_signature
         context['has_bank'] = has_bank
+        context['has_qr'] = has_qr
+        context['has_terms'] = has_terms
 
         TEMPLATE_DISPLAY_NAMES = {
             'gst_classic': 'GST Classic',

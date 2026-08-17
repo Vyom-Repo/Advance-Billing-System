@@ -34,7 +34,6 @@ class BillRenderingMatrixTestCase(TestCase):
         "show_hsn_sac",
         "show_signature",
         "show_terms",
-        "show_payment_info",
         "show_page_numbers",
         "show_print_date",
         "print_on_letterhead",
@@ -144,14 +143,14 @@ class BillRenderingMatrixTestCase(TestCase):
                 html = self._render_template(slug, prefs)
                 self.assertNotIn("Terms and Conditions:", html)
 
-    def test_payment_info_off(self):
-        """Test 9: When payment info is OFF, amount paid is suppressed."""
+    def test_payment_info_is_not_rendered(self):
+        """Test 9: Verify payment info (Amount Paid) is never rendered on invoices."""
         prefs = {p: True for p in self.PREFERENCES}
-        prefs["show_payment_info"] = False
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
                 self.assertNotIn("Amount Paid", html)
+                self.assertNotIn("Balance Due", html)
 
     def test_company_footer_off(self):
         """Test 10: When company footer is OFF, footer message is suppressed."""

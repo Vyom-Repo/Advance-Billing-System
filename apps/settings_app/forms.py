@@ -94,7 +94,7 @@ class DocumentPreferenceForm(forms.ModelForm):
             "template_name", "paper_size", "orientation", "margins",
             "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
             "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
-            "show_signature", "show_terms", "show_payment_info",
+            "show_signature", "show_terms",
             "font_size", "table_density",
             "show_page_numbers", "show_print_date", "custom_footer_message"
         ]
@@ -106,7 +106,7 @@ class DocumentPreferenceForm(forms.ModelForm):
         toggle_fields = [
             "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
             "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
-            "show_signature", "show_terms", "show_payment_info",
+            "show_signature", "show_terms",
             "show_page_numbers", "show_print_date"
         ]
         

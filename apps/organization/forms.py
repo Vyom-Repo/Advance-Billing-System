@@ -59,9 +59,42 @@ class OrganizationUpdateForm(OrganizationSetupForm):
     remove_logo = forms.BooleanField(required=False, initial=False)
     remove_letterhead = forms.BooleanField(required=False, initial=False)
     remove_signature = forms.BooleanField(required=False, initial=False)
+    remove_qr_code = forms.BooleanField(required=False, initial=False)
 
     class Meta(OrganizationSetupForm.Meta):
-        fields = OrganizationSetupForm.Meta.fields + ["legal_business_name", "letterhead", "signature", "letterhead_header_offset", "letterhead_footer_offset"]
+        fields = OrganizationSetupForm.Meta.fields + [
+            "legal_business_name", "letterhead", "signature", "qr_code",
+            "letterhead_header_offset", "letterhead_footer_offset",
+            "signature_mode", "authorized_signatory_name", "show_computer_generated_disclaimer",
+            "terms_and_conditions",
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        sig_mode = cleaned_data.get("signature_mode") or "none"
+        
+        # Trim authorized_signatory_name
+        auth_name = (cleaned_data.get("authorized_signatory_name") or "").strip()
+        cleaned_data["authorized_signatory_name"] = auth_name
+
+        if sig_mode == "authorized_signatory":
+            if not auth_name:
+                self.add_error(
+                    "authorized_signatory_name",
+                    "Authorized Signatory Name is required when Authorized Signatory mode is selected."
+                )
+        elif sig_mode == "image":
+            has_existing_signature = bool(self.instance and self.instance.signature)
+            is_removing = bool(cleaned_data.get("remove_signature"))
+            has_new_upload = bool(self.files and self.files.get("signature"))
+
+            if is_removing or not (has_existing_signature or has_new_upload):
+                self.add_error(
+                    "signature_mode",
+                    "A valid signature image must be uploaded or already present when Signature Image mode is selected."
+                )
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -71,6 +104,8 @@ class OrganizationUpdateForm(OrganizationSetupForm):
             instance.letterhead.delete(save=False)
         if self.cleaned_data.get('remove_signature') and instance.signature:
             instance.signature.delete(save=False)
+        if self.cleaned_data.get('remove_qr_code') and instance.qr_code:
+            instance.qr_code.delete(save=False)
         
         if commit:
             instance.save()

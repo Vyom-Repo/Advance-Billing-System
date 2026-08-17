@@ -690,14 +690,28 @@
 
                 {% if config.show_signature %}
                 <div class="sign">
-                    <div class="sign-title">For {{ company.name }}</div>
-                    {% if company.signature_url %}
+                    {% if company.signature_mode == 'image' and company.signature_url %}
+                        <div class="sign-title">For {{ company.name }}</div>
                         <img class="signature" src="{{ company.signature_url }}" alt="Signature">
+                        <div class="authorized">Authorized Signatory</div>
+                    {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                        <div class="sign-title">For {{ company.authorized_signatory_name }}</div>
+                        <div style="border-top:1px solid #111; width:100px; margin: 15mm auto 2mm auto;"></div>
+                        <div class="authorized">Authorized Signatory</div>
+                    {% elif company.signature_url %}
+                        <div class="sign-title">For {{ company.name }}</div>
+                        <img class="signature" src="{{ company.signature_url }}" alt="Signature">
+                        <div class="authorized">Authorized Signatory</div>
                     {% endif %}
-                    <div class="authorized">Authorized Signatory</div>
                 </div>
                 {% endif %}
             </div>
+
+            {% if company.show_computer_generated_disclaimer %}
+            <div style="font-size: 8px; color: #111111; font-style: italic; margin-top: 4px; text-align: center;">
+                This is a computer-generated invoice and does not require a signature.
+            </div>
+            {% endif %}
 
             <div class="notes">
                 <div class="notes-left">

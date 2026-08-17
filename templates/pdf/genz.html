@@ -512,17 +512,28 @@
                 {% if config.show_signature %}
                 <div class="footer-box">
                     <div class="signature-area">
-                        {% if company.signature_url %}
+                        {% if company.signature_mode == 'image' and company.signature_url %}
                             <img src="{{ company.signature_url }}" style="position:absolute;right:0;bottom:7mm;max-height:18mm;max-width:35mm;" alt="Signature">
-                        {% else %}
-                            <div class="signature">Authorized Sign</div>
+                            <div class="signature-label">Authorized Signatory</div>
+                        {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                            <div style="border-top:1px solid #777; width:100px; margin-left:auto; margin-bottom:4px;"></div>
+                            <div class="signature-label">Authorized Signatory</div>
+                            <div style="font-size:7.5px; color:#555;">For {{ company.authorized_signatory_name }}</div>
+                        {% elif company.signature_url %}
+                            <img src="{{ company.signature_url }}" style="position:absolute;right:0;bottom:7mm;max-height:18mm;max-width:35mm;" alt="Signature">
+                            <div class="signature-label">Authorized Signatory</div>
                         {% endif %}
-                        <div class="signature-label">Authorized Signatory</div>
                     </div>
                 </div>
                 {% endif %}
 
             </div>
+
+            {% if company.show_computer_generated_disclaimer %}
+            <div style="font-size: 8px; color: #666666; font-style: italic; margin-top: 6px; text-align: center;">
+                This is a computer-generated invoice and does not require a signature.
+            </div>
+            {% endif %}
 
             <!-- NOTES / TERMS -->
             <div class="bottom-row">

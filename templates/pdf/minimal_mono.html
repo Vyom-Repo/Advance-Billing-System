@@ -463,20 +463,10 @@
                         <span style="font-variant-numeric: tabular-nums; color: #16a34a;">-{{ bill.currency_symbol }}{{ bill.discount_total }}</span>
                     </div>
                     {% endif %}
-                    <div class="totals-row main">
-                        <span>Total Due</span>
+                    <div class="totals-row grand">
+                        <span>Total Amount Payable</span>
                         <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
                     </div>
-                    {% if config.show_payment_info and bill.amount_paid %}
-                    <div class="totals-row">
-                        <span>Amount Paid</span>
-                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.amount_paid }}</span>
-                    </div>
-                    <div class="totals-row" style="font-weight: 700; color: #0f172a;">
-                        <span>Balance Remaining</span>
-                        <span style="font-variant-numeric: tabular-nums;">{{ bill.currency_symbol }}{{ bill.amount_due }}</span>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -507,14 +497,28 @@
 
                 <div class="floating-card sign-minimal">
                     {% if config.show_signature %}
-                    <div class="card-heading" style="text-align: right;">Authorized Signature</div>
-                    {% if company.signature_url %}
-                    <img class="sign-img-minimal" src="{{ company.signature_url }}" alt="Signature">
-                    {% endif %}
-                    <div class="sign-caption">For {{ company.name }}</div>
+                        {% if company.signature_mode == 'image' and company.signature_url %}
+                            <div class="card-heading" style="text-align: right;">Authorized Signature</div>
+                            <img class="sign-img-minimal" src="{{ company.signature_url }}" alt="Signature">
+                            <div class="sign-caption">For {{ company.name }}</div>
+                        {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                            <div class="card-heading" style="text-align: right;">Authorized Signature</div>
+                            <div style="border-top: 1px solid #94a3b8; width: 100px; margin-left: auto; margin-top: 10mm; margin-bottom: 2mm;"></div>
+                            <div class="sign-caption">For {{ company.authorized_signatory_name }}</div>
+                        {% elif company.signature_url %}
+                            <div class="card-heading" style="text-align: right;">Authorized Signature</div>
+                            <img class="sign-img-minimal" src="{{ company.signature_url }}" alt="Signature">
+                            <div class="sign-caption">For {{ company.name }}</div>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
+
+            {% if company.show_computer_generated_disclaimer %}
+            <div style="font-size: 8px; color: #475569; font-style: italic; margin-top: 4px; text-align: center;">
+                This is a computer-generated invoice and does not require a signature.
+            </div>
+            {% endif %}
 
             <!-- TERMS -->
             {% if config.show_terms and bill.terms %}

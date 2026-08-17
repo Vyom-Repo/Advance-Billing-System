@@ -466,19 +466,33 @@
 
                             {% if config.show_signature %}
                             <td style="width: 35%;" class="text-right">
-                                <div class="section-heading" style="text-align: right;">For {{ company.name }}</div>
-                                <div style="margin-top: 8px; margin-bottom: 8px;">
-                                    {% if company.signature_url %}
-                                    <img src="{{ company.signature_url }}" alt="Signature" style="max-height: 50px; max-width: 120px;">
-                                    {% else %}
-                                    <div class="stamp-placeholder">SIGNATURE</div>
-                                    {% endif %}
-                                </div>
-                                <div style="font-size: 8.5px; font-weight: bold;">Authorized Signatory</div>
+                                {% if company.signature_mode == 'image' and company.signature_url %}
+                                    <div class="section-heading" style="text-align: right;">For {{ company.name }}</div>
+                                    <div style="margin-top: 8px; margin-bottom: 8px;">
+                                        <img src="{{ company.signature_url }}" alt="Signature" style="max-height: 50px; max-width: 120px;">
+                                    </div>
+                                    <div style="font-size: 8.5px; font-weight: bold;">Authorized Signatory</div>
+                                {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                                    <div class="section-heading" style="text-align: right;">For {{ company.authorized_signatory_name }}</div>
+                                    <div style="margin-top: 16px; margin-bottom: 8px; border-top: 1px solid #777777; width: 120px; margin-left: auto;"></div>
+                                    <div style="font-size: 8.5px; font-weight: bold;">Authorized Signatory</div>
+                                {% elif company.signature_url %}
+                                    <div class="section-heading" style="text-align: right;">For {{ company.name }}</div>
+                                    <div style="margin-top: 8px; margin-bottom: 8px;">
+                                        <img src="{{ company.signature_url }}" alt="Signature" style="max-height: 50px; max-width: 120px;">
+                                    </div>
+                                    <div style="font-size: 8.5px; font-weight: bold;">Authorized Signatory</div>
+                                {% endif %}
                             </td>
                             {% endif %}
                         </tr>
                     </table>
+
+                    {% if company.show_computer_generated_disclaimer %}
+                    <div style="font-size: 8px; color: #666666; font-style: italic; margin-top: 6px; text-align: center;">
+                        This is a computer-generated invoice and does not require a signature.
+                    </div>
+                    {% endif %}
 
                     <!-- Terms & Conditions -->
                     {% if config.show_terms and bill.terms %}

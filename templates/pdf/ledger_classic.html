@@ -481,16 +481,6 @@
                         <td>GRAND TOTAL</td>
                         <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.grand_total }}</td>
                     </tr>
-                    {% if config.show_payment_info and bill.amount_paid %}
-                    <tr>
-                        <td>Amount Paid</td>
-                        <td class="text-right tabular-nums">{{ bill.currency_symbol }}{{ bill.amount_paid }}</td>
-                    </tr>
-                    <tr>
-                        <td><b>BALANCE DUE</b></td>
-                        <td class="text-right tabular-nums"><b>{{ bill.currency_symbol }}{{ bill.amount_due }}</b></td>
-                    </tr>
-                    {% endif %}
                 </table>
             </div>
         </div>
@@ -520,16 +510,34 @@
 
             <div class="bottom-box">
                 {% if config.show_signature %}
-                <div class="bottom-title">FOR {{ company.name|upper }}</div>
-                <div class="sign-area">
-                    {% if company.signature_url %}
-                    <img class="sign-img" src="{{ company.signature_url }}" alt="Signature">
+                    {% if company.signature_mode == 'image' and company.signature_url %}
+                        <div class="bottom-title">FOR {{ company.name|upper }}</div>
+                        <div class="sign-area">
+                            <img class="sign-img" src="{{ company.signature_url }}" alt="Signature">
+                            <div class="sign-line">Authorized Signatory</div>
+                        </div>
+                    {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                        <div class="bottom-title">FOR {{ company.authorized_signatory_name|upper }}</div>
+                        <div class="sign-area">
+                            <div style="border-top:1px solid #111; width:100px; margin: 12mm auto 2mm auto;"></div>
+                            <div class="sign-line">Authorized Signatory</div>
+                        </div>
+                    {% elif company.signature_url %}
+                        <div class="bottom-title">FOR {{ company.name|upper }}</div>
+                        <div class="sign-area">
+                            <img class="sign-img" src="{{ company.signature_url }}" alt="Signature">
+                            <div class="sign-line">Authorized Signatory</div>
+                        </div>
                     {% endif %}
-                    <div class="sign-line">Authorized Signatory</div>
-                </div>
                 {% endif %}
             </div>
         </div>
+
+        {% if company.show_computer_generated_disclaimer %}
+        <div style="font-size: 8px; color: #111111; font-style: italic; margin-top: 4px; text-align: center;">
+            This is a computer-generated invoice and does not require a signature.
+        </div>
+        {% endif %}
 
         <!-- TERMS -->
         {% if config.show_terms and bill.terms %}
