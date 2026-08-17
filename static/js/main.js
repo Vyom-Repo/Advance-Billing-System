@@ -65,8 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            // Do not handle if form is invalid
-            if (form.checkValidity && !form.checkValidity()) return;
+            // Report validity if invalid and stop submission
+            if (form.checkValidity && !form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
             
             const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
@@ -87,15 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadingText = 'Generating Invoice...';
                 }
 
-                // Apply button loading state
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.75';
-                submitBtn.style.cursor = 'wait';
-                if (submitBtn.tagName === 'INPUT') {
-                    submitBtn.value = loadingText;
-                } else {
-                    submitBtn.innerText = loadingText;
-                }
+                // Apply button loading state asynchronously so native submission is not aborted
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.75';
+                    submitBtn.style.cursor = 'wait';
+                    if (submitBtn.tagName === 'INPUT') {
+                        submitBtn.value = loadingText;
+                    } else {
+                        submitBtn.innerText = loadingText;
+                    }
+                }, 0);
             }
         });
     });

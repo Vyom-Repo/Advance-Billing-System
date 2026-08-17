@@ -128,6 +128,7 @@
         appearance: none;
         -webkit-appearance: none;
         position: relative;
+        color-scheme: dark;
     }
 
     input[type="date"].form-control::-webkit-calendar-picker-indicator {
@@ -223,6 +224,32 @@
         color: var(--color-bg-surface);
     }
 
+    /* Discount Value Wrapper */
+    .discount-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .discount-wrapper .discount-prefix,
+    .discount-wrapper .discount-suffix {
+        position: absolute;
+        color: var(--color-text-muted);
+        font-size: var(--text-sm);
+        pointer-events: none;
+    }
+    .discount-wrapper .discount-prefix {
+        left: var(--space-3);
+    }
+    .discount-wrapper .discount-suffix {
+        right: var(--space-3);
+    }
+    .discount-wrapper.has-prefix .form-control {
+        padding-left: 1.8rem;
+    }
+    .discount-wrapper.has-suffix .form-control {
+        padding-right: 1.8rem;
+    }
+
     /* Place of supply derived hint */
     .pos-hint {
         font-size: var(--text-xs);
@@ -250,18 +277,18 @@
 
     .lines-table th {
         font-size: var(--text-xs);
-        font-weight: var(--font-semibold);
+        font-weight: var(--font-medium);
         color: var(--color-text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        padding: var(--space-2) var(--space-3);
+        padding: var(--space-3);
         border-bottom: 1px solid var(--color-border);
         white-space: nowrap;
     }
 
     .lines-table td {
-        padding: var(--space-2) var(--space-3);
-        vertical-align: top;
+        padding: var(--space-3);
+        vertical-align: middle;
         border-bottom: 1px solid var(--color-border);
     }
 
@@ -514,7 +541,7 @@
                 </a>
             </div>
 
-            <form method="post" id="invoice-form" novalidate>
+            <form method="post" id="invoice-form">
                 {% csrf_token %}
                 {# State token for Customer/Product return flow — uniquely identifies this form session #}
                 <input type="hidden" id="invoice-state-token" value="{{ state_token|default:'' }}">
@@ -631,9 +658,12 @@
 
                 <!-- 4. Line Items -->
                 <div class="form-card">
-                    <div class="card-title-row">
+                    <div class="card-title-row" style="margin-bottom: var(--space-4);">
                         <i data-lucide="list"></i>
                         <h3>Line Items</h3>
+                        <a href="{% url 'products:create' %}?from_invoice=1" class="btn btn-sm btn-outline" style="margin-left: auto;" onclick="stashAndRedirectProduct(event, '')">
+                            <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Product
+                        </a>
                     </div>
                     {{ formset.management_form }}
                     {% if formset.non_form_errors %}
@@ -645,12 +675,12 @@
                         <table class="lines-table" id="lines-table">
                             <thead>
                                 <tr>
-                                    <th style="min-width:220px;">Product / Service</th>
-                                    <th style="min-width:80px;">Qty</th>
-                                    <th style="min-width:110px;">Rate (₹)</th>
-                                    <th style="min-width:110px;">Discount</th>
-                                    <th style="min-width:80px;">Disc. Value</th>
-                                    <th style="min-width:50px;"></th>
+                                    <th style="width:35%;min-width:220px;">Product / Service</th>
+                                    <th style="width:12%;min-width:90px;">Qty</th>
+                                    <th style="width:15%;min-width:110px;">Rate (₹)</th>
+                                    <th style="width:18%;min-width:130px;">Discount</th>
+                                    <th style="width:14%;min-width:110px;">Disc. Value</th>
+                                    <th style="width:6%;min-width:50px;text-align:center;"></th>
                                 </tr>
                             </thead>
                             <tbody id="lines-tbody">
@@ -660,16 +690,19 @@
                                     <td>
                                         <div class="product-cell">
                                             {{ line_form.product }}
-                                            <button type="button" class="btn-add-inline"
-                                                data-line-index="{{ forloop.counter0 }}" title="Create new product"
-                                                onclick="stashAndRedirectProduct(event, {{ forloop.counter0 }})"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
                                         </div>
                                         {% if line_form.product.errors %}<ul class="errorlist">{% for e in line_form.product.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
                                     </td>
                                     <td>{{ line_form.quantity }}{% if line_form.quantity.errors %}<ul class="errorlist">{% for e in line_form.quantity.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</td>
                                     <td>{{ line_form.unit_price }}{% if line_form.unit_price.errors %}<ul class="errorlist">{% for e in line_form.unit_price.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</td>
                                     <td>{{ line_form.discount_type }}</td>
-                                    <td>{{ line_form.discount_value }}</td>
+                                    <td>
+                                        <div class="discount-wrapper">
+                                            <span class="discount-prefix" style="display:none;">₹</span>
+                                            {{ line_form.discount_value }}
+                                            <span class="discount-suffix" style="display:none;">%</span>
+                                        </div>
+                                    </td>
                                     <td>
                                         {% if line_form.DELETE %}
                                         <div style="display:flex;align-items:center;gap:4px;">
@@ -690,33 +723,44 @@
                     <button type="button" class="btn-add-line" id="add-line-btn">
                         <i data-lucide="plus"></i> Add Line Item
                     </button>
-                    <div id="empty-form-template" style="display:none;">
-                        {# Empty form template for JS — prefix is replaced by JS #}
-                        <tr class="line-row new-line-row">
-                            <td>
-                                <div class="product-cell">
-                                    {{ formset.empty_form.product }}
-                                    <button type="button" class="btn-add-inline" data-line-index="__prefix__"
-                                        title="Create new product"
-                                        onclick="stashAndRedirectProduct(event, parseInt(this.dataset.lineIndex))"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
-                                </div>
-                            </td>
-                            <td><input type="number" name="lines-__prefix__-quantity" class="form-control line-qty"
-                                    step="0.001" min="0.001" value="1.000"></td>
-                            <td><input type="number" name="lines-__prefix__-unit_price" class="form-control line-rate"
-                                    step="0.01" min="0" value="0.00"></td>
-                            <td><select name="lines-__prefix__-discount_type" class="form-control line-discount-type">
-                                    <option value="none">None</option>
-                                    <option value="percentage">Percentage (%)</option>
-                                    <option value="fixed">Fixed (₹)</option>
-                                </select></td>
-                            <td><input type="number" name="lines-__prefix__-discount_value"
-                                    class="form-control line-discount-value" step="0.01" min="0" value="0.00"></td>
-                            <td><input type="hidden" name="lines-__prefix__-DELETE" value=""><button type="button"
-                                    class="delete-row-btn" onclick="removeNewLine(this)" title="Remove"><i
-                                        data-lucide="x" style="width:15px;height:15px;"></i></button></td>
-                        </tr>
-                    </div>
+                    <table style="display:none;">
+                        <tbody id="empty-form-template">
+                            {# Empty form template for JS — prefix is replaced by JS #}
+                            <tr class="line-row new-line-row">
+                                <td>
+                                    <div class="product-cell">
+                                        {{ formset.empty_form.product }}
+                                    </div>
+                                </td>
+                                <td><input type="number" name="lines-__prefix__-quantity" class="form-control line-qty"
+                                        step="0.001" min="0.001" value="1.000"></td>
+                                <td><input type="number" name="lines-__prefix__-unit_price" class="form-control line-rate"
+                                        step="0.01" min="0" value="0.00"></td>
+                                <td><select name="lines-__prefix__-discount_type" class="form-control line-discount-type">
+                                        <option value="none">None</option>
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed (₹)</option>
+                                    </select></td>
+                                <td>
+                                    <div class="discount-wrapper">
+                                        <span class="discount-prefix" style="display:none;">₹</span>
+                                        <input type="number" name="lines-__prefix__-discount_value"
+                                            class="form-control line-discount-value" step="0.01" min="0" value="0.00">
+                                        <span class="discount-suffix" style="display:none;">%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:4px;">
+                                        <input type="hidden" name="lines-__prefix__-DELETE" value="" class="line-delete-input">
+                                        <button type="button" class="delete-row-btn" onclick="removeNewLine(this)"
+                                            title="Remove line">
+                                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- 5. Custom Notes (toggle) -->
@@ -747,65 +791,27 @@
                     {% endif %}
                 </div>
 
-                <!-- 6. Calculation Summary (Edit Draft only — not shown on Create) -->
-                {% if not is_create and invoice.status == "draft" %}
-                <div class="form-card">
-                    <div class="card-title-row">
-                        <i data-lucide="calculator"></i>
-                        <h3>Calculation Summary</h3>
-                    </div>
-                    <div class="summary-panel">
-                        <div class="summary-row">
-                            <span class="summary-label">Subtotal</span>
-                            <span class="summary-value" id="sum-subtotal">₹{{ invoice.subtotal|floatformat:2 }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Discount</span>
-                            <span class="summary-value" id="sum-discount">−₹{{ invoice.discount_total|floatformat:2 }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Taxable Amount</span>
-                            <span class="summary-value" id="sum-taxable">₹{{ invoice.taxable_amount|floatformat:2 }}</span>
-                        </div>
-                        <div class="summary-row"><span class="summary-label">CGST</span><span class="summary-value"
-                                id="sum-cgst">₹{{ invoice.cgst_total|floatformat:2 }}</span></div>
-                        <div class="summary-row"><span class="summary-label">SGST/UTGST</span><span
-                                class="summary-value" id="sum-sgst">₹{{ invoice.sgst_total|floatformat:2 }}</span></div>
-                        <div class="summary-row"><span class="summary-label">IGST</span><span class="summary-value"
-                                id="sum-igst">₹{{ invoice.igst_total|floatformat:2 }}</span></div>
-                        <div class="summary-row"><span class="summary-label">Cess</span><span class="summary-value"
-                                id="sum-cess">₹{{ invoice.cess_total|floatformat:2 }}</span></div>
-                        <div class="summary-row"><span class="summary-label">Round Off</span><span class="summary-value"
-                                id="sum-round">₹{{ invoice.round_off|floatformat:2 }}</span></div>
-                        <div class="summary-row divider grand-total">
-                            <span>Grand Total</span>
-                            <span id="sum-grand" style="font-family:var(--font-mono);">₹{{ invoice.grand_total|floatformat:2 }}</span>
-                        </div>
-                        <p class="summary-note">Place of Supply: {{ invoice.place_of_supply }}. Backend calculation
-                            engine is authoritative.</p>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- 7. Actions -->
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="save-draft-btn">
-                        <i data-lucide="save"></i> {% if is_create %}Create Draft{% else %}Save Draft{% endif %}
-                    </button>
-                    {% if not is_create %}
-                    <form method="post" action="{% url 'billing:issue' invoice.uuid %}" style="display:inline;"
-                        id="issue-invoice-form">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline"
-                            style="border-color:var(--color-accent);color:var(--color-accent);"
-                            onclick="return confirm('Issue this invoice? This will finalize it and cannot be undone.')">
-                            <i data-lucide="send"></i> Issue Invoice
-                        </button>
-                    </form>
-                    {% endif %}
-                    <a href="{% url 'billing:index' %}" class="btn btn-outline">Cancel</a>
                 </div>
             </form>
+
+            <!-- 7. Actions (Outside main form to prevent nesting) -->
+            <div class="form-actions" style="margin-top: var(--space-6);">
+                <button type="submit" form="invoice-form" class="btn btn-primary" id="save-draft-btn">
+                    <i data-lucide="save"></i> {% if is_create %}Create Draft{% else %}Save Draft{% endif %}
+                </button>
+                {% if not is_create %}
+                <form method="post" action="{% url 'billing:issue' invoice.uuid %}" style="display:inline;"
+                    id="issue-invoice-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline"
+                        style="border-color:var(--color-accent);color:var(--color-accent);"
+                        onclick="return confirm('Issue this invoice? This will finalize it and cannot be undone.')">
+                        <i data-lucide="send"></i> Issue Invoice
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'billing:index' %}" class="btn btn-outline">Cancel</a>
+            </div>
         </div>
     </main>
 </div>
@@ -957,21 +963,22 @@
         // --- Product selection → populate rate field ---
         function fetchProductRate(productSelect) {
             const productId = productSelect.value;
-            if (!productId) return;
             const row = productSelect.closest('tr');
             if (!row) return;
-
-            const rateField = row.querySelector('.line-rate');
-            if (rateField && (!rateField.value || rateField.value === '0.00' || rateField.value === '0' || rateField.value === '0.0')) {
-                fetch(`{% url 'billing:api_products' %}`.replace('api/products/', `api/products/${productId}/`), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                    .then(r => r.json())
-                    .then(product => {
-                        if (product && !product.error) {
+            const rateField = row.querySelector('.line-rate-input') || row.querySelector('.line-rate');
+            if (rateField) {
+                if (productId) {
+                    fetch(`{% url 'billing:api_products' %}`.replace('api/products/', `api/products/${productId}/`), {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(r => r.json())
+                        .then(product => {
                             rateField.value = product.unit_price;
-                        }
-                    });
+                        })
+                        .catch(e => console.error(e));
+                } else {
+                    rateField.value = '0.00';
+                }
             }
         }
 
@@ -984,6 +991,57 @@
             if (select.value) fetchProductRate(select);
         });
 
+        // --- Discount UI interactions ---
+        function updateDiscountUI(row) {
+            const typeSelect = row.querySelector('.line-discount-type');
+            const valInput = row.querySelector('.line-discount-value');
+            if (!typeSelect || !valInput) return;
+            const wrapper = valInput.closest('.discount-wrapper');
+            if (!wrapper) return;
+            
+            const prefix = wrapper.querySelector('.discount-prefix');
+            const suffix = wrapper.querySelector('.discount-suffix');
+
+            if (typeSelect.value === 'none') {
+                valInput.disabled = false;
+                valInput.readOnly = true;
+                valInput.value = '0.00';
+                wrapper.classList.remove('has-prefix', 'has-suffix');
+                if (prefix) prefix.style.display = 'none';
+                if (suffix) suffix.style.display = 'none';
+            } else if (typeSelect.value === 'fixed') {
+                valInput.disabled = false;
+                valInput.readOnly = false;
+                wrapper.classList.add('has-prefix');
+                wrapper.classList.remove('has-suffix');
+                if (prefix) prefix.style.display = 'inline';
+                if (suffix) suffix.style.display = 'none';
+            } else if (typeSelect.value === 'percentage') {
+                valInput.disabled = false;
+                valInput.readOnly = false;
+                wrapper.classList.remove('has-prefix');
+                wrapper.classList.add('has-suffix');
+                if (prefix) prefix.style.display = 'none';
+                if (suffix) suffix.style.display = 'inline';
+            }
+        }
+
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('line-discount-type')) {
+                const row = e.target.closest('tr');
+                if (row) {
+                    const valInput = row.querySelector('.line-discount-value');
+                    if (e.target.value === 'none' && valInput) {
+                        valInput.value = '0.00'; // Reset on explicit change to none
+                    }
+                    updateDiscountUI(row);
+                }
+            }
+        });
+
+        // Initialize discount UI for existing rows
+        document.querySelectorAll('#lines-tbody .line-row').forEach(updateDiscountUI);
+
         // --- Add new line row ---
         const addLineBtn = document.getElementById('add-line-btn');
         const linesTbody = document.getElementById('lines-tbody');
@@ -991,15 +1049,24 @@
         const totalFormsInput = document.getElementById('id_lines-TOTAL_FORMS');
 
         if (addLineBtn && linesTbody && templateContainer && totalFormsInput) {
+            // Ensure empty template fields are disabled so they aren't submitted
+            templateContainer.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+
             addLineBtn.addEventListener('click', () => {
                 const totalForms = parseInt(totalFormsInput.value, 10);
                 const templateRow = templateContainer.querySelector('tr').cloneNode(true);
                 templateRow.innerHTML = templateRow.innerHTML.replaceAll('__prefix__', String(totalForms));
+                // Remove disabled attributes from cloned inputs/selects
+                templateRow.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+                
+                // Add unique ID to the new row
+                templateRow.id = `line-row-${totalForms}`;
                 // Fix data-line-index on + button
                 const addBtn = templateRow.querySelector('.btn-add-inline');
                 if (addBtn) addBtn.dataset.lineIndex = String(totalForms);
                 linesTbody.appendChild(templateRow);
                 totalFormsInput.value = String(totalForms + 1);
+                updateDiscountUI(templateRow); // Initialize discount UI for the new row
                 if (window.lucide) lucide.createIcons();
             });
         }
@@ -1030,7 +1097,13 @@
         // --- Remove newly added line (not yet saved) ---
         window.removeNewLine = function (btn) {
             const row = btn.closest('tr');
-            if (row) row.remove();
+            if (row) {
+                const deleteInput = row.querySelector('.line-delete-input');
+                if (deleteInput) deleteInput.value = 'on';
+                row.classList.add('deleted-row');
+                row.style.display = 'none';
+                updateCreateDraftButtonState();
+            }
         };
 
         // --- Custom Notes toggle ---
@@ -1139,5 +1212,76 @@
     function generateToken() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
     }
+
+    // ---------------------------------------------------------------------------
+    // Create Draft Button State and Form Validation
+    // ---------------------------------------------------------------------------
+    function updateCreateDraftButtonState() {
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        if (!saveDraftBtn) return;
+        
+        // Ensure the button explicitly points to the form, otherwise it's broken
+        if (saveDraftBtn.form !== document.getElementById('invoice-form')) {
+            console.warn('save-draft-btn is not attached to invoice-form properly');
+        }
+
+        const customer = document.getElementById('id_customer');
+        const invoiceDate = document.getElementById('id_invoice_date');
+        
+        let isValid = true;
+        
+        // 1. Check Customer
+        if (!customer || !customer.value) isValid = false;
+        
+        // 2. Check Invoice Date
+        if (!invoiceDate || !invoiceDate.value) isValid = false;
+        
+        // 3. Check Lines
+        const rows = document.querySelectorAll('#lines-tbody .line-row:not(.deleted-row)');
+        let hasValidLine = false;
+        
+        rows.forEach(row => {
+            // Ignore if it's hidden or marked for delete
+            if (row.style.display === 'none') return;
+            
+            const product = row.querySelector('select[name*="-product"], .line-product-select');
+            const qty = row.querySelector('input[name*="-quantity"], .line-qty');
+            const rate = row.querySelector('input[name*="-unit_price"], .line-rate');
+            
+            if (product && product.value) {
+                const q = parseFloat(qty ? qty.value : 0);
+                const r = parseFloat(rate ? rate.value : -1);
+                if (q > 0 && r >= 0) {
+                    hasValidLine = true;
+                }
+            }
+        });
+        
+        if (!hasValidLine) isValid = false;
+        
+        // Toggle button state
+        saveDraftBtn.disabled = !isValid;
+        saveDraftBtn.setAttribute('aria-disabled', !isValid ? 'true' : 'false');
+    }
+
+    // Attach validation to inputs
+    document.addEventListener('input', updateCreateDraftButtonState);
+    document.addEventListener('change', updateCreateDraftButtonState);
+    document.addEventListener('DOMContentLoaded', updateCreateDraftButtonState);
+    
+    // Attach form submit loader specifically for the outer button
+    document.getElementById('invoice-form')?.addEventListener('submit', function(e) {
+        const btn = document.getElementById('save-draft-btn');
+        if (btn && !btn.disabled) {
+            setTimeout(() => {
+                btn.disabled = true;
+                btn.style.opacity = '0.75';
+                btn.style.cursor = 'wait';
+                btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Saving...';
+                if (window.lucide) lucide.createIcons();
+            }, 0);
+        }
+    });
+
 </script>
 {% endblock %}

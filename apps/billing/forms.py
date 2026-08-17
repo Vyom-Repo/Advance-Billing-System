@@ -181,6 +181,10 @@ class InvoiceLineForm(forms.ModelForm):
         if product and unit_price is None:
             cleaned_data["unit_price"] = product.unit_price
 
+        discount_type = cleaned_data.get("discount_type")
+        if discount_type == "none":
+            cleaned_data["discount_value"] = 0
+
         return cleaned_data
 
 

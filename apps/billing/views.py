@@ -147,7 +147,8 @@ class InvoiceCreateView(InvoiceOrganizationMixin, PageTitleMixin, View):
                 # Re-inject into POST-like dict so form renders correctly
                 from django.http import QueryDict
                 qd = QueryDict(mutable=True)
-                for k, v in saved.items():
+                saved_state = saved.get("state", {})
+                for k, v in saved_state.items():
                     if isinstance(v, list):
                         qd.setlist(k, v)
                     else:
@@ -160,16 +161,27 @@ class InvoiceCreateView(InvoiceOrganizationMixin, PageTitleMixin, View):
                 form = InvoiceForm(qd, organization=org)
                 formset = FormSet(qd, prefix="lines")
 
-                # Auto-select new product in the right line
-                if new_product_id and line_index != "":
-                    try:
-                        li = int(line_index)
+                # Auto-select new product in the right line or first empty line
+                if new_product_id:
+                    li = None
+                    if line_index != "":
+                        try:
+                            li = int(line_index)
+                        except (ValueError, TypeError):
+                            pass
+                    else:
+                        # Find first empty line
+                        total_forms = int(qd.get("lines-TOTAL_FORMS", 0))
+                        for i in range(total_forms):
+                            if not qd.get(f"lines-{i}-product") and qd.get(f"lines-{i}-DELETE") != "on":
+                                li = i
+                                break
+                    
+                    if li is not None:
                         key = f"lines-{li}-product"
                         qd[key] = new_product_id
                         form = InvoiceForm(qd, organization=org)
                         formset = FormSet(qd, prefix="lines")
-                    except (ValueError, TypeError):
-                        pass
 
                 return render(request, self.template_name, self._get_context(form, formset, org, state_token=""))
 
@@ -234,6 +246,15 @@ class InvoiceCreateView(InvoiceOrganizationMixin, PageTitleMixin, View):
                 line.save()
             for deleted in formset.deleted_objects:
                 deleted.delete()
+
+            # Calculate and store authoritative totals for the draft invoice
+            try:
+                from apps.billing.services.calculation_engine import calculate_invoice
+                calculate_invoice(invoice, list(invoice.lines.all()))
+                invoice.save()
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to calculate totals for draft invoice: {e}")
 
             messages.success(request, "Draft invoice created successfully.")
             return redirect("billing:detail", uuid=invoice.uuid)
@@ -348,6 +369,15 @@ class InvoiceEditView(InvoiceOrganizationMixin, PageTitleMixin, View):
                 line.save()
             for deleted in formset.deleted_objects:
                 deleted.delete()
+
+            # Calculate and store authoritative totals for the draft invoice
+            try:
+                from apps.billing.services.calculation_engine import calculate_invoice
+                calculate_invoice(invoice, list(invoice.lines.all()))
+                invoice.save()
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to calculate totals for draft invoice edit: {e}")
 
             messages.success(request, "Draft invoice updated successfully.")
             return redirect("billing:detail", uuid=invoice.uuid)
@@ -515,6 +545,138 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
 # These are NOT persisted. The backend remains authoritative on Issue.
 # ---------------------------------------------------------------------------
 
+
+class InvoicePreviewFormCalculationView(InvoiceOrganizationMixin, View):
+    """
+    POST JSON endpoint: receives full form state, builds in-memory objects, 
+    runs the Phase 08 calculation engine, and returns display-only totals.
+    """
+    def post(self, request):
+        org = self.get_organization()
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, Exception):
+            return JsonResponse({"error": "Invalid request"}, status=400)
+            
+        form_state = data.get("state", {})
+        
+        # Build in-memory invoice
+        invoice = Invoice(organization=org)
+        
+        # Resolve customer if provided
+        customer_id = form_state.get("customer")
+        if customer_id:
+            try:
+                invoice.customer = Customer.objects.get(id=customer_id, organization=org)
+                invoice.customer_name_snapshot = invoice.customer.name
+                invoice.customer_gstin_snapshot = invoice.customer.gstin or ""
+                invoice.customer_billing_address_snapshot = invoice.customer.full_billing_address
+                invoice.customer_state_code_snapshot = invoice.customer.billing_state_code
+            except Customer.DoesNotExist:
+                pass
+                
+        invoice.shipping_same_as_billing = form_state.get("shipping_same_as_billing") == "on"
+        invoice.shipping_state = form_state.get("shipping_state", "")
+        
+        # Try to resolve Place of Supply
+        try:
+            from apps.billing.services.lifecycle import resolve_place_of_supply
+            if invoice.customer:
+                invoice.place_of_supply = resolve_place_of_supply(
+                    shipping_same_as_billing=invoice.shipping_same_as_billing,
+                    shipping_state_code=invoice.shipping_state,
+                    customer=invoice.customer
+                )
+        except Exception as e:
+            print("Exception resolving POS:", e)
+            pass
+            
+        # Fallback for place_of_supply if frontend provides it explicitly
+        if not invoice.place_of_supply and form_state.get("place_of_supply"):
+            invoice.place_of_supply = form_state.get("place_of_supply")
+            
+        if not invoice.place_of_supply:
+            return _zero_totals_response()
+            
+        # Build in-memory lines
+        lines = []
+        try:
+            total_forms = int(form_state.get("lines-TOTAL_FORMS", 0))
+        except ValueError:
+            total_forms = 0
+            
+        from decimal import Decimal
+        position = 1
+        for i in range(total_forms):
+            # Skip deleted rows
+            if form_state.get(f"lines-{i}-DELETE") == "on":
+                continue
+                
+            product_id = form_state.get(f"lines-{i}-product")
+            if not product_id:
+                continue
+                
+            try:
+                product = Product.objects.get(id=product_id, organization=org)
+            except Product.DoesNotExist:
+                continue
+                
+            line = InvoiceLine(
+                invoice=invoice,
+                product=product,
+                position=position,
+                discount_type=form_state.get(f"lines-{i}-discount_type", "none")
+            )
+            
+            try:
+                line.quantity = Decimal(str(form_state.get(f"lines-{i}-quantity", 1)))
+            except Exception:
+                line.quantity = Decimal("1.000")
+                
+            try:
+                line.unit_price = Decimal(str(form_state.get(f"lines-{i}-unit_price", 0)))
+            except Exception:
+                line.unit_price = Decimal("0.00")
+                
+            if line.discount_type != "none":
+                try:
+                    line.discount_value = Decimal(str(form_state.get(f"lines-{i}-discount_value", 0)))
+                except Exception:
+                    line.discount_value = Decimal("0.00")
+            else:
+                line.discount_value = Decimal("0.00")
+                
+            # Snapshot
+            from apps.billing.services.lifecycle import populate_line_snapshot
+            populate_line_snapshot(line)
+            
+            lines.append(line)
+            position += 1
+            
+        if not lines:
+            return _zero_totals_response()
+            
+        try:
+            from apps.billing.services.calculation_engine import calculate_invoice
+            calculate_invoice(invoice, lines)
+        except Exception as e:
+            import logging
+            logging.error(f"Calculation failed: {e}", exc_info=True)
+            return JsonResponse({"error": "Calculation failed", "details": str(e)}, status=400)
+            
+        return JsonResponse({
+            "subtotal": str(invoice.subtotal),
+            "discount_total": str(invoice.discount_total),
+            "taxable_amount": str(invoice.taxable_amount),
+            "cgst_total": str(invoice.cgst_total),
+            "sgst_total": str(invoice.sgst_total),
+            "igst_total": str(invoice.igst_total),
+            "cess_total": str(invoice.cess_total),
+            "round_off": str(invoice.round_off),
+            "grand_total": str(invoice.grand_total),
+            "place_of_supply": invoice.place_of_supply,
+        })
+
 class InvoicePreviewCalculationView(InvoiceOrganizationMixin, View):
     """
     POST JSON endpoint: receives form data, runs the Phase 08 calculation engine
@@ -556,12 +718,14 @@ class InvoicePreviewCalculationView(InvoiceOrganizationMixin, View):
 
             try:
                 # Prepare snapshots in memory without DB save
+                from apps.billing.services.lifecycle import prepare_invoice_snapshots
                 prepared_lines = prepare_invoice_snapshots(invoice, lines)
             except ValidationError:
                 return _zero_totals_response()
 
             try:
                 # Calculate in memory — do NOT call finalize_invoice()
+                from apps.billing.services.calculation_engine import calculate_invoice
                 calculate_invoice(invoice, prepared_lines)
             except Exception:
                 return _zero_totals_response()

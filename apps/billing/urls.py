@@ -17,6 +17,7 @@ urlpatterns = [
     # Preview (Phase 10 entry point)
     path("<uuid:uuid>/preview/", views.InvoicePreviewView.as_view(), name="preview"),
     # Draft calculation preview (AJAX — display only, not persisted)
+    path("preview-form-calc/", views.InvoicePreviewFormCalculationView.as_view(), name="preview_form_calc"),
     path("<uuid:uuid>/preview-calc/", views.InvoicePreviewCalculationView.as_view(), name="preview_calc"),
     # JSON APIs (organization-scoped)
     path("api/customers/", views.CustomerSearchAPIView.as_view(), name="api_customers"),

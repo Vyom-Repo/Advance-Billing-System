@@ -791,3 +791,107 @@ class InvoiceDateFieldConfigurationTest(InvoiceBaseTest):
         self.assertIn('type="date"', form["invoice_date"].as_widget())
         self.assertIn('type="date"', form["due_date"].as_widget())
 
+
+# ---------------------------------------------------------------------------
+# 11. Invoice State Restoration (Quick Customer/Product Flow)
+# ---------------------------------------------------------------------------
+
+class InvoiceStateRestoreTest(InvoiceBaseTest):
+
+    def test_state_restoration_from_session_stash(self):
+        """
+        Verify that returning to the create invoice form with a state token correctly
+        loads the stashed state into the forms (including line formset), avoiding
+        ManagementForm validation errors.
+        """
+        # Stash state in session
+        state_token = "testtoken123"
+        post_data = {
+            "invoice_date": "2026-08-16",
+            "due_date": "",
+            "customer": "",  # Emulate going to create a new customer
+            "place_of_supply": "27",
+            "shipping_same_as_billing": "on",
+            "notes": "Stashed note",
+            "terms": "",
+            "lines-TOTAL_FORMS": "2",
+            "lines-INITIAL_FORMS": "0",
+            "lines-MIN_NUM_FORMS": "0",
+            "lines-MAX_NUM_FORMS": "1000",
+            "lines-0-product": str(self.product.id),
+            "lines-0-quantity": "5.000",
+            "lines-0-unit_price": "100.00",
+            "lines-0-discount_type": "none",
+            "lines-0-discount_value": "0.00",
+            "lines-1-product": "",
+            "lines-1-quantity": "1.000",
+            "lines-1-unit_price": "0.00",
+            "lines-1-discount_type": "none",
+            "lines-1-discount_value": "0.00",
+        }
+
+        session = self.client.session
+        session["invoice_create_states"] = {
+            state_token: {
+                "state": post_data,
+                "line_index": None
+            }
+        }
+        session.save()
+
+        # Simulate returning from customer creation
+        new_customer = make_customer(self.org, name="Quick Customer")
+        resp = self.client.get(reverse("billing:create") + f"?invoice_state={state_token}&new_customer={new_customer.id}")
+        self.assertEqual(resp.status_code, 200)
+
+        # Ensure the view did not error out on ManagementForm and that data is injected
+        self.assertContains(resp, "Stashed note")
+        
+        # Verify the auto-selected customer
+        self.assertContains(resp, f'<option value="{new_customer.id}" selected>')
+
+        # Verify TOTAL_FORMS is 2
+        self.assertContains(resp, 'name="lines-TOTAL_FORMS" value="2"')
+
+        # Verify the product selection on line 0 was restored
+        self.assertContains(resp, f'<option value="{self.product.id}" selected>')
+
+
+# ---------------------------------------------------------------------------
+# 12. Invoice Discount Logic Tests
+# ---------------------------------------------------------------------------
+
+class InvoiceDiscountLogicTest(InvoiceBaseTest):
+
+    def test_discount_mode_none_clears_value(self):
+        """
+        Verify that submitting an invoice line with discount_type = 'none' 
+        and a stale discount_value > 0 results in the discount_value being set to 0.
+        """
+        post_data = {
+            "customer": str(self.customer.id),
+            "invoice_date": "2026-08-16",
+            "due_date": "2026-09-16",
+            "place_of_supply": "27",
+            "shipping_same_as_billing": "on",
+            "lines-TOTAL_FORMS": "1",
+            "lines-INITIAL_FORMS": "0",
+            "lines-MIN_NUM_FORMS": "0",
+            "lines-MAX_NUM_FORMS": "1000",
+            "lines-0-product": str(self.product.id),
+            "lines-0-quantity": "1.000",
+            "lines-0-unit_price": "100.00",
+            "lines-0-discount_type": "none",
+            "lines-0-discount_value": "50.00",  # Stale value
+        }
+        
+        resp = self.client.post(reverse("billing:create"), data=post_data)
+        self.assertEqual(resp.status_code, 302)  # Should redirect to detail
+        
+        invoice = Invoice.objects.first()
+        self.assertIsNotNone(invoice)
+        line = invoice.lines.first()
+        
+        # Verify the discount_value was cleared to 0
+        self.assertEqual(line.discount_type, "none")
+        self.assertEqual(line.discount_value, 0)
