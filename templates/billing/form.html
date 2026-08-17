@@ -666,13 +666,17 @@
             flex-direction: column;
             align-items: stretch;
             gap: var(--space-3);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .form-actions form,
-        .form-actions .btn {
+        .form-actions .btn,
+        .form-actions form .btn {
             width: 100%;
             min-height: 44px;
             justify-content: center;
+            box-sizing: border-box;
         }
     }
 </style>

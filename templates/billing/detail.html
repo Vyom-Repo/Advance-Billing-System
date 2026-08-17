@@ -34,15 +34,21 @@
     .summary-row.grand { border-top: 2px solid var(--color-border); margin-top: var(--space-3); padding-top: var(--space-3); font-size: var(--text-lg); font-weight: var(--font-bold); }
     .summary-label { color: var(--color-text-secondary); }
     .summary-value { font-family: var(--font-mono); color: var(--color-text-primary); }
+    .detail-actions form.action-form { display: inline-flex; margin: 0; padding: 0; }
     @media (max-width: 768px) {
         .invoice-detail-container { padding: var(--space-4) var(--space-3) var(--space-16); }
-        .info-grid, .info-grid-3 { grid-template-columns: 1fr 1fr; }
-        .detail-actions { width: 100%; }
-        .detail-actions .btn { flex: 1; justify-content: center; }
-        .summary-section { max-width: 100%; }
+        .detail-header { flex-direction: column; align-items: stretch; gap: var(--space-4); }
+        .info-grid, .info-grid-3 { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+        .detail-actions { width: 100%; flex-direction: column; gap: var(--space-3); }
+        .detail-actions form.action-form,
+        .detail-actions .btn { width: 100%; min-height: 44px; justify-content: center; align-items: center; box-sizing: border-box; display: flex; }
+        .detail-actions form.action-form .btn { width: 100%; min-height: 44px; justify-content: center; align-items: center; box-sizing: border-box; display: flex; }
+        .summary-section { max-width: 100%; width: 100%; }
+        .info-card { padding: var(--space-4); }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 576px) {
         .info-grid, .info-grid-3 { grid-template-columns: 1fr; }
+        .detail-title { font-size: var(--text-xl); flex-wrap: wrap; }
     }
 </style>
 {% endblock %}
@@ -52,7 +58,7 @@
     {% include "base/sidebar.html" %}
     <main class="main-content">
         {% url 'invoices:list' as inv_list_url %}
-        {% include "base/header.html" with parent_title="Sales / Invoices" parent_url=inv_list_url back_url=inv_list_url page_heading=object.invoice_number %}
+        {% include "base/header.html" with parent_title="Invoices" parent_url=inv_list_url back_url=inv_list_url page_heading=invoice.invoice_number|default:"Draft Invoice" %}
         {% include "base/flash_messages.html" %}
 
         <div class="invoice-detail-container">
@@ -70,24 +76,24 @@
                 </div>
                 <div class="detail-actions">
                     {% if invoice.status == "draft" %}
-                    <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i> Edit</a>
-                    <form method="post" action="{% url 'billing:issue' invoice.uuid %}" style="display:inline;">
+                    <form method="post" action="{% url 'billing:issue' invoice.uuid %}" class="action-form">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary" onclick="return confirm('Issue this invoice? This cannot be undone.')">
                             <i data-lucide="send"></i> Issue Invoice
                         </button>
                     </form>
-                    <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-outline" style="border-color:#f87171;color:#f87171;"><i data-lucide="trash-2"></i> Delete</a>
+                    <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i> Edit Invoice</a>
+                    <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-danger"><i data-lucide="trash-2"></i> Delete</a>
                     {% elif invoice.status == "issued" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview</a>
-                    <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" style="display:inline;">
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-primary"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" class="action-form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline" style="border-color:#f87171;color:#f87171;" onclick="return confirm('Cancel this invoice?')">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this invoice?')">
                             <i data-lucide="x-circle"></i> Cancel Invoice
                         </button>
                     </form>
                     {% elif invoice.status == "cancelled" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview PDF</a>
                     {% endif %}
                     <a href="{% url 'billing:index' %}" class="btn btn-outline"><i data-lucide="arrow-left"></i> Back</a>
                 </div>

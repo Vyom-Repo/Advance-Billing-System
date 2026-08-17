@@ -290,41 +290,83 @@
 
     @media (max-width: 768px) {
         .settings-container {
-            padding: var(--space-4) var(--space-3) var(--space-20);
-            max-width: 100%;
-            box-sizing: border-box;
+            padding: var(--space-4) var(--space-4) var(--space-24) !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
         .settings-header {
-            margin-bottom: var(--space-6);
+            margin-bottom: var(--space-4);
         }
         .settings-title {
             font-size: var(--text-2xl);
         }
         .settings-section {
-            grid-template-columns: 1fr;
-            gap: var(--space-4);
-            padding: var(--space-6) 0;
+            grid-template-columns: 1fr !important;
+            gap: var(--space-3) !important;
+            padding: var(--space-4) 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
         .section-meta {
             padding-right: 0;
         }
         .settings-card {
-            padding: var(--space-4);
-            border-radius: var(--radius-lg);
-            max-width: 100%;
-            box-sizing: border-box;
+            padding: var(--space-4) !important;
+            border-radius: var(--radius-lg) !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }
-        .grid-2 { grid-template-columns: 1fr; }
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+        .grid-2 { grid-template-columns: 1fr; gap: var(--space-3); }
         
         .desktop-breadcrumb {
             display: none !important;
         }
         
-        /* Company Assets mobile containment */
+        /* Signature / Authorization Cards & Assets Mobile Containment */
+        .radio-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding: var(--space-3.5) var(--space-4) !important;
+            gap: var(--space-3) !important;
+        }
+        .radio-card-content {
+            min-width: 0 !important;
+            flex: 1 !important;
+        }
+        .radio-card-title {
+            font-size: var(--text-sm) !important;
+            word-break: break-word !important;
+        }
+        .radio-card-subtext {
+            font-size: var(--text-xs) !important;
+            line-height: var(--leading-relaxed) !important;
+            word-break: break-word !important;
+        }
+
         .logo-upload-area {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--space-4);
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: var(--space-3) !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .logo-actions {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .logo-actions .btn-outline,
+        .logo-actions button {
+            min-height: 44px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .letterhead-hero {
             max-width: 100% !important;
@@ -334,8 +376,15 @@
             gap: var(--space-4) !important;
         }
         .letterhead-actions-row {
-            flex-wrap: wrap !important;
+            flex-direction: column !important;
             gap: var(--space-2) !important;
+            width: 100% !important;
+        }
+        .letterhead-actions-row .btn-primary,
+        .letterhead-actions-row .btn-outline {
+            width: 100% !important;
+            justify-content: center !important;
+            min-height: 44px !important;
         }
         .letterhead-specs-grid {
             grid-template-columns: 1fr !important;
@@ -635,25 +684,25 @@
                     <div class="form-group" style="margin-bottom: var(--space-6);">
                         <label class="form-label" style="font-weight: var(--font-semibold); margin-bottom: var(--space-3); display: block;">Signature / Authorization Mode</label>
                         <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4);">
-                            <label class="radio-card {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}selected{% endif %}">
-                                <input type="radio" name="signature_mode" value="none" {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div class="radio-card-content">
+                            <label class="radio-card {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}selected{% endif %}" style="width: 100%; box-sizing: border-box;">
+                                <input type="radio" name="signature_mode" value="none" {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}checked{% endif %} onchange="updateSignatureModeUI()" style="margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0;">
+                                <div class="radio-card-content" style="flex: 1; min-width: 0;">
                                     <div class="radio-card-title">None</div>
-                                    <div class="radio-card-subtext">Do not display a signature or authorization section on invoices.</div>
+                                    <div class="radio-card-subtext" style="word-break: break-word;">Do not display a signature or authorization section on invoices.</div>
                                 </div>
                             </label>
-                            <label class="radio-card {% if form.signature_mode.value == 'image' %}selected{% endif %}">
-                                <input type="radio" name="signature_mode" value="image" {% if form.signature_mode.value == 'image' %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div class="radio-card-content">
+                            <label class="radio-card {% if form.signature_mode.value == 'image' %}selected{% endif %}" style="width: 100%; box-sizing: border-box;">
+                                <input type="radio" name="signature_mode" value="image" {% if form.signature_mode.value == 'image' %}checked{% endif %} onchange="updateSignatureModeUI()" style="margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0;">
+                                <div class="radio-card-content" style="flex: 1; min-width: 0;">
                                     <div class="radio-card-title">Signature Image</div>
-                                    <div class="radio-card-subtext">Use an uploaded signature image on invoices.</div>
+                                    <div class="radio-card-subtext" style="word-break: break-word;">Use an uploaded signature image on invoices.</div>
                                 </div>
                             </label>
-                            <label class="radio-card {% if form.signature_mode.value == 'authorized_signatory' %}selected{% endif %}">
-                                <input type="radio" name="signature_mode" value="authorized_signatory" {% if form.signature_mode.value == 'authorized_signatory' %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div class="radio-card-content">
+                            <label class="radio-card {% if form.signature_mode.value == 'authorized_signatory' %}selected{% endif %}" style="width: 100%; box-sizing: border-box;">
+                                <input type="radio" name="signature_mode" value="authorized_signatory" {% if form.signature_mode.value == 'authorized_signatory' %}checked{% endif %} onchange="updateSignatureModeUI()" style="margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0;">
+                                <div class="radio-card-content" style="flex: 1; min-width: 0;">
                                     <div class="radio-card-title">Authorized Signatory</div>
-                                    <div class="radio-card-subtext">Display a professional signatory section using text instead of an uploaded image.</div>
+                                    <div class="radio-card-subtext" style="word-break: break-word;">Display a professional signatory section using text instead of an uploaded image.</div>
                                 </div>
                             </label>
                         </div>
@@ -673,7 +722,7 @@
                                 <div class="logo-actions">
                                     <input type="file" name="signature" id="signature-input" accept="image/png, image/jpeg" style="display: none;">
                                     <input type="hidden" name="remove_signature" id="remove-signature-flag" value="False">
-                                    <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                    <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-2);">
                                         <button type="button" class="btn-outline" onclick="document.getElementById('signature-input').click()">Replace Signature</button>
                                         <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-signature">Remove</button>
                                     </div>
@@ -691,11 +740,11 @@
 
                         <!-- Computer-Generated Disclaimer Checkbox -->
                         <div style="margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px dashed var(--color-border);">
-                            <label style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer;">
-                                <input type="checkbox" name="show_computer_generated_disclaimer" value="True" {% if form.show_computer_generated_disclaimer.value %}checked{% endif %}>
-                                <div>
-                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Show computer-generated invoice disclaimer</div>
-                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Prints: "This is a computer-generated invoice and does not require a signature."</div>
+                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; width: 100%; box-sizing: border-box;">
+                                <input type="checkbox" name="show_computer_generated_disclaimer" value="True" {% if form.show_computer_generated_disclaimer.value %}checked{% endif %} style="margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary); font-size: var(--text-sm);">Show computer-generated invoice disclaimer</div>
+                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted); line-height: var(--leading-relaxed); margin-top: 2px;">Prints: "This is a computer-generated invoice and does not require a signature."</div>
                                 </div>
                             </label>
                         </div>
@@ -718,7 +767,7 @@
                             <div class="logo-actions">
                                 <input type="file" name="qr_code" id="qr-input" accept="image/png, image/jpeg, image/svg+xml" style="display: none;">
                                 <input type="hidden" name="remove_qr_code" id="remove-qr-flag" value="False">
-                                <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-2);">
                                     <button type="button" class="btn-outline" onclick="document.getElementById('qr-input').click()">Replace QR Code</button>
                                     <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-qr">Remove</button>
                                 </div>
@@ -744,7 +793,7 @@
                     
                     <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                         {% for bank in bank_accounts %}
-                        <div class="settings-card" style="padding: var(--space-6); display: flex; justify-content: space-between; align-items: center; {% if bank.is_default %}border-color: var(--color-accent);{% endif %}">
+                        <div class="settings-card bank-card-item" style="padding: var(--space-6); display: flex; justify-content: space-between; align-items: center; {% if bank.is_default %}border-color: var(--color-accent);{% endif %}">
                             <div>
                                 <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-1);">
                                     <div style="font-weight: var(--font-semibold); color: var(--color-text-primary); font-size: var(--text-lg);">{{ bank.bank_name }}</div>
@@ -759,14 +808,20 @@
                                 </div>
                             </div>
                             
-                            <div style="display: flex; gap: var(--space-2);">
+                            <div class="bank-card-actions" style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
                                 {% if not bank.is_default %}
-                                <button type="submit" form="bank-default-form-{{ bank.pk }}" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Set as Default"><i data-lucide="check" style="width:14px; height:14px;"></i></button>
+                                <form method="post" action="{% url 'organization:bank_default' bank.pk %}" id="bank-default-form-{{ bank.pk }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Set as Default"><i data-lucide="check" style="width:14px; height:14px;"></i> Set Default</button>
+                                </form>
                                 {% endif %}
                                 <button type="button" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px;" title="Edit" onclick="openBankEdit('{{ bank.pk }}', '{{ bank.bank_name|escapejs }}', '{{ bank.account_name|escapejs }}', '{{ bank.account_number|escapejs }}', '{{ bank.ifsc_code|escapejs }}', '{{ bank.branch|escapejs }}')">
-                                    <i data-lucide="edit-2" style="width:14px; height:14px;"></i>
+                                    <i data-lucide="edit-2" style="width:14px; height:14px;"></i> Edit
                                 </button>
-                                <button type="submit" form="bank-delete-form-{{ bank.pk }}" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px; border-color: transparent; color: var(--color-error);" title="Delete"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>
+                                <form method="post" action="{% url 'organization:bank_delete' bank.pk %}" id="bank-delete-form-{{ bank.pk }}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-outline" style="padding: var(--space-2) var(--space-3); font-size: 12px; border-color: transparent; color: var(--color-error);" title="Delete" onclick="return confirm('Delete this bank account?')"><i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete</button>
+                                </form>
                             </div>
                         </div>
                         {% empty %}

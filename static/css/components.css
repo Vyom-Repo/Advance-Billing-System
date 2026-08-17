@@ -158,13 +158,15 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 }
 .btn-primary:active { transform: translateY(-1px) scale(1); box-shadow: var(--shadow-glow); }
 
-/* Secondary — outlined */
-.btn-secondary {
-  background: transparent;
+/* Secondary & Outline — outlined */
+.btn-secondary,
+.btn-outline {
+  background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
+  border: 1px solid var(--color-border-strong);
 }
-.btn-secondary:hover {
+.btn-secondary:hover,
+.btn-outline:hover {
   background: var(--color-bg-raised);
   border-color: var(--color-accent);
   color: var(--color-text-accent);

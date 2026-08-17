@@ -9,13 +9,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
-    if (mobileToggle && sidebar && sidebarOverlay) {
+    if (mobileToggle && sidebar) {
         mobileToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             sidebar.classList.toggle('open');
+            if (sidebarOverlay) sidebarOverlay.classList.toggle('open');
         });
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+            });
+        }
+        // Auto-close sidebar on mobile after clicking a link
+        const navItems = sidebar.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                    if (sidebarOverlay) sidebarOverlay.classList.remove('open');
+                }
+            });
         });
     }
 

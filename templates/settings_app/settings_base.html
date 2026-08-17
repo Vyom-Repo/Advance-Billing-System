@@ -17,6 +17,25 @@
             grid-template-columns: 1fr;
             gap: var(--space-4);
         }
+        .settings-sidebar {
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: var(--space-2);
+            margin-bottom: var(--space-2);
+            border-bottom: 1px solid var(--color-border);
+            max-width: 100%;
+            gap: var(--space-2);
+        }
+        .settings-sidebar .settings-nav-item {
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding: var(--space-2) var(--space-3);
+            font-size: var(--text-xs);
+        }
+        .settings-sidebar div {
+            display: none !important;
+        }
         .settings-content {
             min-width: 0;
             max-width: 100%;
