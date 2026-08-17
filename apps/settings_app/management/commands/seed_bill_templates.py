@@ -4,6 +4,11 @@ apps/settings_app/management/commands/seed_bill_templates.py
 Idempotent command that populates the BillTemplate table with all
 known template slugs, their display names, file paths, and default configs.
 
+Three official customer templates are active:
+1. Professional (professional_template) - Recommended
+2. Compact (compact_template) - High Density
+3. Vintage (vintage) - Classic Frame
+
 Usage:
     python manage.py seed_bill_templates
     python manage.py seed_bill_templates --force   # overwrite default_config even if already seeded
@@ -12,13 +17,87 @@ Usage:
 from django.core.management.base import BaseCommand
 
 # Canonical template registry.
-# Extend this list when a new PDF template file is added.
+# The 3 active templates are listed first in order of preference.
 TEMPLATES = [
+    {
+        "slug":               "professional_template",
+        "name":               "Professional",
+        "description":        "Clean, modern, corporate business invoice template. Recommended default.",
+        "template_file_path": "pdf/professional_template.html",
+        "is_active":          True,
+        "default_config": {
+            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
+            "font_size": "Medium", "table_density": "Comfortable",
+            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
+            "print_on_letterhead": False,
+            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
+            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
+            "show_page_numbers": True, "show_print_date": True,
+            "custom_footer_message": "Thank you for your business.",
+            "has_qr": True, "has_signature": True, "has_logo": True,
+            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
+            "has_tax_summary_table": False,
+            "has_mrp_column": False, "has_selling_price_column": False,
+            "has_product_images": False, "has_description_column": True,
+            "has_receiver_signature": False, "has_dispatch_from": False,
+            "simplified_items": False,
+        },
+    },
+    {
+        "slug":               "compact_template",
+        "name":               "Compact",
+        "description":        "Efficient, high-density GST business invoice with compact table layout.",
+        "template_file_path": "pdf/compact_template.html",
+        "is_active":          True,
+        "default_config": {
+            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
+            "font_size": "Small", "table_density": "Compact",
+            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
+            "print_on_letterhead": False,
+            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
+            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
+            "show_page_numbers": True, "show_print_date": True,
+            "custom_footer_message": "Thank you for your business.",
+            "has_qr": True, "has_signature": True, "has_logo": True,
+            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
+            "has_tax_summary_table": True,
+            "has_mrp_column": False, "has_selling_price_column": False,
+            "has_product_images": False, "has_description_column": False,
+            "has_receiver_signature": False, "has_dispatch_from": True,
+            "simplified_items": False,
+        },
+    },
+    {
+        "slug":               "vintage",
+        "name":               "Vintage",
+        "description":        "Premium, classic invoice with traditional stationery framing.",
+        "template_file_path": "pdf/vintage.html",
+        "is_active":          True,
+        "default_config": {
+            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
+            "font_size": "Small", "table_density": "Compact",
+            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
+            "print_on_letterhead": False,
+            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
+            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
+            "show_page_numbers": True, "show_print_date": True,
+            "custom_footer_message": "Thank you for your business.",
+            "has_qr": True, "has_signature": True, "has_logo": True,
+            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
+            "has_tax_summary_table": True,
+            "has_mrp_column": False, "has_selling_price_column": False,
+            "has_product_images": False, "has_description_column": False,
+            "has_receiver_signature": False, "has_dispatch_from": False,
+            "simplified_items": False,
+        },
+    },
+    # Archived legacy templates (is_active=False: renderable for historical bills, hidden from gallery)
     {
         "slug":               "letterhead_invoice",
         "name":               "Company Letterhead Invoice",
         "description":        "Dedicated production-ready invoice template designed specifically for Company Letterhead rendering.",
         "template_file_path": "pdf/letterhead_invoice.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -30,18 +109,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": True,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "simple_invoice",
         "name":               "Simple Professional",
-        "description":        "Clean, robust, professional invoice template. Guaranteed 100% compatible with WeasyPrint & letterhead rendering.",
+        "description":        "Clean, robust, professional invoice template.",
         "template_file_path": "pdf/simple_invoice.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -53,44 +128,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": True,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
-        },
-    },
-    {
-        "slug":               "compact_template",
-        "name":               "Compact",
-        "description":        "Dense two-column GST invoice with integrated tax summary table. Good for retail.",
-        "template_file_path": "pdf/compact_template.html",
-        "default_config": {
-            # Layout
-            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
-            "font_size": "Small", "table_density": "Compact",
-            # Visibility
-            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
-            "print_on_letterhead": False,
-            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
-            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
-            "show_page_numbers": True, "show_print_date": True,
-            "custom_footer_message": "Thank you for your business.",
-            # Capabilities
-            "has_qr": True, "has_signature": True, "has_logo": True,
-            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": True,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "genz",
         "name":               "GenZ",
-        "description":        "Modern blue brand-bar design with meta-cells and gradient totals box.",
+        "description":        "Legacy GenZ blue brand-bar design.",
         "template_file_path": "pdf/genz.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -102,18 +147,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": False,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": False,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": True, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "landscape_template",
         "name":               "Landscape",
-        "description":        "A4 landscape orientation with full CGST/SGST breakdown table. Ideal for multiple line items.",
+        "description":        "Legacy A4 landscape orientation.",
         "template_file_path": "pdf/landscape_template.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Landscape", "margins": "Normal",
             "font_size": "Small", "table_density": "Compact",
@@ -125,18 +166,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": True, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "modern_template",
         "name":               "Modern",
-        "description":        "Clean 3-column header with info-box grid and circular signature stamp.",
+        "description":        "Legacy Modern 3-column header template.",
         "template_file_path": "pdf/modern_template.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -148,18 +185,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": False,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": True, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "mrp_discount_template",
         "name":               "MRP + Discount",
-        "description":        "Retail template showing MRP, selling price, and discount columns.",
+        "description":        "Legacy Retail template showing MRP and discount columns.",
         "template_file_path": "pdf/mrp_discount_template.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -171,41 +204,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": False,
-            "has_mrp_column": True, "has_selling_price_column": True,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
-        },
-    },
-    {
-        "slug":               "professional_template",
-        "name":               "Professional",
-        "description":        "Classic professional invoice with Bill To / Ship To grid, receiver signature line.",
-        "template_file_path": "pdf/professional_template.html",
-        "default_config": {
-            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
-            "font_size": "Medium", "table_density": "Comfortable",
-            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
-            "print_on_letterhead": False,
-            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
-            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
-            "show_page_numbers": True, "show_print_date": True,
-            "custom_footer_message": "Thank you for your business.",
-            "has_qr": True, "has_signature": True, "has_logo": True,
-            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": False,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": True,
-            "has_receiver_signature": True, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "service_template",
         "name":               "Service",
-        "description":        "Simplified service invoice — description + amount, no qty/rate. Pink header bar.",
+        "description":        "Legacy simplified service invoice.",
         "template_file_path": "pdf/service_template.html",
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Medium", "table_density": "Comfortable",
@@ -217,42 +223,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": False,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": True,
-        },
-    },
-    {
-        "slug":               "vintage",
-        "name":               "Vintage",
-        "description":        "Absolute-positioned invoice-in-a-frame design with GST breakdown table. Premium look.",
-        "template_file_path": "pdf/vintage.html",
-        "default_config": {
-            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
-            "font_size": "Small", "table_density": "Compact",
-            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
-            "print_on_letterhead": False,
-            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
-            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
-            "show_page_numbers": True, "show_print_date": True,
-            "custom_footer_message": "Thank you for your business.",
-            "has_qr": True, "has_signature": True, "has_logo": True,
-            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "ledger_classic",
         "name":               "Ledger Classic",
-        "description":        "Traditional accountant-ledger style with ruled grid tables, double underlines, and tabular numerals.",
+        "description":        "Legacy accountant-ledger style.",
         "template_file_path": "pdf/ledger_classic.html",
-        "is_active":          True,
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Small", "table_density": "Compact",
@@ -264,19 +242,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "minimal_mono",
         "name":               "Minimal Mono",
-        "description":        "Modern minimalist layout with generous whitespace, borderless alignment, and clean typography.",
+        "description":        "Legacy minimalist layout.",
         "template_file_path": "pdf/minimal_mono.html",
-        "is_active":          True,
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Small", "table_density": "Comfortable",
@@ -288,19 +261,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "bold_header",
         "name":               "Bold Header",
-        "description":        "High-contrast colored header band with modern badge metadata and carded sectioning.",
+        "description":        "Legacy colored header band template.",
         "template_file_path": "pdf/bold_header.html",
-        "is_active":          True,
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Small", "table_density": "Comfortable",
@@ -312,19 +280,14 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "elegant_serif",
         "name":               "Elegant Serif",
-        "description":        "Formal serif typography with centered letterhead branding, delicate hairlines, and advisory styling.",
+        "description":        "Legacy formal serif typography template.",
         "template_file_path": "pdf/elegant_serif.html",
-        "is_active":          True,
+        "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
             "font_size": "Small", "table_density": "Comfortable",
@@ -336,47 +299,17 @@ TEMPLATES = [
             "custom_footer_message": "Thank you for your business.",
             "has_qr": True, "has_signature": True, "has_logo": True,
             "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
         },
     },
     {
         "slug":               "tech_grid",
         "name":               "Tech Grid",
-        "description":        "Modern tech and agency invoice rendering line items as individual bordered cards with badge pills.",
+        "description":        "Legacy tech grid template.",
         "template_file_path": "pdf/tech_grid.html",
-        "is_active":          True,
-        "default_config": {
-            "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
-            "font_size": "Small", "table_density": "Comfortable",
-            "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
-            "print_on_letterhead": False,
-            "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
-            "show_hsn_sac": True, "show_signature": True, "show_terms": True,
-            "show_page_numbers": True, "show_print_date": True,
-            "custom_footer_message": "Thank you for your business.",
-            "has_qr": True, "has_signature": True, "has_logo": True,
-            "has_bank_details": True, "has_gst_summary": True, "has_hsn_sac": True,
-            "has_tax_summary_table": True,
-            "has_mrp_column": False, "has_selling_price_column": False,
-            "has_product_images": False, "has_description_column": False,
-            "has_receiver_signature": False, "has_dispatch_from": False,
-            "simplified_items": False,
-        },
-    },
-    # Slugs that exist in DocumentPreference choices but have no PDF yet
-    {
-        "slug":               "gst_classic",
-        "name":               "GST Classic",
-        "description":        "Classic GST invoice (template file coming soon).",
-        "template_file_path": "pdf/gst_classic.html",
         "is_active":          False,
         "default_config": {
             "paper_size": "A4", "orientation": "Portrait", "margins": "Normal",
-            "font_size": "Medium", "table_density": "Comfortable",
+            "font_size": "Small", "table_density": "Comfortable",
             "show_company_header": True, "show_company_logo": True, "show_company_footer": True,
             "print_on_letterhead": False,
             "show_qr_code": True, "show_bank_details": True, "show_gst_summary": True,
@@ -407,8 +340,8 @@ class Command(BaseCommand):
         created_count = updated_count = skipped_count = 0
 
         for tpl in TEMPLATES:
-            slug   = tpl["slug"]
-            is_active = tpl.pop("is_active", True)
+            slug = tpl["slug"]
+            is_active = tpl.get("is_active", True)
             config = tpl["default_config"]
 
             obj, created = BillTemplate.objects.get_or_create(
@@ -426,20 +359,18 @@ class Command(BaseCommand):
                 created_count += 1
                 if options.get("verbosity", 1) > 0:
                     self.stdout.write(self.style.SUCCESS(f"  [CREATED] {slug}"))
-            elif force:
-                obj.default_config     = config
+            else:
+                # Idempotent update: modify fields in place without deleting/recreating records
                 obj.name               = tpl["name"]
                 obj.description        = tpl.get("description", "")
                 obj.template_file_path = tpl["template_file_path"]
                 obj.is_active          = is_active
+                if force:
+                    obj.default_config = config
                 obj.save()
                 updated_count += 1
                 if options.get("verbosity", 1) > 0:
                     self.stdout.write(self.style.WARNING(f"  [UPDATED] {slug}"))
-            else:
-                skipped_count += 1
-                if options.get("verbosity", 1) > 0:
-                    self.stdout.write(f"  [SKIP]    {slug} (already exists; use --force to overwrite)")
 
         if options.get("verbosity", 1) > 0:
             self.stdout.write(

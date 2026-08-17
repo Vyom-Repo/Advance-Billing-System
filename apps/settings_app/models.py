@@ -125,7 +125,7 @@ class DocumentPreference(models.Model):
         ('elegant_serif', 'Elegant Serif'),
         ('tech_grid', 'Tech Grid'),
     )
-    template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='letterhead_invoice')
+    template_name = models.CharField(max_length=30, choices=TEMPLATE_CHOICES, default='professional_template')
     
     PAPER_SIZE_CHOICES = (
         ('A4', 'A4'),

@@ -109,7 +109,7 @@ class InvoicePreviewService:
         """
         Resolves a slug to a production template path.
         """
-        normalized_slug = template_file_or_slug.replace("pdf/", "").replace(".html", "") if template_file_or_slug else "compact_template"
+        normalized_slug = template_file_or_slug.replace("pdf/", "").replace(".html", "") if template_file_or_slug else "professional_template"
         mapped_slug = _TEMPLATE_SLUG_MAP.get(normalized_slug, normalized_slug)
         return f"pdf/{mapped_slug}.html"
 
@@ -119,8 +119,8 @@ class InvoicePreviewService:
 
     @staticmethod
     def resolve_render_config(
-        template_slug: str,
-        user,
+        template_slug: str | None = None,
+        user=None,
         request_overrides: dict | None = None,
     ) -> dict:
         """
@@ -133,36 +133,54 @@ class InvoicePreviewService:
             4. UserBillPreference.pref_overrides  (per-template user overrides)
             5. request_overrides            (one-off per-request, never persisted)
 
-        Keys not declared in BillTemplate.default_config are stripped from
-        layers 4 and 5 to ensure a template only receives what it supports.
-        Falls back to _GLOBAL_DEFAULTS on missing/invalid values.
-
-        Returns
-        -------
-        dict — clean, validated config ready to pass as ``{{ config }}`` in template.
+        Template slug is resolved via deterministic 3-tier hierarchy:
+            Tier 1: Explicitly supplied request_overrides['template_name'] or template_slug
+            Tier 2: User's saved DocumentPreference.template_name from DB
+            Tier 3: System default fallback ('professional_template')
         """
-        from apps.settings_app.models import BillTemplate, UserBillPreference
+        from apps.settings_app.models import BillTemplate, UserBillPreference, DocumentPreference
 
-        # Normalize slug if needed
-        normalized_slug = template_slug.replace("pdf/", "").replace(".html", "") if template_slug else "compact_template"
+        # Resolve effective slug via 3-tier hierarchy
+        effective_slug = None
+        if request_overrides and request_overrides.get("template_name"):
+            effective_slug = str(request_overrides["template_name"]).strip()
+        elif template_slug:
+            effective_slug = str(template_slug).strip()
+
+        if not effective_slug and user and getattr(user, "is_authenticated", True):
+            try:
+                saved_slug = DocumentPreference.objects.filter(user=user).values_list("template_name", flat=True).first()
+                if saved_slug:
+                    effective_slug = saved_slug
+            except Exception:
+                pass
+
+        if not effective_slug:
+            effective_slug = "professional_template"
+
+        normalized_slug = effective_slug.replace("pdf/", "").replace(".html", "")
         mapped_slug = _TEMPLATE_SLUG_MAP.get(normalized_slug, normalized_slug)
 
         # --- Layer 1: global defaults ---
         config = dict(_GLOBAL_DEFAULTS)
+        config["template_name"] = mapped_slug
 
         # --- Layer 2: BillTemplate.default_config ---
         try:
             bt = BillTemplate.objects.get(slug=mapped_slug)
             allowed_keys = bt.get_allowed_config_keys()
             config.update(bt.default_config)
+            config["template_name"] = mapped_slug
         except BillTemplate.DoesNotExist:
             try:
                 bt = BillTemplate.objects.get(slug=normalized_slug)
                 allowed_keys = bt.get_allowed_config_keys()
                 config.update(bt.default_config)
+                config["template_name"] = mapped_slug
             except BillTemplate.DoesNotExist:
                 bt = None
                 allowed_keys = set(_GLOBAL_DEFAULTS.keys())
+                config["template_name"] = mapped_slug
 
         # --- Layer 3: DocumentPreference (user's global prefs) ---
         try:
@@ -337,13 +355,14 @@ class InvoicePreviewService:
                 company = SampleDataService.sample_company()
                 org_obj = None
 
-        if custom_prefs is not None:
-            prefs = custom_prefs
-        else:
-            prefs_obj = DocumentPreference.objects.filter(user=user).values().first()
-            prefs = prefs_obj if prefs_obj else {}
+        template_slug = (custom_prefs or {}).get("template_name")
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug=template_slug,
+            user=user,
+            request_overrides=custom_prefs,
+        )
 
-        frame = PrintableFrameBuilder.build_frame(org_obj, prefs)
+        frame = PrintableFrameBuilder.build_frame(org_obj, config)
 
         invoice  = SampleDataService.sample_invoice(user)
         customer = SampleDataService.sample_customer()
@@ -355,12 +374,12 @@ class InvoicePreviewService:
         context = {
             # --- Canonical keys (used by new templates) ---
             **canonical,        # bill, company, customer, items, gst_summary
-            "config":       prefs,
+            "config":       config,
             "layout_frame": frame,
             "org":          org_obj,
             # --- Legacy keys (used by old/partial templates) ---
             "invoice":      invoice,
-            "prefs":        prefs,
+            "prefs":        config,
         }
         return context
 

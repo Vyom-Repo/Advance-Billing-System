@@ -182,15 +182,8 @@ class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
         header_offset = request.GET.get('header', None)
         footer_offset = request.GET.get('footer', None)
 
-        try:
-            doc_pref = DocumentPreference.objects.get(user=request.user)
-            template_slug = doc_pref.template_name
-        except DocumentPreference.DoesNotExist:
-            template_slug = "compact_template"
-
         request_overrides = {"print_on_letterhead": True}
         config = InvoicePreviewService.resolve_render_config(
-            template_slug=template_slug,
             user=request.user,
             request_overrides=request_overrides,
         )

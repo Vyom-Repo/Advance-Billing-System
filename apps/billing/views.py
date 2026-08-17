@@ -501,11 +501,7 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
         )
         
         # 3. Resolve PDF config (defaults to user template configuration)
-        doc_pref = getattr(request.user, "document_preference", None)
-        template_slug = doc_pref.template_name if doc_pref else "compact_template"
-
         config = InvoicePreviewService.resolve_render_config(
-            template_slug=template_slug, 
             user=request.user
         )
         
@@ -513,7 +509,7 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
         layout_frame = PrintableFrameBuilder.build_frame(invoice.organization, config)
         
         # 5. Resolve template path
-        template_file_path = InvoicePreviewService.resolve_template_path(template_slug)
+        template_file_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
         
         # 6. Render PDF bytes
         pdf_bytes = InvoicePreviewService.render_bill_pdf(

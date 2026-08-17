@@ -1,242 +1,567 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Professional Invoice Template</title>
+    <title>Professional Invoice</title>
     <style>
-        @page { size: A4 portrait; margin: 0 }
-        * { box-sizing: border-box }
-        html, body { margin: 0; padding: 0; background: #eee; font-family: Arial, Helvetica, sans-serif; color: #111 }
-        body { padding: 7mm }
-        .invoice { width: 196mm; min-height: 282mm; margin: auto; background: #fff; border: 1px solid #c8d0d8; font-size: 6.2px; line-height: 1.2; padding: 0 5mm 4mm }
-        .header { display: grid; grid-template-columns: 52% 23% 25%; min-height: 29mm; border-bottom: 1px solid #9aa4ad }
-        .logo { padding: 3mm 0; color: #5e9fcb; font-size: 15px; font-weight: normal }
-        .logo-mark { font-size: 28px; font-weight: bold; line-height: .8; color: #6ba928 }
-        .logo-word { margin-left: 1mm }
-        .title { padding-top: 5mm; font-size: 10px; font-weight: bold; letter-spacing: 1px }
-        .original { text-align: right; padding-top: 5mm; font-size: 5px }
-        .company p { margin: .6mm 0; font-size: 6px }
-        .company-name { font-size: 9px; font-weight: bold; margin-bottom: 1mm }
-        .info { display: grid; grid-template-columns: 33.33% 33.33% 33.34%; background: #f4f8fa; border-bottom: 1px solid #d4dce2 }
-        .box { padding: 2mm; min-height: 22mm; border-right: 1px solid #d4dce2 }
-        .box:last-child { border-right: 0 }
-        .box b { font-weight: bold }
-        .box p { margin: .7mm 0 }
-        .items { width: 100%; border-collapse: collapse; table-layout: fixed }
-        .items th, .items td { border-bottom: 1px solid #aab2b9; padding: 1.25mm 1mm; vertical-align: top }
-        .items th { background: #f5f7f8; text-align: center; font-weight: bold }
-        .center { text-align: center }
-        .right { text-align: right; white-space: nowrap }
-        .item-name { font-weight: bold }
-        .item-sub { font-size: 5.7px }
-        .summary { display: grid; grid-template-columns: 65% 35%; border-bottom: 1px solid #9aa4ad }
-        .summary-left { padding: 1.5mm }
-        .summary-right { padding: 1.5mm; border-left: 1px solid #9aa4ad }
-        .row { display: flex; justify-content: space-between; padding: .55mm 0 }
-        .row.total { border-top: 1px solid #777; font-weight: bold; font-size: 7px }
-        .payment { display: grid; grid-template-columns: 20% 45% 35%; border-bottom: 1px solid #9aa4ad; min-height: 35mm }
-        .payment>div { padding: 2mm; border-right: 1px solid #9aa4ad }
-        .payment>div:last-child { border-right: 0 }
-        .section-title { font-weight: bold; margin-bottom: 1.5mm }
-        .qr { width: 25mm; height: 25mm; border: 1px solid #111; background: repeating-linear-gradient(0deg, #111 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #111 0 1px, transparent 1px 3px) }
-        .signature { height: 30mm; position: relative }
-        .stamp { position: absolute; right: 2mm; top: 4mm; width: 17mm; height: 17mm; border: 1.5px solid #5267a7; border-radius: 50%; color: #5267a7; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 4px; transform: rotate(-10deg) }
-        .auth { position: absolute; right: 0; bottom: 0; font-size: 5px }
-        .notes { padding: 2mm; min-height: 25mm }
-        .notes p { margin: .8mm 0 }
-        .notes ol { margin: 1mm 0 0 4mm; padding: 0 }
-        .notes li { margin-bottom: .5mm }
-        .receiver { margin-top: 5mm; width: 35mm; border-bottom: 1px solid #555; padding-bottom: 1mm }
-        .bottom { display: flex; justify-content: space-between; padding: 1.5mm 0; font-size: 5.2px }
-        @media print { html, body { background: #fff; padding: 0 } .invoice { border: 1px solid #999 } }
+        @page {
+            size: A4 portrait;
+            margin: 12mm 12mm 16mm 12mm;
+            @bottom-left {
+                content: element(footer-left);
+            }
+            @bottom-right {
+                content: element(footer-right);
+            }
+        }
+
+        div.footer-left-content {
+            position: running(footer-left);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            font-size: 8pt;
+            color: #64748b;
+        }
+
+        div.footer-right-content {
+            position: running(footer-right);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            font-size: 8pt;
+            color: #64748b;
+            text-align: right;
+        }
+
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            font-size: 9pt;
+            line-height: 1.4;
+        }
+
+        .invoice-wrapper {
+            width: 100%;
+        }
+
+        /* Top Header */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 10px;
+        }
+        .header-table td {
+            vertical-align: top;
+        }
+        .company-logo {
+            max-height: 44px;
+            max-width: 180px;
+            object-fit: contain;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .company-name {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 3px;
+        }
+        .company-details {
+            font-size: 8.5pt;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .invoice-title-block {
+            text-align: right;
+        }
+        .invoice-title {
+            font-size: 20pt;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        .invoice-subtitle {
+            font-size: 8pt;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Party Meta Cards (Bill To / Ship To / Invoice Metadata) */
+        .meta-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+            margin: 0 -10px 14px -10px;
+        }
+        .meta-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+        .meta-card-title {
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 3px;
+        }
+        .meta-card-text {
+            font-size: 8.5pt;
+            color: #334155;
+            line-height: 1.35;
+        }
+
+        /* Item Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            page-break-inside: auto;
+        }
+        .items-table thead {
+            display: table-header-group;
+        }
+        .items-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        .items-table th {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 8.5pt;
+            font-weight: 600;
+            padding: 7px 8px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .items-table td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 8.5pt;
+            vertical-align: top;
+            color: #1e293b;
+        }
+        .items-table tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .item-name { font-weight: 600; color: #0f172a; }
+        .item-desc { font-size: 8pt; color: #64748b; margin-top: 2px; }
+        .hsn-badge { font-size: 7.5pt; color: #475569; font-weight: 500; }
+
+        /* GST Summary Table */
+        .gst-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+        .gst-table th {
+            background: #f1f5f9;
+            color: #0f172a;
+            font-size: 8pt;
+            font-weight: 700;
+            padding: 5px 6px;
+            border: 1px solid #cbd5e1;
+            text-align: right;
+        }
+        .gst-table td {
+            font-size: 8pt;
+            padding: 5px 6px;
+            border: 1px solid #e2e8f0;
+            text-align: right;
+            color: #334155;
+        }
+
+        /* Totals / Summary Area */
+        .summary-wrapper {
+            width: 100%;
+            page-break-inside: avoid;
+            margin-bottom: 14px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-table td {
+            vertical-align: top;
+        }
+        .words-box {
+            font-size: 8pt;
+            color: #475569;
+            padding-top: 6px;
+        }
+        .totals-box {
+            width: 250px;
+            margin-left: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .totals-row {
+            display: table;
+            width: 100%;
+            padding: 5px 10px;
+            font-size: 8.5pt;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .totals-row span {
+            display: table-cell;
+        }
+        .totals-row span:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        .totals-row.grand-total {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: 700;
+            border-bottom: none;
+            padding: 8px 10px;
+        }
+        .totals-row.grand-total span:last-child {
+            color: #ffffff;
+        }
+
+        /* Auxiliary Sections (Bank, QR, Signature) */
+        .aux-sections-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+            margin: 0 -10px 14px -10px;
+            page-break-inside: avoid;
+        }
+        .aux-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+        .aux-card-title {
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 3px;
+        }
+
+        .qr-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .signature-img {
+            max-height: 48px;
+            max-width: 140px;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .signatory-label {
+            font-size: 8pt;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* Terms & Notes */
+        .terms-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            page-break-inside: avoid;
+            font-size: 8pt;
+            color: #475569;
+        }
+
+        .disclaimer-text {
+            font-size: 7.5pt;
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
     </style>
 </head>
 
 <body>
-    <div class="invoice">
+    <!-- Running Page Footers for WeasyPrint -->
+    <div class="footer-left-content">
+        {% if config.show_company_footer and config.custom_footer_message %}
+            {{ config.custom_footer_message }}
+        {% endif %}
+    </div>
+    <div class="footer-right-content">
+        {% if config.show_print_date %}
+            Printed on {% now "d M Y" %}
+        {% endif %}
+        {% if config.show_page_numbers %}
+            {% if config.show_print_date %} &bull; {% endif %}Page <span class="page"></span> of <span class="topage"></span>
+        {% endif %}
+    </div>
 
-        <div class="header">
-            <div class="logo">
-                {% if config.show_company_logo %}
-                    {% if company.logo_url %}
-                        <img src="{{ company.logo_url }}" alt="Logo" style="max-height:25mm;max-width:45mm;">
-                    {% else %}
-                        <div><span class="logo-mark">{{ company.name|slice:":1" }}</span></div>
-                        <div class="logo-word">{{ company.name|lower }}</div>
+    <div class="invoice-wrapper">
+
+        <!-- Top Header -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 60%;">
+                    {% if config.show_company_logo and company.logo_url %}
+                        <img src="{{ company.logo_url }}" class="company-logo" alt="Logo">
                     {% endif %}
-                {% endif %}
-                <div class="company" style="margin-top:3mm">
-                    <div class="company-name">{{ company.name }}</div>
-                    {% if company.address %}<p>{{ company.address }}</p>{% endif %}
-                    {% if company.city %}<p>{{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</p>{% endif %}
-                    {% if company.gstin %}<p>GSTIN: {{ company.gstin }}</p>{% endif %}
-                </div>
-            </div>
-            <div style="padding-top:4mm">
-                {% if company.phone %}<p>Phone &nbsp;&nbsp; {{ company.phone }}</p>{% endif %}
-                {% if company.email %}<p>Email &nbsp;&nbsp;&nbsp; {{ company.email }}</p>{% endif %}
-                {% if company.website %}<p>Website &nbsp; {{ company.website }}</p>{% endif %}
-            </div>
-            <div class="original">
-                <div class="title">TAX INVOICE</div>
-                ORIGINAL FOR RECIPIENT
-            </div>
-        </div>
+                    {% if config.show_company_header %}
+                        <div class="company-name">{{ company.name }}</div>
+                        <div class="company-details">
+                            {% if company.legal_name and company.legal_name != company.name %}
+                                <strong>Legal Name:</strong> {{ company.legal_name }}<br>
+                            {% endif %}
+                            {% if company.address %}{{ company.address }}<br>{% endif %}
+                            {% if company.city %}{{ company.city }}, {{ company.state }}{% if company.pincode %} - {{ company.pincode }}{% endif %}<br>{% endif %}
+                            {% if company.gstin %}<strong>GSTIN:</strong> {{ company.gstin }}<br>{% endif %}
+                            {% if company.phone %}<strong>Phone:</strong> {{ company.phone }}{% endif %}
+                            {% if company.email %}{% if company.phone %} | {% endif %}<strong>Email:</strong> {{ company.email }}{% endif %}
+                        </div>
+                    {% endif %}
+                </td>
+                <td style="width: 40%;" class="invoice-title-block">
+                    <div class="invoice-title">Tax Invoice</div>
+                    <div class="invoice-subtitle">Original For Recipient</div>
+                </td>
+            </tr>
+        </table>
 
-        <div class="info">
-            <div class="box">
-                <b>Bill To</b>
-                <p>{{ customer.name }}</p>
-                {% if customer.address %}<p>{{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
-                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
-            </div>
-            <div class="box">
-                <b>Ship To</b>
-                <p>{{ customer.name }}</p>
-                {% if customer.shipping_address %}<p>{{ customer.shipping_address }}</p>{% elif customer.address %}<p>{{ customer.address }}</p>{% endif %}
-                {% if customer.shipping_city %}<p>{{ customer.shipping_city }}, {{ customer.shipping_state }}</p>{% elif customer.city %}<p>{{ customer.city }}, {{ customer.state }}</p>{% endif %}
-            </div>
-            <div class="box">
-                <b>Details</b>
-                <p>Invoice No: {{ bill.number }}</p>
-                <p>Invoice Date: {{ bill.date }}</p>
-                <p>Due Date: {{ bill.due_date }}</p>
-                {% if bill.place_of_supply %}<p>Place of Supply: {{ bill.place_of_supply }}</p>{% endif %}
-            </div>
-        </div>
+        <!-- Party Metadata Cards -->
+        <table class="meta-table">
+            <tr>
+                <td class="meta-card" style="width: 36%;">
+                    <div class="meta-card-title">Billed To</div>
+                    <div class="meta-card-text">
+                        <strong>{{ customer.name }}</strong><br>
+                        {% if customer.address %}{{ customer.address }}<br>{% endif %}
+                        {% if customer.city %}{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}<br>{% endif %}
+                        {% if customer.gstin %}<strong>GSTIN:</strong> {{ customer.gstin }}<br>{% endif %}
+                        {% if customer.phone %}<strong>Phone:</strong> {{ customer.phone }}<br>{% endif %}
+                        {% if customer.email %}<strong>Email:</strong> {{ customer.email }}{% endif %}
+                    </div>
+                </td>
+                <td class="meta-card" style="width: 34%;">
+                    <div class="meta-card-title">Shipped To</div>
+                    <div class="meta-card-text">
+                        {% if customer.shipping_address or customer.shipping_city %}
+                            <strong>{{ customer.name }}</strong><br>
+                            {% if customer.shipping_address %}{{ customer.shipping_address }}<br>{% endif %}
+                            {% if customer.shipping_city %}{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}{% endif %}
+                        {% else %}
+                            <strong>{{ customer.name }}</strong><br>
+                            {% if customer.address %}{{ customer.address }}<br>{% endif %}
+                            {% if customer.city %}{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}{% endif %}
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="meta-card" style="width: 30%;">
+                    <div class="meta-card-title">Invoice Details</div>
+                    <div class="meta-card-text">
+                        <strong>Invoice No:</strong> {{ bill.number }}<br>
+                        <strong>Invoice Date:</strong> {{ bill.date }}<br>
+                        {% if bill.due_date %}<strong>Due Date:</strong> {{ bill.due_date }}<br>{% endif %}
+                        {% if bill.place_of_supply %}<strong>Place of Supply:</strong> {{ bill.place_of_supply }}{% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
 
-        <table class="items">
-            <colgroup>
-                <col style="width:5%">
-                <col style="width:{% if config.has_description_column %}30{% else %}37{% endif %}%">
-                {% if config.has_description_column %}<col style="width:7%">{% endif %}
-                <col style="width:13%">
-                <col style="width:13%">
-                <col style="width:12%">
-                <col style="width:{% if config.has_description_column %}20{% else %}20{% endif %}%">
-            </colgroup>
+        <!-- Line Items Table -->
+        <table class="items-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Item</th>
-                    {% if config.has_description_column %}<th>Description</th>{% endif %}
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    {% if config.show_gst_summary %}<th>Tax</th>{% endif %}
-                    <th>Amount</th>
+                    <th style="width: 5%;" class="text-center">#</th>
+                    <th style="width: {% if config.has_description_column %}30%{% else %}45%{% endif %};">Item Description</th>
+                    {% if config.has_description_column %}<th style="width: 20%;">Details</th>{% endif %}
+                    <th style="width: 10%;" class="text-center">Qty</th>
+                    <th style="width: 15%;" class="text-right">Rate</th>
+                    {% if config.show_gst_summary %}<th style="width: 12%;" class="text-right">Tax</th>{% endif %}
+                    <th style="width: 18%;" class="text-right">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td class="center">{{ item.index }}</td>
-                    <td><b>{{ item.name }}</b>{% if item.hsn and config.show_hsn_sac %}<br><span class="item-sub">HSN: {{ item.hsn }}</span>{% endif %}</td>
-                    {% if config.has_description_column %}<td>{{ item.description }}</td>{% endif %}
-                    <td class="center">{{ item.quantity }}</td>
-                    <td class="right">{{ item.rate }}</td>
-                    {% if config.show_gst_summary %}<td class="right">{{ item.tax_amount }} ({{ item.tax_pct }}%)</td>{% endif %}
-                    <td class="right">{{ item.amount }}</td>
+                    <td class="text-center">{{ item.index|default:forloop.counter }}</td>
+                    <td>
+                        <div class="item-name">{{ item.name }}</div>
+                        {% if config.show_hsn_sac and item.hsn %}
+                            <div class="hsn-badge">HSN/SAC: {{ item.hsn }}</div>
+                        {% endif %}
+                    </td>
+                    {% if config.has_description_column %}
+                        <td><div class="item-desc">{{ item.description|default:"" }}</div></td>
+                    {% endif %}
+                    <td class="text-center">{{ item.quantity }} {% if item.unit %}<span style="font-size:7.5pt;color:#64748b;">{{ item.unit }}</span>{% endif %}</td>
+                    <td class="text-right">{{ bill.currency_symbol }}{{ item.rate }}</td>
+                    {% if config.show_gst_summary %}
+                        <td class="text-right">
+                            {{ bill.currency_symbol }}{{ item.tax_amount|default:"0.00" }}
+                            {% if item.tax_pct %}<br><span style="font-size:7.5pt;color:#64748b;">({{ item.tax_pct }}%)</span>{% endif %}
+                        </td>
+                    {% endif %}
+                    <td class="text-right"><strong>{{ bill.currency_symbol }}{{ item.amount }}</strong></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <div class="summary">
-            <div class="summary-left">
-                <div style="height:11mm"></div>
-                <div class="row"><span>Total Items / Qty: {{ items|length }}</span>
-                    {% if bill.amount_in_words %}<span>Total amount in words: {{ bill.amount_in_words }}</span>{% endif %}
-                </div>
-            </div>
-            <div class="summary-right">
-                {% if config.show_gst_summary %}
-                <div class="row"><span>Taxable Amount</span><span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span></div>
-                {% for row in gst_summary %}{% if not row.is_total %}
-                <div class="row"><span>CGST {{ row.cgst_rate }}%</span><span>{{ bill.currency_symbol }}{{ row.cgst_amount }}</span></div>
-                <div class="row"><span>SGST {{ row.sgst_rate }}%</span><span>{{ bill.currency_symbol }}{{ row.sgst_amount }}</span></div>
-                {% endif %}{% endfor %}
-                {% endif %}
-                <div class="row total"><span>Total</span><span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span></div>
-            </div>
+        <!-- GST Summary Table -->
+        {% if config.show_gst_summary and gst_summary %}
+        <table class="gst-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">HSN/SAC</th>
+                    <th>Taxable Value</th>
+                    <th>CGST Rate</th>
+                    <th>CGST Amount</th>
+                    <th>SGST Rate</th>
+                    <th>SGST Amount</th>
+                    <th>Total Tax</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in gst_summary %}
+                    {% if not row.is_total %}
+                    <tr>
+                        <td style="text-align: left;">{{ row.hsn|default:"N/A" }}</td>
+                        <td>{{ bill.currency_symbol }}{{ row.taxable_value|default:"0.00" }}</td>
+                        <td>{{ row.cgst_rate|default:"0" }}%</td>
+                        <td>{{ bill.currency_symbol }}{{ row.cgst_amount|default:"0.00" }}</td>
+                        <td>{{ row.sgst_rate|default:"0" }}%</td>
+                        <td>{{ bill.currency_symbol }}{{ row.sgst_amount|default:"0.00" }}</td>
+                        <td><strong>{{ bill.currency_symbol }}{{ row.total_tax|default:"0.00" }}</strong></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <!-- Financial Summary -->
+        <div class="summary-wrapper">
+            <table class="summary-table">
+                <tr>
+                    <td>
+                        <div class="words-box">
+                            {% if bill.amount_in_words %}
+                                <strong>Amount in Words:</strong><br>{{ bill.amount_in_words }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="width: 250px;">
+                        <div class="totals-box">
+                            {% if config.show_gst_summary %}
+                                <div class="totals-row">
+                                    <span>Taxable Amount</span>
+                                    <span>{{ bill.currency_symbol }}{{ bill.subtotal }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="totals-row grand-total">
+                                <span>Grand Total</span>
+                                <span>{{ bill.currency_symbol }}{{ bill.grand_total }}</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
-        <div class="payment">
-            {% if config.show_qr_code %}
-            <div>
-                <div class="section-title">Pay using UPI</div>
-                {% if bill.qr_code_url %}
-                    <img src="{{ bill.qr_code_url }}" style="width:25mm;height:25mm;" alt="QR">
-                {% else %}
-                    <div class="qr"></div>
+        <!-- Auxiliary Cards (Bank Details, QR Code, Signature) -->
+        {% if config.show_bank_details and company.bank_name or config.show_qr_code and bill.qr_code_url or config.show_signature %}
+        <table class="aux-sections-table">
+            <tr>
+                {% if config.show_qr_code and bill.qr_code_url %}
+                <td class="aux-card" style="width: 100px;">
+                    <div class="aux-card-title">UPI QR Code</div>
+                    <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
+                </td>
                 {% endif %}
-            </div>
-            {% endif %}
-            {% if config.show_bank_details %}
-            <div>
-                <div class="section-title">Bank Details:</div>
-                {% if company.bank_name %}<div>Bank: &nbsp;&nbsp;&nbsp;&nbsp; {{ company.bank_name }}</div>{% endif %}
-                {% if company.acc_no %}<div>Account #: &nbsp; {{ company.acc_no }}</div>{% endif %}
-                {% if company.ifsc %}<div>IFSC Code: &nbsp; {{ company.ifsc }}</div>{% endif %}
-                {% if company.branch %}<div>Branch: &nbsp;&nbsp;&nbsp; {{ company.branch }}</div>{% endif %}
-            </div>
-            {% endif %}
-            {% if config.show_signature %}
-            <div>
-                {% if company.signature_mode == 'image' and company.signature_url %}
-                    <b>For {{ company.name }}</b>
-                    <div class="signature">
-                        <img src="{{ company.signature_url }}" style="position:absolute;right:2mm;top:4mm;max-height:17mm;max-width:35mm;" alt="Signature">
-                        <div class="auth">Authorized Signatory</div>
-                    </div>
-                {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
-                    <b>For {{ company.authorized_signatory_name }}</b>
-                    <div class="signature">
-                        <div style="border-top:1px solid #777; width:100px; position:absolute; right:2mm; top:12mm;"></div>
-                        <div class="auth">Authorized Signatory</div>
-                    </div>
-                {% elif company.signature_url %}
-                    <b>For {{ company.name }}</b>
-                    <div class="signature">
-                        <img src="{{ company.signature_url }}" style="position:absolute;right:2mm;top:4mm;max-height:17mm;max-width:35mm;" alt="Signature">
-                        <div class="auth">Authorized Signatory</div>
-                    </div>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
 
+                {% if config.show_bank_details and company.bank_name %}
+                <td class="aux-card">
+                    <div class="aux-card-title">Bank Details</div>
+                    <div class="meta-card-text">
+                        <strong>Bank Name:</strong> {{ company.bank_name }}<br>
+                        {% if company.acc_no %}<strong>Account No:</strong> {{ company.acc_no }}<br>{% endif %}
+                        {% if company.ifsc %}<strong>IFSC Code:</strong> {{ company.ifsc }}<br>{% endif %}
+                        {% if company.branch %}<strong>Branch:</strong> {{ company.branch }}{% endif %}
+                    </div>
+                </td>
+                {% endif %}
+
+                {% if config.show_signature %}
+                    {% if company.signature_mode == 'image' and company.signature_url %}
+                    <td class="aux-card" style="width: 160px; text-align: right;">
+                        <div class="aux-card-title">Authorization</div>
+                        <img src="{{ company.signature_url }}" class="signature-img" style="margin-left: auto;" alt="Signature">
+                        <div class="signatory-label">Authorized Signatory</div>
+                    </td>
+                    {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
+                    <td class="aux-card" style="width: 160px; text-align: right;">
+                        <div class="aux-card-title">Authorization</div>
+                        <div style="height: 32px;"></div>
+                        <div class="signatory-label">For {{ company.authorized_signatory_name }}</div>
+                        <div style="font-size: 7.5pt; color: #64748b;">Authorized Signatory</div>
+                    </td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+        </table>
+        {% endif %}
+
+        <!-- Computer Generated Disclaimer -->
         {% if company.show_computer_generated_disclaimer %}
-        <div style="font-size: 8px; color: #666666; font-style: italic; margin-top: 4px; text-align: center;">
-            This is a computer-generated invoice and does not require a signature.
+        <div class="disclaimer-text">
+            This is a computer-generated invoice and does not require a physical signature.
         </div>
         {% endif %}
 
-        <div class="notes">
-            {% if bill.notes %}<b>Notes</b><p>{{ bill.notes }}</p>{% endif %}
+        <!-- Terms & Notes -->
+        {% if bill.notes or config.show_terms and bill.terms %}
+        <div class="terms-block">
+            {% if bill.notes %}
+                <strong>Notes:</strong> {{ bill.notes }}<br>
+            {% endif %}
             {% if config.show_terms and bill.terms %}
-            <b>Terms &amp; Conditions</b>
-            <p>{{ bill.terms|linebreaksbr }}</p>
+                <strong>Terms &amp; Conditions:</strong><br>
+                {{ bill.terms|linebreaksbr }}
             {% endif %}
-            {% if config.has_receiver_signature %}
-            <div class="receiver">Receiver's Signature</div>
-            {% endif %}
-        </div>
-
-        {% if config.show_company_footer %}
-        <div class="bottom">
-            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% endif %}
-            <span>{{ config.custom_footer_message }}{% if config.show_print_date %} &bull; Printed on {% now "d M Y" %}{% endif %}</span>
-        </div>
-        {% elif config.show_page_numbers or config.show_print_date %}
-        <div class="bottom">
-            {% if config.show_page_numbers %}<span>Page 1 / 1</span>{% else %}<span></span>{% endif %}
-            <span>{% if config.show_print_date %}Printed on {% now "d M Y" %}{% endif %}</span>
         </div>
         {% endif %}
 
     </div>
 </body>
-
 </html>

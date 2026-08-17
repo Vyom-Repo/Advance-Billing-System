@@ -83,6 +83,9 @@ class SampleDataService:
             "logo_url": img_url,
             "signature_url": img_url,
             "letterhead_url": None,
+            "signature_mode": "image",
+            "authorized_signatory_name": "Acme Global Solutions",
+            "show_computer_generated_disclaimer": False,
             "bank_name": "Demo Bank of India",
             "acc_no": "1234567890123",
             "ifsc": "DEMO0001234"

@@ -414,15 +414,13 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
             from apps.common.services.layout_engine import PrintableFrameBuilder
 
             data = json.loads(request.body)
-            template_slug = data.get("template_name", "gst_classic")
-            template_path = f"pdf/{template_slug}.html"
 
             # Resolve config (template defaults + user prefs + request body as overrides)
             config = InvoicePreviewService.resolve_render_config(
-                template_slug=template_slug,
                 user=request.user,
                 request_overrides=data,
             )
+            template_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
 
             # Build org / company data
             org_data = OrganizationService.get_company_assets(request.user)
@@ -485,20 +483,21 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         from apps.common.services.layout_engine import PrintableFrameBuilder
         from apps.settings_app.models import DocumentPreference
 
-        template_slug = "letterhead_invoice"
-        template_path = "pdf/letterhead_invoice.html"
-
-        # Check for letterhead GET parameter overrides
+        # Check for letterhead or template_name GET parameter overrides
         request_overrides = {}
         lh_param = request.GET.get("letterhead") or request.GET.get("print_on_letterhead")
         if lh_param is not None:
             request_overrides["print_on_letterhead"] = lh_param.lower() in ("true", "1", "yes", "on")
 
+        tpl_param = request.GET.get("template_name")
+        if tpl_param:
+            request_overrides["template_name"] = tpl_param
+
         config = InvoicePreviewService.resolve_render_config(
-            template_slug=template_slug,
             user=request.user,
             request_overrides=request_overrides if request_overrides else None,
         )
+        template_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
 
         org_data = OrganizationService.get_company_assets(request.user)
         if org_data:

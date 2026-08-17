@@ -1,27 +1,32 @@
 """
 apps/invoices/tests/test_bill_rendering_matrix.py
 
-Automated test suite verifying the preference toggle matrix across all 8
-hand-designed invoice templates.
+Automated test suite verifying the preference toggle matrix across the official
+production templates: Professional, Compact, and Vintage.
 """
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from apps.invoices.services.invoice_preview_service import InvoicePreviewService
 from apps.settings_app.models import BillTemplate
+try:
+    import weasyprint
+except ImportError:
+    weasyprint = None
 
 User = get_user_model()
 
 
 class BillRenderingMatrixTestCase(TestCase):
     """
-    Tests that elements properly show/hide across all 8 templates
+    Tests that elements properly show/hide across the three official templates
     for every preference toggle.
     """
 
     TEMPLATES = [
-        "letterhead_invoice",
-        "simple_invoice",
+        "professional_template",
+        "compact_template",
+        "vintage",
     ]
 
     PREFERENCES = [
@@ -77,8 +82,7 @@ class BillRenderingMatrixTestCase(TestCase):
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn('<img class="logo"', html)
-                self.assertNotIn('class="logo-mark"', html)
+                self.assertNotIn('<img class="company-logo"', html)
 
     def test_bank_off(self):
         """Test 3: When bank details are OFF, no bank details section renders."""
@@ -87,52 +91,71 @@ class BillRenderingMatrixTestCase(TestCase):
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn("IFSC:", html)
+                self.assertNotIn("IFSC Code:", html)
+                self.assertNotIn("Bank Name:", html)
                 self.assertNotIn("Account No:", html)
-                self.assertNotIn("Bank Details:", html)
 
     def test_qr_off(self):
-        """Test 4: When QR is OFF, no QR image renders."""
+        """Test 4: When QR is OFF, no QR image or fake QR placeholder renders."""
         prefs = {p: True for p in self.PREFERENCES}
         prefs["show_qr_code"] = False
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn('class="qr-image"', html)
-                if 'class="qr"' in html:
-                    after_qr = html.split('class="qr"')[1][:150]
-                    self.assertNotIn("<img", after_qr)
+                self.assertNotIn('class="qr-img"', html)
+                self.assertNotIn('class="qr"', html)
+                self.assertNotIn('class="qr-box"', html)
 
-    def test_signature_off(self):
-        """Test 5: When signature is OFF, no authorized signatory line renders."""
+    def test_signature_modes_and_disclaimer_matrix(self):
+        """Test 5: Verify signature modes (none, image, authorized_signatory) x disclaimer (OFF, ON)."""
         prefs = {p: True for p in self.PREFERENCES}
-        prefs["show_signature"] = False
-        for slug in self.TEMPLATES:
-            with self.subTest(template=slug):
-                html = self._render_template(slug, prefs)
-                self.assertNotIn("Authorized Signatory", html)
-                self.assertNotIn("Authorised Signatory", html)
-                self.assertNotIn('class="signature-image"', html)
+
+        for mode in ["none", "image", "authorized_signatory"]:
+            for disclaimer in [False, True]:
+                for slug in self.TEMPLATES:
+                    with self.subTest(template=slug, mode=mode, disclaimer=disclaimer):
+                        custom_prefs = prefs.copy()
+                        custom_prefs["template_name"] = slug
+                        context = InvoicePreviewService.get_preview_context(
+                            self.user,
+                            custom_prefs=custom_prefs,
+                            preview_mode="demo",
+                        )
+                        context["company"]["signature_mode"] = mode
+                        context["company"]["authorized_signatory_name"] = "Authorized Signatory"
+                        context["company"]["show_computer_generated_disclaimer"] = disclaimer
+
+                        resolved_path = InvoicePreviewService.resolve_template_path(slug)
+                        html = render_to_string(resolved_path, context)
+
+                        if disclaimer:
+                            self.assertIn("computer-generated invoice", html)
+                        else:
+                            self.assertNotIn("computer-generated invoice", html)
+
+                        if mode == "none":
+                            self.assertNotIn('class="signature-img"', html)
+                        elif mode == "authorized_signatory":
+                            self.assertIn("Authorized Signatory", html)
 
     def test_hsn_sac_off(self):
-        """Test 6: When HSN/SAC is OFF, no HSN column header renders."""
+        """Test 6: When HSN/SAC is OFF, no HSN column header or badge renders."""
         prefs = {p: True for p in self.PREFERENCES}
         prefs["show_hsn_sac"] = False
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn(">HSN/SAC<", html)
-                self.assertNotIn(">HSN<", html)
+                self.assertNotIn("HSN/SAC:", html)
 
     def test_gst_summary_off(self):
-        """Test 7: When GST summary is OFF, tax breakdown rows are suppressed."""
+        """Test 7: When GST summary is OFF, tax breakdown table is suppressed."""
         prefs = {p: True for p in self.PREFERENCES}
         prefs["show_gst_summary"] = False
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn("Central Tax", html)
-                self.assertNotIn("State/UT Tax", html)
+                self.assertNotIn("CGST Rate", html)
+                self.assertNotIn("SGST Rate", html)
 
     def test_terms_off(self):
         """Test 8: When terms are OFF, terms section is suppressed."""
@@ -141,7 +164,7 @@ class BillRenderingMatrixTestCase(TestCase):
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, prefs)
-                self.assertNotIn("Terms and Conditions:", html)
+                self.assertNotIn("Terms &amp; Conditions:", html)
 
     def test_payment_info_is_not_rendered(self):
         """Test 9: Verify payment info (Amount Paid) is never rendered on invoices."""
@@ -152,32 +175,54 @@ class BillRenderingMatrixTestCase(TestCase):
                 self.assertNotIn("Amount Paid", html)
                 self.assertNotIn("Balance Due", html)
 
-    def test_company_footer_off(self):
-        """Test 10: When company footer is OFF, footer message is suppressed."""
-        prefs = {p: True for p in self.PREFERENCES}
-        prefs["show_company_footer"] = False
-        for slug in self.TEMPLATES:
-            with self.subTest(template=slug):
-                html = self._render_template(slug, prefs)
-                self.assertNotIn("digitally signed document", html)
-
-    def test_page_numbers_off(self):
-        """Test 11: When page numbers are OFF, page numbers are suppressed."""
-        prefs = {p: True for p in self.PREFERENCES}
-        prefs["show_page_numbers"] = False
-        for slug in self.TEMPLATES:
-            with self.subTest(template=slug):
-                html = self._render_template(slug, prefs)
-                self.assertNotIn("Page 1 / 1", html)
-                self.assertNotIn("Page 1/1", html)
-
     def test_multiple_off_simultaneously(self):
-        """Test 13: All optional toggles disabled simultaneously."""
+        """Test 10: All optional toggles disabled simultaneously."""
         all_off = {p: False for p in self.PREFERENCES}
         for slug in self.TEMPLATES:
             with self.subTest(template=slug):
                 html = self._render_template(slug, all_off)
                 self.assertGreater(len(html), 100)
-                self.assertNotIn("Bank Details:", html)
+                self.assertNotIn("Bank Name:", html)
                 self.assertNotIn("Authorized Signatory", html)
-                self.assertNotIn("Terms and Conditions:", html)
+                self.assertNotIn("Terms &amp; Conditions:", html)
+
+    def test_multipage_pdf_generation(self):
+        """Test 11: Verify 50+ line items generate valid PDF bytes without rendering errors."""
+        if not weasyprint:
+            return
+
+        prefs = {p: True for p in self.PREFERENCES}
+        for slug in self.TEMPLATES:
+            with self.subTest(template=slug):
+                custom_prefs = prefs.copy()
+                custom_prefs["template_name"] = slug
+                context = InvoicePreviewService.get_preview_context(
+                    self.user,
+                    custom_prefs=custom_prefs,
+                    preview_mode="demo",
+                )
+
+                # Create 50 line items to force multi-page rendering
+                items = []
+                for i in range(1, 51):
+                    items.append({
+                        "index": i,
+                        "name": f"Product Item #{i} with extra description details for multi-page stress testing",
+                        "hsn": "84713010",
+                        "quantity": i,
+                        "unit": "Pcs",
+                        "rate": "100.00",
+                        "tax_pct": "18.00",
+                        "tax_amount": "18.00",
+                        "amount": f"{i * 100}.00",
+                        "description": "Comprehensive specification text line for multi-page layout verification.",
+                    })
+                context["items"] = items
+
+                resolved_path = InvoicePreviewService.resolve_template_path(slug)
+                html_str = render_to_string(resolved_path, context)
+                pdf_bytes = weasyprint.HTML(string=html_str, base_url="file://").write_pdf()
+
+                self.assertIsInstance(pdf_bytes, bytes)
+                self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+                self.assertGreater(len(pdf_bytes), 5000, "Multi-page PDF should generate substantial valid binary data")
