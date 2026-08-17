@@ -3,6 +3,11 @@
 
 {% block settings_title %}Invoice Design{% endblock %}
 
+{% block settings_header %}
+    {% url 'settings_app:index' as settings_url %}
+    {% include "base/header.html" with parent_title="Configuration / Settings" parent_url=settings_url back_url=settings_url page_heading="Invoice Design" %}
+{% endblock %}
+
 {% block settings_css %}
 <style>
     /* ==========================================================================
@@ -226,6 +231,22 @@
     .element-card.checked {
         border-color: var(--color-accent);
         background: var(--color-accent-subtle);
+    }
+
+    .element-card.disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        background: var(--color-bg-base);
+        border-color: var(--color-border);
+    }
+
+    .element-card.disabled:hover {
+        border-color: var(--color-border);
+        background: var(--color-bg-base);
+    }
+
+    .element-card.disabled .element-label {
+        color: var(--color-text-muted);
     }
 
     .custom-checkbox {

@@ -376,40 +376,13 @@
 
     <main class="main-content">
         <!-- Mobile Topbar -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action" type="button">
-                    <i data-lucide="menu"></i>
-                </button>
-                <h2 class="topbar-title">Products &amp; Services</h2>
-            </div>
-            <div class="topbar-right">
-                <div class="user-menu">
-                    <button class="user-menu-btn" id="user-menu-btn" type="button">
-                        <div class="avatar avatar-sm">
-                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
-                        </div>
-                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
-                        <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
-                    </button>
-                    <div class="dropdown-menu" id="user-menu-dropdown">
-                        <div class="dropdown-item" style="pointer-events: none;">
-                            <div>
-                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
-                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
-                                <i data-lucide="log-out"></i> Sign Out
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </header>
+        {% url 'products:list' as prod_list_url %}
+        {% if form.instance.pk %}
+            {% url 'products:detail' form.instance.pk as prod_back_url %}
+            {% include "base/header.html" with parent_title="Inventory / Products & Services" parent_url=prod_list_url back_url=prod_back_url page_heading=form.instance.name %}
+        {% else %}
+            {% include "base/header.html" with parent_title="Inventory / Products & Services" parent_url=prod_list_url back_url=prod_list_url page_heading="New Item" %}
+        {% endif %}
         <div class="product-form-container">
 
             <!-- Header -->

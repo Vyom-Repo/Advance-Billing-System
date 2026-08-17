@@ -1,0 +1,61 @@
+{% load static %}
+<header class="topbar">
+    <div class="topbar-left">
+        <button id="mobile-menu-toggle" class="mobile-toggle topbar-action" aria-label="Toggle Navigation Menu">
+            <i data-lucide="menu"></i>
+        </button>
+        <div class="topbar-breadcrumb-nav" style="display: flex; align-items: center; gap: var(--space-2);">
+            {% if back_url %}
+            <a href="{{ back_url }}" class="header-back-btn" title="Go back">
+                <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+            </a>
+            {% endif %}
+            <div class="header-breadcrumbs" style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);">
+                {% if parent_title %}
+                    {% if parent_url %}
+                    <a href="{{ parent_url }}" class="breadcrumb-parent" style="color: var(--color-text-muted); font-weight: var(--font-medium); transition: color var(--transition-fast);">{{ parent_title }}</a>
+                    {% else %}
+                    <span class="breadcrumb-parent" style="color: var(--color-text-muted); font-weight: var(--font-medium);">{{ parent_title }}</span>
+                    {% endif %}
+                    <span class="breadcrumb-separator" style="color: var(--color-border-strong); margin: 0 2px;">/</span>
+                {% endif %}
+                <span class="breadcrumb-current" style="color: var(--color-text-primary); font-weight: var(--font-semibold);">{{ page_heading|default:page_title|default:"Advance Billing" }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="topbar-right">
+        <!-- User Menu Dropdown (Reused) -->
+        <div class="user-menu">
+            <button class="user-menu-btn" id="user-menu-btn" aria-haspopup="true" aria-expanded="false">
+                <div class="avatar avatar-sm">
+                    {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
+                </div>
+                <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
+                <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--color-text-secondary);"></i>
+            </button>
+            <div class="dropdown-menu" id="user-menu-dropdown">
+                <div class="dropdown-item" style="pointer-events: none;">
+                    <div>
+                        <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
+                        <div style="font-size: var(--text-xs); color: var(--color-text-muted);">{{ user_org.business_name|default:"No Organization" }}</div>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'settings_app:profile' %}" class="dropdown-item">
+                    <i data-lucide="user"></i> Account Profile
+                </a>
+                <a href="{% url 'organization:index' %}" class="dropdown-item">
+                    <i data-lucide="building-2"></i> Organization Settings
+                </a>
+                <div class="dropdown-divider"></div>
+                <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
+                        <i data-lucide="log-out"></i> Sign Out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>

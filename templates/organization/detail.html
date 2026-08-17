@@ -350,21 +350,7 @@
     {% include "base/sidebar.html" %}
 
     <main class="main-content">
-        <header class="topbar">
-            <div class="topbar-left">
-                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
-                    <i data-lucide="menu"></i>
-                </button>
-                <div class="topbar-title">
-                    <span class="desktop-breadcrumb" style="display: flex; align-items: center; gap: var(--space-2);">
-                        <i data-lucide="building-2" style="color: var(--color-text-muted); width: 18px; height: 18px;"></i>
-                        <span style="color: var(--color-text-muted); font-weight: var(--font-medium);">Configuration</span>
-                        <span style="color: var(--color-border-strong); margin: 0 4px;">/</span>
-                        <span style="color: var(--color-text-primary);">Organization Settings</span>
-                    </span>
-                </div>
-            </div>
-        </header>
+        {% include "base/header.html" with parent_title="Configuration" parent_url=settings_index_url|default:"/settings/" back_url=settings_index_url|default:"/settings/" page_heading="Organization Settings" %}
 
         <div class="page-content">
             <form id="org-settings-form" method="post" enctype="multipart/form-data" class="settings-container">
@@ -647,27 +633,27 @@
 
                     <!-- Authorized Signature & Mode Settings -->
                     <div class="form-group" style="margin-bottom: var(--space-6);">
-                        <label class="form-label" style="font-weight: var(--font-semibold); margin-bottom: var(--space-3); display: block;">Signature / Authorization</label>
+                        <label class="form-label" style="font-weight: var(--font-semibold); margin-bottom: var(--space-3); display: block;">Signature / Authorization Mode</label>
                         <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4);">
-                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                            <label class="radio-card {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}selected{% endif %}">
                                 <input type="radio" name="signature_mode" value="none" {% if form.signature_mode.value == 'none' or not form.signature_mode.value %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div>
-                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">None</div>
-                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Do not display a signature or authorization section on invoices.</div>
+                                <div class="radio-card-content">
+                                    <div class="radio-card-title">None</div>
+                                    <div class="radio-card-subtext">Do not display a signature or authorization section on invoices.</div>
                                 </div>
                             </label>
-                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                            <label class="radio-card {% if form.signature_mode.value == 'image' %}selected{% endif %}">
                                 <input type="radio" name="signature_mode" value="image" {% if form.signature_mode.value == 'image' %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div>
-                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Signature Image</div>
-                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Use an uploaded signature image on invoices.</div>
+                                <div class="radio-card-content">
+                                    <div class="radio-card-title">Signature Image</div>
+                                    <div class="radio-card-subtext">Use an uploaded signature image on invoices.</div>
                                 </div>
                             </label>
-                            <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer;">
+                            <label class="radio-card {% if form.signature_mode.value == 'authorized_signatory' %}selected{% endif %}">
                                 <input type="radio" name="signature_mode" value="authorized_signatory" {% if form.signature_mode.value == 'authorized_signatory' %}checked{% endif %} onchange="updateSignatureModeUI()">
-                                <div>
-                                    <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">Authorized Signatory</div>
-                                    <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Display a professional signatory section using text instead of an uploaded image.</div>
+                                <div class="radio-card-content">
+                                    <div class="radio-card-title">Authorized Signatory</div>
+                                    <div class="radio-card-subtext">Display a professional signatory section using text instead of an uploaded image.</div>
                                 </div>
                             </label>
                         </div>
@@ -1119,6 +1105,14 @@
 
         function updateSignatureModeUI() {
             const selectedMode = document.querySelector('input[name="signature_mode"]:checked')?.value || 'none';
+            document.querySelectorAll('.radio-card').forEach(card => {
+                const input = card.querySelector('input[name="signature_mode"]');
+                if (input && input.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
             const imgContainer = document.getElementById('sig-image-container');
             const textContainer = document.getElementById('sig-text-container');
             if (imgContainer) imgContainer.style.display = (selectedMode === 'image') ? 'block' : 'none';
