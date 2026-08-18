@@ -556,6 +556,21 @@
             min-height: 112px;
         }
 
+        .footer-table.cols-2 td.footer-box {
+            width: 48.85%;
+        }
+
+        .footer-table.cols-1 td.footer-box {
+            width: 31.8%;
+        }
+
+        .footer-table td.footer-spacer-cell {
+            width: 68.2%;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
         .footer-table td.footer-gap-cell {
             width: 2.3%;
             background: transparent;
@@ -579,11 +594,23 @@
             text-align: left;
         }
 
+        .qr-container {
+            width: 100%;
+            height: 75px;
+            text-align: center;
+            line-height: 75px;
+            font-size: 0;
+        }
+
         .qr-img {
-            width: 68px;
-            height: 68px;
+            max-width: 100%;
+            max-height: 75px;
+            width: auto;
+            height: auto;
             object-fit: contain;
-            display: block;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 auto;
         }
 
         .bank-row {
@@ -1009,16 +1036,27 @@
 
         <!-- QR / BANK / AUTHORIZATION -->
         {% if config.show_qr_code and bill.qr_code_url or config.show_bank_details and company.bank_name or config.show_signature and company.signature_mode != 'none' %}
-        <table class="footer-table">
+        <table class="footer-table {% if config.show_qr_code and bill.qr_code_url and config.show_bank_details and company.bank_name and not config.show_signature or config.show_qr_code and bill.qr_code_url and config.show_bank_details and company.bank_name and company.signature_mode == 'none' or config.show_qr_code and bill.qr_code_url and config.show_signature and company.signature_mode != 'none' and not config.show_bank_details or config.show_qr_code and bill.qr_code_url and config.show_signature and company.signature_mode != 'none' and not company.bank_name or config.show_bank_details and company.bank_name and config.show_signature and company.signature_mode != 'none' and not config.show_qr_code or config.show_bank_details and company.bank_name and config.show_signature and company.signature_mode != 'none' and not bill.qr_code_url %}cols-2{% elif config.show_qr_code and bill.qr_code_url and not config.show_bank_details and not config.show_signature or config.show_qr_code and bill.qr_code_url and not config.show_bank_details and company.signature_mode == 'none' or config.show_qr_code and bill.qr_code_url and not company.bank_name and not config.show_signature or config.show_qr_code and bill.qr_code_url and not company.bank_name and company.signature_mode == 'none' or config.show_bank_details and company.bank_name and not config.show_qr_code and not config.show_signature or config.show_bank_details and company.bank_name and not config.show_qr_code and company.signature_mode == 'none' or config.show_bank_details and company.bank_name and not bill.qr_code_url and not config.show_signature or config.show_bank_details and company.bank_name and not bill.qr_code_url and company.signature_mode == 'none' or config.show_signature and company.signature_mode != 'none' and not config.show_qr_code and not config.show_bank_details or config.show_signature and company.signature_mode != 'none' and not bill.qr_code_url and not company.bank_name or config.show_signature and company.signature_mode != 'none' and not bill.qr_code_url and not config.show_bank_details or config.show_signature and company.signature_mode != 'none' and not config.show_qr_code and not company.bank_name %}cols-1{% endif %}">
             <tr>
+                {% if config.show_signature and company.signature_mode != 'none' and not config.show_qr_code and not config.show_bank_details or config.show_signature and company.signature_mode != 'none' and not bill.qr_code_url and not company.bank_name or config.show_signature and company.signature_mode != 'none' and not bill.qr_code_url and not config.show_bank_details or config.show_signature and company.signature_mode != 'none' and not config.show_qr_code and not company.bank_name %}
+                <td class="footer-spacer-cell"></td>
+                {% endif %}
+
                 {% if config.show_qr_code and bill.qr_code_url %}
                 <td class="footer-box qr-box">
                     <div class="footer-box-title">UPI QR CODE</div>
-                    <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
+                    <div class="qr-container">
+                        <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
+                    </div>
                 </td>
+                {% if not config.show_bank_details and not config.show_signature or not config.show_bank_details and company.signature_mode == 'none' or not company.bank_name and not config.show_signature or not company.bank_name and company.signature_mode == 'none' %}
+                <td class="footer-spacer-cell"></td>
+                {% endif %}
                 {% endif %}
 
+                {% if config.show_qr_code and bill.qr_code_url and config.show_bank_details and company.bank_name %}
                 <td class="footer-gap-cell"></td>
+                {% endif %}
 
                 {% if config.show_bank_details and company.bank_name %}
                 <td class="footer-box">
@@ -1044,9 +1082,14 @@
                         <div class="value">{{ company.branch }}</div>
                     </div>{% endif %}
                 </td>
+                {% if not config.show_qr_code and not config.show_signature or not config.show_qr_code and company.signature_mode == 'none' or not bill.qr_code_url and not config.show_signature or not bill.qr_code_url and company.signature_mode == 'none' %}
+                <td class="footer-spacer-cell"></td>
+                {% endif %}
                 {% endif %}
 
+                {% if config.show_signature and company.signature_mode != 'none' and config.show_qr_code and bill.qr_code_url and not config.show_bank_details or config.show_signature and company.signature_mode != 'none' and config.show_qr_code and bill.qr_code_url and not company.bank_name or config.show_signature and company.signature_mode != 'none' and config.show_bank_details and company.bank_name %}
                 <td class="footer-gap-cell"></td>
+                {% endif %}
 
                 {% if config.show_signature and company.signature_mode != 'none' %}
                 <td class="footer-box auth-box">
