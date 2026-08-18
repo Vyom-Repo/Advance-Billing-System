@@ -582,7 +582,9 @@
             display: table;
             width: 100%;
             table-layout: fixed;
-            font-size: 8pt;
+            border-collapse: collapse;
+            border-spacing: 0;
+            font-size: 8.5pt;
             line-height: 1.25;
             margin-bottom: 6px;
         }
@@ -592,21 +594,30 @@
         .bank-row .value {
             display: table-cell;
             vertical-align: top;
+            padding: 0;
+            margin: 0;
         }
 
         .bank-row .label {
-            width: 38%;
+            width: 44%;
             font-weight: 700;
             color: #1a2233;
+            white-space: nowrap;
+            text-align: left;
         }
 
         .bank-row .colon {
-            width: 7%;
+            width: 5%;
+            text-align: left;
         }
 
         .bank-row .value {
-            width: 55%;
+            width: 51%;
             color: #333d4d;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            white-space: normal;
+            text-align: left;
         }
 
         .auth-box {
