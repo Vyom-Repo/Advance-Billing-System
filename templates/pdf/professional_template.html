@@ -15,10 +15,7 @@
         {% if layout_frame.has_letterhead_background %}
         @page {
             size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
-            margin: 0;
-            background-image: url("{{ layout_frame.background_image_url }}");
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
+            margin: {{ layout_frame.body_padding_top|default:"30mm" }} {{ layout_frame.body_padding_right|default:"15mm" }} {{ layout_frame.body_padding_bottom|default:"25mm" }} {{ layout_frame.body_padding_left|default:"15mm" }};
 
             @bottom-left {
                 content: "";
@@ -111,10 +108,10 @@
 
         .letterhead-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: 210mm;
+            height: 297mm;
             background-image: url("{{ layout_frame.background_image_url }}");
             background-repeat: no-repeat;
             background-position: center center;
@@ -827,10 +824,6 @@
         {% endif %}
     </div>
 
-    {% if layout_frame.has_letterhead_background %}
-    <div style="padding-top: {{ layout_frame.body_padding_top|default:'30mm' }}; padding-bottom: {{ layout_frame.body_padding_bottom|default:'25mm' }}; padding-left: {{ layout_frame.body_padding_left|default:'15mm' }}; padding-right: {{ layout_frame.body_padding_right|default:'15mm' }};">
-    {% endif %}
-
     <div class="invoice">
 
         <!-- HEADER -->
@@ -1195,9 +1188,6 @@
         {% endif %}
 
     </div>
-    {% if layout_frame.has_letterhead_background %}
-    </div>
-    {% endif %}
 </body>
 
 </html>
