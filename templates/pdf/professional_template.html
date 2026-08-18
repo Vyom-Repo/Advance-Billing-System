@@ -203,8 +203,13 @@
             margin: 16px -14px 0;
         }
 
+        .info-table tr {
+            height: 100%;
+        }
+
         .info-table td {
             vertical-align: top;
+            height: 100%;
         }
 
         .info-card {
@@ -212,6 +217,8 @@
             background: #f5f7fa;
             border-radius: 6px;
             padding: 12px 14px 14px;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .info-card-title {
@@ -256,9 +263,12 @@
             width: 100%;
             display: table;
             table-layout: fixed;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin: 0 0 6px 0;
+            padding: 0;
             font-size: 8.5pt;
             line-height: 1.3;
-            margin-bottom: 6px;
         }
 
         .invoice-details .label,
@@ -266,21 +276,28 @@
         .invoice-details .value {
             display: table-cell;
             vertical-align: top;
+            padding: 0;
+            margin: 0;
         }
 
         .invoice-details .label {
-            width: 48%;
+            width: 55%;
             font-weight: 700;
             color: #1a2233;
+            white-space: nowrap;
+            text-align: left;
         }
 
         .invoice-details .colon {
-            width: 7%;
+            width: 5%;
+            text-align: left;
         }
 
         .invoice-details .value {
-            width: 45%;
+            width: 40%;
             color: #333d4d;
+            white-space: nowrap;
+            text-align: left;
         }
 
         /* ------------------------------------------------------------------
@@ -480,7 +497,7 @@
             background: #16305c;
             color: #ffffff;
             padding: 10px 12px;
-            font-size: 11.8pt;
+            font-size: 14px;
             line-height: 1.1;
             font-weight: 700;
             margin-top: 3px;
@@ -489,6 +506,7 @@
 
         .grand-total span {
             display: table-cell;
+            vertical-align: middle;
         }
 
         .grand-total span:last-child {
@@ -730,7 +748,10 @@
                                 <div class="company-address">
                                     {% if company.address %}{{ company.address }}{% endif %}
                                     {% if company.city or company.state or company.pincode %}<br>{% endif %}
-                                    {% if company.city %}{{ company.city }}{% endif %}{% if company.city and company.state %}, {% endif %}{% if company.state %}{{ company.state }}{% endif %}{% if company.pincode %} - {{ company.pincode }}{% endif %}
+                                    {% if company.city %}{{ company.city }}{% endif %}
+                                    {% if company.city and company.state %}, {% endif %}
+                                    {% if company.state %}{{ company.state }}{% endif %}
+                                    {% if company.pincode %} - {{ company.pincode }}{% endif %}
                                 </div>
                                 {% endif %}
                             </td>
@@ -773,7 +794,11 @@
                     <p>
                         {% if customer.address %}{{ customer.address }}{% endif %}
                         {% if customer.city or customer.state or customer.pincode %}<br>{% endif %}
-                        {% if customer.city %}{{ customer.city }}{% endif %}{% if customer.city and customer.state %}, {% endif %}{% if customer.state %}{{ customer.state }}{% endif %}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}{% if customer.country and customer.country != "India" %}, {{ customer.country }}{% endif %}
+                        {% if customer.city %}{{ customer.city }}{% endif %}
+                        {% if customer.city and customer.state %}, {% endif %}
+                        {% if customer.state %}{{ customer.state }}{% endif %}
+                        {% if customer.pincode %} - {{ customer.pincode }}{% endif %}
+                        {% if customer.country and customer.country != "India" %}, {{ customer.country }}{% endif %}
                     </p>
                     {% if customer.gstin %}
                     <div class="gstin"><b>GSTIN:</b> {{ customer.gstin }}</div>
@@ -787,11 +812,17 @@
                         {% if customer.shipping_address %}
                         {{ customer.shipping_address }}
                         {% if customer.shipping_city or customer.shipping_state or customer.shipping_pincode %}<br>{% endif %}
-                        {% if customer.shipping_city %}{{ customer.shipping_city }}{% endif %}{% if customer.shipping_city and customer.shipping_state %}, {% endif %}{% if customer.shipping_state %}{{ customer.shipping_state }}{% endif %}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}
+                        {% if customer.shipping_city %}{{ customer.shipping_city }}{% endif %}
+                        {% if customer.shipping_city and customer.shipping_state %}, {% endif %}
+                        {% if customer.shipping_state %}{{ customer.shipping_state }}{% endif %}
+                        {% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}
                         {% else %}
                         {% if customer.address %}{{ customer.address }}{% endif %}
                         {% if customer.city or customer.state or customer.pincode %}<br>{% endif %}
-                        {% if customer.city %}{{ customer.city }}{% endif %}{% if customer.city and customer.state %}, {% endif %}{% if customer.state %}{{ customer.state }}{% endif %}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}
+                        {% if customer.city %}{{ customer.city }}{% endif %}
+                        {% if customer.city and customer.state %}, {% endif %}
+                        {% if customer.state %}{{ customer.state }}{% endif %}
+                        {% if customer.pincode %} - {{ customer.pincode }}{% endif %}
                         {% endif %}
                     </p>
                 </td>
