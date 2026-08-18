@@ -288,3 +288,37 @@ class ResolveRenderConfigTestCase(TestCase):
         self.assertTrue(pdf_bytes.startswith(b"%PDF"))
         self.assertGreater(len(pdf_bytes), 1000)
 
+    def test_professional_template_preserves_path_when_letterhead_enabled(self):
+        """12. Test that rendering professional_template with print_on_letterhead=True preserves template path."""
+        config = InvoicePreviewService.resolve_render_config(
+            template_slug="professional_template",
+            user=self.user,
+            request_overrides={"print_on_letterhead": True},
+        )
+        serialized = serialize_bill_for_render({}, {}, [], {}, None)
+        layout_frame = PrintableFrameBuilder.build_frame(None, config)
+
+        pdf_bytes = InvoicePreviewService.render_bill_pdf(
+            bill_data=serialized,
+            config=config,
+            template_file_path="pdf/professional_template.html",
+            layout_frame=layout_frame,
+        )
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_organization_letterhead_preview_view_success(self):
+        """13. Test that OrganizationLetterheadPreviewView returns 200 OK without NameError."""
+        from django.test import RequestFactory
+        from apps.organization.views import OrganizationLetterheadPreviewView
+
+        rf = RequestFactory()
+        request = rf.get("/organization/letterhead-preview/?header=30&footer=25")
+        request.user = self.user
+
+        view = OrganizationLetterheadPreviewView.as_view()
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+

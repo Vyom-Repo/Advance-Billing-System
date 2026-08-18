@@ -229,10 +229,12 @@ class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
         bill_data    = serialize_bill_for_render(invoice, customer, items, company, org_obj)
         layout_frame = PrintableFrameBuilder.build_frame(org_obj, config)
 
+        template_path = config.get("template_file_path") or InvoicePreviewService.resolve_template_path(config.get("template_name"))
+
         pdf_bytes = InvoicePreviewService.render_bill_pdf(
             bill_data=bill_data,
             config=config,
-            template_file_path=f"pdf/{template_slug}.html",
+            template_file_path=template_path,
             layout_frame=layout_frame,
             org=org_obj,
         )

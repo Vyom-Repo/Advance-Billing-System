@@ -249,12 +249,8 @@ class InvoicePreviewService:
             "company":      bill_data.get("company", {}),
         }
 
-        # Use the specific letterhead template if letterhead printing is enabled,
-        # otherwise use the user's selected template.
-        if config.get("print_on_letterhead"):
-            primary_path = "pdf/letterhead_invoice.html"
-        else:
-            primary_path = template_file_path
+        # Preserve user's selected template choice regardless of whether letterhead is enabled.
+        primary_path = template_file_path
 
         try:
             html_string = render_to_string(primary_path, context)

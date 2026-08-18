@@ -45,10 +45,16 @@ class PrintableFrameBuilder:
             top_offset    = getattr(org, "letterhead_header_offset", 30)
             bottom_offset = getattr(org, "letterhead_footer_offset", 25)
 
+            import pathlib
+            try:
+                bg_url = pathlib.Path(org.letterhead.path).as_uri()
+            except Exception:
+                bg_url = f"file://{org.letterhead.path}"
+
             return {
                 # Page is full-bleed: no margins, background covers entire sheet
                 "has_letterhead_background": True,
-                "background_image_url": f"file://{org.letterhead.path}",
+                "background_image_url": bg_url,
                 "paper_size":    paper_size,
                 "orientation":   orientation,
                 # Page margins are zero — the full-bleed background covers the sheet
