@@ -75,6 +75,9 @@ class Organization(TimeStampedModel):
     def __str__(self) -> str:
         return self.business_name
 
+import re
+from django.core.exceptions import ValidationError
+
 class BankAccount(TimeStampedModel):
     """
     Bank account details for an Organization.
@@ -86,6 +89,32 @@ class BankAccount(TimeStampedModel):
     ifsc_code = models.CharField(max_length=20)
     branch = models.CharField(max_length=255, blank=True)
     is_default = models.BooleanField(default=True)
+
+    def clean(self):
+        super().clean()
+        if self.bank_name:
+            self.bank_name = self.bank_name.strip().upper()
+            
+        if self.ifsc_code:
+            self.ifsc_code = self.ifsc_code.strip().upper()
+            if len(self.ifsc_code) != 11 or not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", self.ifsc_code):
+                raise ValidationError({"ifsc_code": "IFSC must contain 4 letters, followed by 0, followed by 6 alphanumeric characters."})
+                
+        if self.account_number:
+            self.account_number = str(self.account_number).strip()
+            if not re.match(r"^\d{1,18}$", self.account_number):
+                raise ValidationError({"account_number": "Account number must contain digits only (maximum 18 digits)."})
+
+        if self.branch is not None:
+            self.branch = str(self.branch).strip()
+            if not self.branch:
+                raise ValidationError({"branch": "Branch is required."})
+        else:
+            raise ValidationError({"branch": "Branch is required."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.bank_name} - {self.account_number}"

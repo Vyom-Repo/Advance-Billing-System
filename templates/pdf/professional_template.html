@@ -546,22 +546,20 @@
             height: 100%;
         }
 
-        .footer-table td.footer-cell {
+        .footer-table td.footer-box {
             vertical-align: top;
-            width: 33.333%;
-            height: 100%;
-            padding: 0;
-            background: transparent;
-        }
-
-        .footer-box {
-            width: 100%;
+            width: 31.8%;
             background: #f5f7fa;
             border-radius: 6px;
             padding: 12px 14px 14px;
-            min-height: 112px;
-            height: 100%;
             box-sizing: border-box;
+            min-height: 112px;
+        }
+
+        .footer-table td.footer-gap-cell {
+            width: 2.3%;
+            background: transparent;
+            padding: 0;
         }
 
         .footer-box-title {
@@ -634,37 +632,42 @@
             text-align: center;
         }
 
-        .auth-visual {
-            height: 54px;
-            display: table;
-            width: 100%;
-            table-layout: fixed;
+        .auth-company-name {
+            font-size: 8pt;
+            font-weight: 600;
+            color: #1a2233;
+            margin-bottom: 2px;
+            line-height: 1.2;
         }
 
-        .auth-visual-inner {
+        .auth-stamp-area {
+            width: 100%;
+            height: 2.8cm;
+            display: table;
+            table-layout: fixed;
+            margin: 2px auto;
+        }
+
+        .auth-stamp-cell {
             display: table-cell;
             vertical-align: middle;
             text-align: center;
         }
 
-        .signature-img {
-            max-height: 42px;
-            max-width: 92px;
+        .auth-stamp-img {
+            max-width: 7cm;
+            max-height: 2.6cm;
             object-fit: contain;
+            display: inline-block;
             vertical-align: middle;
-            margin-left: 3px;
         }
 
-        .authorized-signatory-text {
-            height: 42px;
-            display: block;
-            padding-top: 19px;
-            font-size: 7.5pt;
-            color: #333d4d;
+        .auth-spacer {
+            height: 2.2cm;
         }
 
         .auth-label {
-            margin-top: 6px;
+            margin-top: 2px;
             font-size: 8pt;
             font-weight: 600;
             color: #1a2233;
@@ -1005,61 +1008,62 @@
         {% endif %}
 
         <!-- QR / BANK / AUTHORIZATION -->
-        {% if config.show_qr_code and bill.qr_code_url or config.show_bank_details and company.bank_name or config.show_signature %}
+        {% if config.show_qr_code and bill.qr_code_url or config.show_bank_details and company.bank_name or config.show_signature and company.signature_mode != 'none' %}
         <table class="footer-table">
             <tr>
                 {% if config.show_qr_code and bill.qr_code_url %}
-                <td class="footer-cell" style="padding-right: 7px;">
-                    <div class="footer-box qr-box">
-                        <div class="footer-box-title">UPI QR CODE</div>
-                        <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
-                    </div>
+                <td class="footer-box qr-box">
+                    <div class="footer-box-title">UPI QR CODE</div>
+                    <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
                 </td>
                 {% endif %}
+
+                <td class="footer-gap-cell"></td>
 
                 {% if config.show_bank_details and company.bank_name %}
-                <td class="footer-cell" style="padding: 0 7px;">
-                    <div class="footer-box">
-                        <div class="footer-box-title">BANK DETAILS</div>
-                        <div class="bank-row">
-                            <div class="label">Bank Name</div>
-                            <div class="colon">:</div>
-                            <div class="value">{{ company.bank_name }}</div>
-                        </div>
-                        {% if company.acc_no %}<div class="bank-row">
-                            <div class="label">Account No.</div>
-                            <div class="colon">:</div>
-                            <div class="value">{{ company.acc_no }}</div>
-                        </div>{% endif %}
-                        {% if company.ifsc %}<div class="bank-row">
-                            <div class="label">IFSC Code</div>
-                            <div class="colon">:</div>
-                            <div class="value">{{ company.ifsc }}</div>
-                        </div>{% endif %}
-                        {% if company.branch %}<div class="bank-row">
-                            <div class="label">Branch</div>
-                            <div class="colon">:</div>
-                            <div class="value">{{ company.branch }}</div>
-                        </div>{% endif %}
+                <td class="footer-box">
+                    <div class="footer-box-title">BANK DETAILS</div>
+                    <div class="bank-row">
+                        <div class="label">Bank Name</div>
+                        <div class="colon">:</div>
+                        <div class="value">{{ company.bank_name }}</div>
                     </div>
+                    {% if company.acc_no %}<div class="bank-row">
+                        <div class="label">Account No.</div>
+                        <div class="colon">:</div>
+                        <div class="value">{{ company.acc_no }}</div>
+                    </div>{% endif %}
+                    {% if company.ifsc %}<div class="bank-row">
+                        <div class="label">IFSC Code</div>
+                        <div class="colon">:</div>
+                        <div class="value">{{ company.ifsc }}</div>
+                    </div>{% endif %}
+                    {% if company.branch %}<div class="bank-row">
+                        <div class="label">Branch</div>
+                        <div class="colon">:</div>
+                        <div class="value">{{ company.branch }}</div>
+                    </div>{% endif %}
                 </td>
                 {% endif %}
 
-                {% if config.show_signature %}
-                <td class="footer-cell" style="padding-left: 7px;">
-                    <div class="footer-box auth-box">
-                        <div class="footer-box-title">AUTHORIZATION</div>
-                        <div class="auth-visual">
-                            <div class="auth-visual-inner">
-                                {% if company.signature_mode == 'image' and company.signature_url %}
-                                <img src="{{ company.signature_url }}" class="signature-img" alt="Signature">
-                                {% elif company.signature_mode == 'authorized_signatory' and company.authorized_signatory_name %}
-                                <span class="authorized-signatory-text">For {{ company.authorized_signatory_name }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="auth-label">Authorized Signatory</div>
+                <td class="footer-gap-cell"></td>
+
+                {% if config.show_signature and company.signature_mode != 'none' %}
+                <td class="footer-box auth-box">
+                    <div class="footer-box-title">AUTHORIZATION</div>
+                    <div class="auth-company-name">
+                        For {% if company.authorized_signatory_name %}{{ company.authorized_signatory_name }}{% else %}{{ company.name }}{% endif %}
                     </div>
+                    {% if company.signature_mode == 'image' and company.signature_url %}
+                    <div class="auth-stamp-area">
+                        <div class="auth-stamp-cell">
+                            <img src="{{ company.signature_url }}" class="auth-stamp-img" alt="Signature / Stamp">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="auth-spacer"></div>
+                    {% endif %}
+                    <div class="auth-label">Authorized Signatory</div>
                 </td>
                 {% endif %}
             </tr>

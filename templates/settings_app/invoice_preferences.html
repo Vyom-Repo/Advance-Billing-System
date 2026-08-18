@@ -185,15 +185,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('invoice-preferences-form');
     const saveBtn = document.getElementById('save-preferences-btn');
     
+    function resetPrefSaveBtn() {
+        saveBtn.innerText = 'Save Preferences';
+        saveBtn.style.backgroundColor = '';
+        saveBtn.style.borderColor = '';
+        saveBtn.style.opacity = '1';
+        saveBtn.style.pointerEvents = 'auto';
+    }
+
+    form.addEventListener('invalid', resetPrefSaveBtn, true);
+
     form.addEventListener('submit', (e) => {
-        // Prevent default temporarily to show the "Saved ✓" UX
+        if (!form.checkValidity()) {
+            resetPrefSaveBtn();
+            return;
+        }
         e.preventDefault();
         
         saveBtn.innerText = 'Saving...';
         saveBtn.style.opacity = '0.75';
         saveBtn.style.pointerEvents = 'none';
         
-        // Simulate a slight delay to show "Saved ✓" before actual submit
+        // Show "Saved ✓" before actual submit
         setTimeout(() => {
             saveBtn.innerText = 'Saved ✓';
             saveBtn.style.backgroundColor = 'var(--color-success)';
@@ -202,7 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             setTimeout(() => {
                 form.submit();
-            }, 400); // Wait a tiny bit to let the user see "Saved"
+                setTimeout(resetPrefSaveBtn, 4000);
+            }, 400);
         }, 300);
     });
 });

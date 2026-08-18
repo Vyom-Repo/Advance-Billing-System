@@ -111,6 +111,7 @@ class OrganizationUpdateForm(OrganizationSetupForm):
             instance.save()
         return instance
 
+import re
 from .models import BankAccount
 
 class BankAccountForm(forms.ModelForm):
@@ -120,5 +121,40 @@ class BankAccountForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['branch'].required = True
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+    def clean_bank_name(self):
+        bank_name = (self.cleaned_data.get("bank_name") or "").strip()
+        if not bank_name:
+            raise forms.ValidationError("Bank Name is required.")
+        return bank_name.upper()
+
+    def clean_account_number(self):
+        account_number = str(self.cleaned_data.get("account_number") or "").strip()
+        if not account_number:
+            raise forms.ValidationError("Account Number is required.")
+        if not account_number.isdigit():
+            raise forms.ValidationError("Account number must contain digits only.")
+        if len(account_number) > 18:
+            raise forms.ValidationError("Account number cannot exceed 18 digits.")
+        if len(account_number) < 1:
+            raise forms.ValidationError("Account number cannot be empty.")
+        return account_number
+
+    def clean_ifsc_code(self):
+        ifsc_code = (self.cleaned_data.get("ifsc_code") or "").strip().upper()
+        if not ifsc_code:
+            raise forms.ValidationError("IFSC Code is required.")
+        if len(ifsc_code) != 11:
+            raise forms.ValidationError("Enter a valid 11-character IFSC code.")
+        if not re.match(r"^[A-Z]{4}0[A-Z0-9]{6}$", ifsc_code):
+            raise forms.ValidationError("IFSC must contain 4 letters, followed by 0, followed by 6 alphanumeric characters.")
+        return ifsc_code
+
+    def clean_branch(self):
+        branch = (self.cleaned_data.get("branch") or "").strip()
+        if not branch:
+            raise forms.ValidationError("Branch is required.")
+        return branch

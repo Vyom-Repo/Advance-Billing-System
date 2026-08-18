@@ -1569,7 +1569,23 @@
     });
 
     const saveBtn = document.getElementById('save-btn');
+    function resetDesignSaveBtn() {
+        if (saveBtn) {
+            saveBtn.innerText = 'Save Changes';
+            saveBtn.style.backgroundColor = '';
+            saveBtn.style.borderColor = '';
+            saveBtn.style.opacity = '1';
+            saveBtn.style.pointerEvents = 'auto';
+        }
+    }
+
+    form.addEventListener('invalid', resetDesignSaveBtn, true);
+
     form.addEventListener('submit', (e) => {
+        if (!form.checkValidity()) {
+            resetDesignSaveBtn();
+            return;
+        }
         e.preventDefault();
         saveBtn.innerText = 'Saving...';
         saveBtn.style.opacity = '0.75';
@@ -1583,6 +1599,7 @@
 
             setTimeout(() => {
                 form.submit();
+                setTimeout(resetDesignSaveBtn, 4000);
             }, 400);
         }, 300);
     });

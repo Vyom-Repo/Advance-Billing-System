@@ -242,19 +242,45 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     // Form submission animation
-    form.addEventListener("submit", function() {
+    form.addEventListener("invalid", function() {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'Save Profile';
+    }, true);
+    form.addEventListener("submit", function(e) {
+        if (!form.checkValidity()) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Profile';
+            return;
+        }
         if (!saveBtn.disabled) {
             saveBtn.innerHTML = '<i data-lucide="loader-2" class="spinner"></i> Saving...';
             saveBtn.disabled = true; // Prevent double submit
+            setTimeout(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save Profile';
+            }, 6000);
         }
     });
     
     // Modal submission animation
     const emailForm = document.getElementById("change-email-form");
     const emailBtn = document.getElementById("send-otp-btn");
+    emailForm.addEventListener("invalid", function() {
+        emailBtn.disabled = false;
+        emailBtn.innerHTML = 'Send Code';
+    }, true);
     emailForm.addEventListener("submit", function() {
+        if (!emailForm.checkValidity()) {
+            emailBtn.disabled = false;
+            emailBtn.innerHTML = 'Send Code';
+            return;
+        }
         emailBtn.innerHTML = '<i data-lucide="loader-2" class="spinner"></i> Sending...';
         emailBtn.disabled = true;
+        setTimeout(() => {
+            emailBtn.disabled = false;
+            emailBtn.innerHTML = 'Send Code';
+        }, 6000);
     });
 });
 

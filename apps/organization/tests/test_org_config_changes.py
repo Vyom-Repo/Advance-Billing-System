@@ -112,6 +112,7 @@ class OrganizationConfigChangesTestCase(TestCase):
             account_name="Test Corp",
             account_number="1234567890",
             ifsc_code="HDFC0001234",
+            branch="Main Branch",
             is_default=True,
         )
         bank2 = BankAccount.objects.create(
@@ -120,6 +121,7 @@ class OrganizationConfigChangesTestCase(TestCase):
             account_name="Test Corp",
             account_number="0987654321",
             ifsc_code="ICIC0005678",
+            branch="Main Branch",
             is_default=False,
         )
 
@@ -137,6 +139,7 @@ class OrganizationConfigChangesTestCase(TestCase):
             account_name="Test Corp",
             account_number="1122334455",
             ifsc_code="UTIB0009999",
+            branch="Main Branch",
             is_default=False,
         )
         response = self.client.post(reverse("organization:bank_delete", kwargs={"pk": bank1.pk}))

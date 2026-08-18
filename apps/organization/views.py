@@ -107,7 +107,11 @@ class BankAccountCreateView(BillingLoginRequiredMixin, View):
             bank_account.save()
             messages.success(request, "Bank account added successfully.")
         else:
-            messages.error(request, "Error adding bank account. Please check the details.")
+            errors = []
+            for field, err_list in form.errors.items():
+                errors.extend(err_list)
+            err_msg = " ".join(errors) if errors else "Please check the bank details provided."
+            messages.error(request, f"Error adding bank account: {err_msg}")
             
         return redirect("organization:index")
 
@@ -124,7 +128,11 @@ class BankAccountUpdateView(BillingLoginRequiredMixin, View):
             form.save()
             messages.success(request, "Bank account updated successfully.")
         else:
-            messages.error(request, "Error updating bank account.")
+            errors = []
+            for field, err_list in form.errors.items():
+                errors.extend(err_list)
+            err_msg = " ".join(errors) if errors else "Please check the bank details provided."
+            messages.error(request, f"Error updating bank account: {err_msg}")
             
         return redirect("organization:index")
 
