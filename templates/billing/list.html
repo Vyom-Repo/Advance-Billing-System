@@ -188,13 +188,13 @@
                                     </form>
                                     <a href="{% url 'billing:delete' invoice.uuid %}" class="action-link delete" title="Delete Draft"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></a>
                                     {% elif invoice.status == "issued" %}
-                                    <a href="{% url 'billing:preview' invoice.uuid %}" class="action-link" title="Preview PDF"><i data-lucide="file-text" style="width:15px;height:15px;"></i></a>
+                                    <a href="{% url 'billing:preview' invoice.uuid %}" class="action-link" title="Preview PDF" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text" style="width:15px;height:15px;"></i></a>
                                     <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" style="display:inline;">
                                         {% csrf_token %}
                                         <button type="submit" class="action-link delete" title="Cancel" onclick="return confirm('Cancel this invoice?')"><i data-lucide="x-circle" style="width:15px;height:15px;"></i></button>
                                     </form>
                                     {% elif invoice.status == "cancelled" %}
-                                    <a href="{% url 'billing:preview' invoice.uuid %}" class="action-link" title="View"><i data-lucide="file-text" style="width:15px;height:15px;"></i></a>
+                                    <a href="{% url 'billing:preview' invoice.uuid %}" class="action-link" title="View" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text" style="width:15px;height:15px;"></i></a>
                                     {% endif %}
                                 </div>
                             </td>

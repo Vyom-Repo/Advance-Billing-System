@@ -37,6 +37,7 @@
     .summary-label { color: var(--color-text-secondary); }
     .summary-value { font-family: var(--font-mono); color: var(--color-text-primary); }
     .detail-actions form.action-form { display: inline-flex; margin: 0; padding: 0; }
+    .lines-mobile-list { display: none; }
     @media (max-width: 768px) {
         .invoice-detail-container { padding: var(--space-4) var(--space-3) var(--space-16); width: 100%; max-width: 100%; }
         .detail-header { flex-direction: column; align-items: stretch; gap: var(--space-4); width: 100%; }
@@ -47,6 +48,57 @@
         .detail-actions form.action-form .btn { width: 100% !important; max-width: 100% !important; min-height: 44px; justify-content: center; align-items: center; box-sizing: border-box !important; display: flex; white-space: normal !important; text-align: center; }
         .summary-section { max-width: 100%; width: 100%; }
         .info-card { padding: var(--space-4); }
+    }
+    @media (max-width: 640px) {
+        .lines-table-wrapper { display: none; }
+        .lines-mobile-list { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+        .line-item-card {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: flex; flex-direction: column;
+        }
+        .line-item-header {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; margin-bottom: 14px;
+        }
+        .line-item-title-group {
+            display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1;
+        }
+        .line-item-num {
+            background: var(--color-bg-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            font-size: 11px; font-weight: var(--font-bold); font-family: var(--font-mono);
+            border-radius: var(--radius-sm); width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+        }
+        .line-item-name-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .line-item-name {
+            font-size: 16px; font-weight: 600; color: var(--color-text-primary);
+            overflow-wrap: break-word; word-break: break-word; line-height: 1.35;
+        }
+        .line-item-taxability {
+            font-size: 12px; color: var(--color-text-muted); text-transform: capitalize; font-weight: 500;
+        }
+        .line-item-total {
+            font-size: 16px; font-weight: 700; color: var(--color-text-primary);
+            font-family: var(--font-mono); white-space: nowrap; flex-shrink: 0; text-align: right; margin-top: 1px;
+        }
+        .line-item-details-grid {
+            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 18px;
+        }
+        .line-item-detail { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .line-item-detail.grid-span-2 { grid-column: span 2; }
+        .line-item-detail .detail-label {
+            font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+        }
+        .line-item-detail .detail-val {
+            font-size: 14px; color: var(--color-text-primary); font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .line-item-detail .detail-val.mono { font-family: var(--font-mono); }
     }
     @media (max-width: 576px) {
         .invoice-detail-container { padding: var(--space-3) var(--space-2) var(--space-12); }
@@ -85,10 +137,11 @@
                             <i data-lucide="send"></i> Issue Invoice
                         </button>
                     </form>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
                     <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i> Edit Invoice</a>
                     <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-danger"><i data-lucide="trash-2"></i> Delete</a>
                     {% elif invoice.status == "issued" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-primary"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-primary" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
                     <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" class="action-form">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this invoice?')">
@@ -96,7 +149,7 @@
                         </button>
                     </form>
                     {% elif invoice.status == "cancelled" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
                     {% endif %}
                     <a href="{% url 'billing:index' %}" class="btn btn-outline"><i data-lucide="arrow-left"></i> Back</a>
                 </div>
@@ -210,6 +263,62 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+                <!-- Mobile Line Items Card Presentation -->
+                <div class="lines-mobile-list">
+                    {% for line in lines %}
+                    <div class="line-item-card">
+                        <div class="line-item-header">
+                            <div class="line-item-title-group">
+                                <span class="line-item-num">{{ line.position }}</span>
+                                <div class="line-item-name-wrap">
+                                    <div class="line-item-name">
+                                        {% if line.product_name_snapshot %}{{ line.product_name_snapshot }}{% elif line.product %}{{ line.product.name }}{% else %}—{% endif %}
+                                    </div>
+                                    {% if line.taxability_type_snapshot %}<span class="line-item-taxability">{{ line.taxability_type_snapshot }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="line-item-total">₹{{ line.line_total|floatformat:2 }}</div>
+                        </div>
+                        <div class="line-item-details-grid">
+                            <div class="line-item-detail">
+                                <span class="detail-label">HSN/SAC</span>
+                                <span class="detail-val mono">{{ line.hsn_sac_snapshot|default:"—" }}</span>
+                            </div>
+                            <div class="line-item-detail">
+                                <span class="detail-label">Qty</span>
+                                <span class="detail-val mono">{{ line.quantity }}</span>
+                            </div>
+                            <div class="line-item-detail">
+                                <span class="detail-label">Rate</span>
+                                <span class="detail-val mono">₹{{ line.unit_price|floatformat:2 }}</span>
+                            </div>
+                            <div class="line-item-detail">
+                                <span class="detail-label">Taxable</span>
+                                <span class="detail-val mono">₹{{ line.taxable_value|floatformat:2 }}</span>
+                            </div>
+                            {% if line.discount_type != "none" %}
+                            <div class="line-item-detail">
+                                <span class="detail-label">Discount</span>
+                                <span class="detail-val mono">
+                                    {{ line.discount_value }}{% if line.discount_type == "percentage" %}%{% else %}₹{% endif %}
+                                    {% if line.discount_amount %}(₹{{ line.discount_amount|floatformat:2 }}){% endif %}
+                                </span>
+                            </div>
+                            {% endif %}
+                            <div class="line-item-detail {% if line.discount_type == 'none' %}grid-span-2{% endif %}">
+                                <span class="detail-label">GST</span>
+                                <span class="detail-val mono">
+                                    {% if line.cgst_amount %}CGST: ₹{{ line.cgst_amount|floatformat:2 }} {% endif %}
+                                    {% if line.sgst_amount %}SGST: ₹{{ line.sgst_amount|floatformat:2 }} {% endif %}
+                                    {% if line.igst_amount %}IGST: ₹{{ line.igst_amount|floatformat:2 }} {% endif %}
+                                    {% if line.cess_amount %}Cess: ₹{{ line.cess_amount|floatformat:2 }}{% endif %}
+                                    {% if not line.cgst_amount and not line.sgst_amount and not line.igst_amount %}—{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
                 {% else %}
                 <p style="color:var(--color-text-muted);font-size:var(--text-sm);">No line items on this invoice.</p>
