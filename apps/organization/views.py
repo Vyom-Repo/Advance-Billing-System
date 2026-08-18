@@ -109,8 +109,9 @@ class BankAccountCreateView(BillingLoginRequiredMixin, View):
         else:
             errors = []
             for field, err_list in form.errors.items():
-                errors.extend(err_list)
-            err_msg = " ".join(errors) if errors else "Please check the bank details provided."
+                field_label = field.replace('_', ' ').title()
+                errors.append(f"{field_label}: {', '.join(err_list)}")
+            err_msg = " | ".join(errors) if errors else "Please check the bank details provided."
             messages.error(request, f"Error adding bank account: {err_msg}")
             
         return redirect("organization:index")
@@ -130,8 +131,9 @@ class BankAccountUpdateView(BillingLoginRequiredMixin, View):
         else:
             errors = []
             for field, err_list in form.errors.items():
-                errors.extend(err_list)
-            err_msg = " ".join(errors) if errors else "Please check the bank details provided."
+                field_label = field.replace('_', ' ').title()
+                errors.append(f"{field_label}: {', '.join(err_list)}")
+            err_msg = " | ".join(errors) if errors else "Please check the bank details provided."
             messages.error(request, f"Error updating bank account: {err_msg}")
             
         return redirect("organization:index")

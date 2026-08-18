@@ -906,7 +906,7 @@
                 </div>
                 <div>
                     <div style="display: flex; justify-content: flex-end; margin-bottom: var(--space-4);">
-                        <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: var(--space-2);" onclick="document.getElementById('bank-modal').classList.add('active'); document.getElementById('bank-form').action='{% url 'organization:bank_add' %}'; document.getElementById('bank-form').reset(); document.getElementById('bank-modal-title').innerText='Add Bank Account';">
+                        <button type="button" class="btn-outline" style="display: flex; align-items: center; gap: var(--space-2);" onclick="if(typeof resetBankModalErrors==='function') resetBankModalErrors(); document.getElementById('bank-modal').classList.add('active'); document.getElementById('bank-form').action='{% url 'organization:bank_add' %}'; document.getElementById('bank-form').reset(); document.getElementById('bank-modal-title').innerText='Add Bank Account';">
                             <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Account
                         </button>
                     </div>
@@ -1063,34 +1063,39 @@
     <div class="modal-overlay" id="bank-modal">
         <div class="modal-content">
             <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-6); color: var(--color-text-primary);" id="bank-modal-title">Add Bank Account</h3>
-            <form id="bank-form" method="post" action="{% url 'organization:bank_add' %}">
+            <form id="bank-form" method="post" action="{% url 'organization:bank_add' %}" novalidate>
                 {% csrf_token %}
                 <div class="form-group">
                     <label class="form-label">Bank Name <span style="color: var(--color-error)">*</span></label>
                     <input type="text" name="bank_name" id="bank_name" class="form-control" placeholder="e.g. HDFC BANK" oninput="this.value = this.value.toUpperCase();" required>
+                    <div class="bank-field-error" id="bank_name-error" style="display: none; color: var(--color-error); font-size: 12px; margin-top: 4px;"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Account Holder Name <span style="color: var(--color-error)">*</span></label>
                     <input type="text" name="account_name" id="account_name" class="form-control" required>
+                    <div class="bank-field-error" id="account_name-error" style="display: none; color: var(--color-error); font-size: 12px; margin-top: 4px;"></div>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">Account Number <span style="color: var(--color-error)">*</span></label>
-                        <input type="text" name="account_number" id="account_number" class="form-control" placeholder="e.g. 00123456789" required>
+                        <input type="text" name="account_number" id="account_number" class="form-control" placeholder="e.g. 00123456789" maxlength="18" required>
+                        <div class="bank-field-error" id="account_number-error" style="display: none; color: var(--color-error); font-size: 12px; margin-top: 4px;"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">IFSC Code <span style="color: var(--color-error)">*</span></label>
                         <input type="text" name="ifsc_code" id="ifsc_code" class="form-control" placeholder="e.g. HDFC0001234" maxlength="11" oninput="this.value = this.value.toUpperCase();" required>
+                        <div class="bank-field-error" id="ifsc_code-error" style="display: none; color: var(--color-error); font-size: 12px; margin-top: 4px;"></div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">Branch <span style="color: var(--color-error)">*</span></label>
                     <input type="text" name="branch" id="branch" class="form-control" placeholder="e.g. Bengaluru Main Branch" required>
+                    <div class="bank-field-error" id="branch-error" style="display: none; color: var(--color-error); font-size: 12px; margin-top: 4px;"></div>
                 </div>
                 
                 <div style="display: flex; gap: var(--space-3); justify-content: flex-end; padding-top: var(--space-4); border-top: 1px solid var(--color-border); margin-top: var(--space-6);">
                     <button type="button" class="btn-outline" onclick="document.getElementById('bank-modal').classList.remove('active')">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Bank Account</button>
+                    <button type="submit" class="btn-primary" id="btn-save-bank-account">Save Bank Account</button>
                 </div>
             </form>
         </div>
@@ -1436,7 +1441,176 @@
             setTimeout(window.openLetterheadPreviewModal, 500);
         }
         
+        // --- Live & Pre-Save Validation for Add/Edit Bank Account Modal ---
+        const bankForm = document.getElementById('bank-form');
+        const bNameInput = document.getElementById('bank_name');
+        const accNameInput = document.getElementById('account_name');
+        const accNumInput = document.getElementById('account_number');
+        const ifscInput = document.getElementById('ifsc_code');
+        const branchInput = document.getElementById('branch');
+
+        function setBankFieldError(input, errorId, message) {
+            const errorEl = document.getElementById(errorId);
+            if (!errorEl || !input) return;
+            if (message) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                input.style.borderColor = 'var(--color-error)';
+            } else {
+                errorEl.textContent = '';
+                errorEl.style.display = 'none';
+                input.style.borderColor = '';
+            }
+        }
+
+        window.resetBankModalErrors = function() {
+            setBankFieldError(bNameInput, 'bank_name-error', '');
+            setBankFieldError(accNameInput, 'account_name-error', '');
+            setBankFieldError(accNumInput, 'account_number-error', '');
+            setBankFieldError(ifscInput, 'ifsc_code-error', '');
+            setBankFieldError(branchInput, 'branch-error', '');
+        };
+
+        function validateBankNameLive(isSubmit = false) {
+            if (!bNameInput) return true;
+            const val = (bNameInput.value || '').trim();
+            if (!val) {
+                if (isSubmit) {
+                    setBankFieldError(bNameInput, 'bank_name-error', 'Bank Name is required.');
+                    return false;
+                }
+                setBankFieldError(bNameInput, 'bank_name-error', '');
+                return true;
+            }
+            setBankFieldError(bNameInput, 'bank_name-error', '');
+            return true;
+        }
+
+        function validateAccountNameLive(isSubmit = false) {
+            if (!accNameInput) return true;
+            const val = (accNameInput.value || '').trim();
+            if (!val) {
+                if (isSubmit) {
+                    setBankFieldError(accNameInput, 'account_name-error', 'Account Holder Name is required.');
+                    return false;
+                }
+                setBankFieldError(accNameInput, 'account_name-error', '');
+                return true;
+            }
+            setBankFieldError(accNameInput, 'account_name-error', '');
+            return true;
+        }
+
+        function validateAccountNumberLive(isSubmit = false) {
+            if (!accNumInput) return true;
+            const val = (accNumInput.value || '').trim();
+            if (!val) {
+                if (isSubmit) {
+                    setBankFieldError(accNumInput, 'account_number-error', 'Account Number is required.');
+                    return false;
+                }
+                setBankFieldError(accNumInput, 'account_number-error', '');
+                return true;
+            }
+            if (!/^\d+$/.test(val)) {
+                setBankFieldError(accNumInput, 'account_number-error', 'Account number must contain digits only.');
+                return false;
+            }
+            if (val.length > 18) {
+                setBankFieldError(accNumInput, 'account_number-error', 'Account number cannot exceed 18 digits.');
+                return false;
+            }
+            setBankFieldError(accNumInput, 'account_number-error', '');
+            return true;
+        }
+
+        function validateIfscCodeLive(isSubmit = false) {
+            if (!ifscInput) return true;
+            let val = (ifscInput.value || '').trim().toUpperCase();
+            ifscInput.value = val;
+            if (!val) {
+                if (isSubmit) {
+                    setBankFieldError(ifscInput, 'ifsc_code-error', 'IFSC Code is required.');
+                    return false;
+                }
+                setBankFieldError(ifscInput, 'ifsc_code-error', '');
+                return true;
+            }
+            if (val.length !== 11) {
+                setBankFieldError(ifscInput, 'ifsc_code-error', 'Enter a valid 11-character IFSC code.');
+                return false;
+            }
+            if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val)) {
+                setBankFieldError(ifscInput, 'ifsc_code-error', 'IFSC must contain 4 letters, followed by 0, followed by 6 alphanumeric characters.');
+                return false;
+            }
+            setBankFieldError(ifscInput, 'ifsc_code-error', '');
+            return true;
+        }
+
+        function validateBranchLive(isSubmit = false) {
+            if (!branchInput) return true;
+            const val = (branchInput.value || '').trim();
+            if (!val) {
+                if (isSubmit) {
+                    setBankFieldError(branchInput, 'branch-error', 'Branch is required.');
+                    return false;
+                }
+                setBankFieldError(branchInput, 'branch-error', '');
+                return true;
+            }
+            setBankFieldError(branchInput, 'branch-error', '');
+            return true;
+        }
+
+        if (accNumInput) {
+            accNumInput.addEventListener('input', () => validateAccountNumberLive(false));
+            accNumInput.addEventListener('blur', () => validateAccountNumberLive(true));
+        }
+
+        if (ifscInput) {
+            ifscInput.addEventListener('input', () => validateIfscCodeLive(false));
+            ifscInput.addEventListener('blur', () => validateIfscCodeLive(true));
+        }
+
+        if (bNameInput) {
+            bNameInput.addEventListener('input', () => validateBankNameLive(false));
+            bNameInput.addEventListener('blur', () => validateBankNameLive(true));
+        }
+
+        if (accNameInput) {
+            accNameInput.addEventListener('input', () => validateAccountNameLive(false));
+            accNameInput.addEventListener('blur', () => validateAccountNameLive(true));
+        }
+
+        if (branchInput) {
+            branchInput.addEventListener('input', () => validateBranchLive(false));
+            branchInput.addEventListener('blur', () => validateBranchLive(true));
+        }
+
+        if (bankForm) {
+            bankForm.addEventListener('submit', function(e) {
+                const v1 = validateBankNameLive(true);
+                const v2 = validateAccountNameLive(true);
+                const v3 = validateAccountNumberLive(true);
+                const v4 = validateIfscCodeLive(true);
+                const v5 = validateBranchLive(true);
+
+                if (!v1 || !v2 || !v3 || !v4 || !v5) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!v1) bNameInput.focus();
+                    else if (!v2) accNameInput.focus();
+                    else if (!v3) accNumInput.focus();
+                    else if (!v4) ifscInput.focus();
+                    else if (!v5) branchInput.focus();
+                    return false;
+                }
+            });
+        }
+
         window.openBankEdit = function(pk, bank_name, account_name, account_number, ifsc_code, branch) {
+            resetBankModalErrors();
             document.getElementById('bank-modal-title').innerText = 'Edit Bank Account';
             document.getElementById('bank_name').value = bank_name;
             document.getElementById('account_name').value = account_name;
