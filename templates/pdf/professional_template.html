@@ -198,27 +198,28 @@
        ------------------------------------------------------------------ */
         .info-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 14px 0;
-            margin: 16px -14px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 16px;
         }
 
         .info-table tr {
             height: 100%;
         }
 
-        .info-table td {
+        .info-table td.info-card {
             vertical-align: top;
-            height: 100%;
-        }
-
-        .info-card {
-            width: 33.333%;
+            width: 31.8%;
             background: #f5f7fa;
             border-radius: 6px;
             padding: 12px 14px 14px;
-            height: 100%;
             box-sizing: border-box;
+        }
+
+        .info-table td.info-gap-cell {
+            width: 2.3%;
+            background: transparent;
+            padding: 0;
         }
 
         .info-card-title {
@@ -535,15 +536,22 @@
        ------------------------------------------------------------------ */
         .footer-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 14px 0;
-            margin: 18px -14px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 18px;
             page-break-inside: avoid;
         }
 
-        .footer-table td {
-            width: 33.333%;
+        .footer-table tr {
+            height: 100%;
+        }
+
+        .footer-table td.footer-cell {
             vertical-align: top;
+            width: 33.333%;
+            height: 100%;
+            padding: 0;
+            background: transparent;
         }
 
         .footer-box {
@@ -552,6 +560,8 @@
             border-radius: 6px;
             padding: 12px 14px 14px;
             min-height: 112px;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .footer-box-title {
@@ -816,6 +826,8 @@
                     {% endif %}
                 </td>
 
+                <td class="info-gap-cell"></td>
+
                 <td class="info-card">
                     <div class="info-card-title">SHIPPED TO</div>
                     <div class="name">{% if customer.shipping_name %}{{ customer.shipping_name }}{% else %}{{ customer.name }}{% endif %}</div>
@@ -837,6 +849,8 @@
                         {% endif %}
                     </p>
                 </td>
+
+                <td class="info-gap-cell"></td>
 
                 <td class="info-card invoice-details">
                     <div class="info-card-title">INVOICE DETAILS</div>
@@ -995,7 +1009,7 @@
         <table class="footer-table">
             <tr>
                 {% if config.show_qr_code and bill.qr_code_url %}
-                <td>
+                <td class="footer-cell" style="padding-right: 7px;">
                     <div class="footer-box qr-box">
                         <div class="footer-box-title">UPI QR CODE</div>
                         <img src="{{ bill.qr_code_url }}" class="qr-img" alt="QR Code">
@@ -1004,7 +1018,7 @@
                 {% endif %}
 
                 {% if config.show_bank_details and company.bank_name %}
-                <td>
+                <td class="footer-cell" style="padding: 0 7px;">
                     <div class="footer-box">
                         <div class="footer-box-title">BANK DETAILS</div>
                         <div class="bank-row">
@@ -1032,7 +1046,7 @@
                 {% endif %}
 
                 {% if config.show_signature %}
-                <td>
+                <td class="footer-cell" style="padding-left: 7px;">
                     <div class="footer-box auth-box">
                         <div class="footer-box-title">AUTHORIZATION</div>
                         <div class="auth-visual">
