@@ -87,6 +87,7 @@ def _serialize_invoice(inv: dict, company: dict | None = None, org: Any = None) 
         "subtotal":        _to_float(inv.get("subtotal", 0)),
         "tax_total":       _to_float(inv.get("tax_total", 0)),
         "discount_total":  _to_float(inv.get("discount_total", 0)),
+        "round_off":       _to_float(inv.get("round_off", 0)),
         "grand_total":     _to_float(inv.get("total") or inv.get("grand_total", 0)),
         "amount_payable":  _to_float(inv.get("amount_payable") or inv.get("total", 0)),
         "amount_paid":     _to_float(inv.get("amount_paid", 0)),
