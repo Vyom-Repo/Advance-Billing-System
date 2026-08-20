@@ -432,10 +432,7 @@
         }
 
         .signature-circle {
-            width: 52.2px;
             height: 52.2px;
-            border: 1px solid #111111;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -699,7 +696,7 @@
                     <img src="{{ company.signature_url }}" class="signature-img" alt="Signature">
                 </div>
                 {% else %}
-                <div class="signature-circle">SIGNATURE</div>
+                <div class="signature-circle"></div>
                 {% endif %}
                 <div style="margin-top:5.8px;">Authorized Signatory</div>
                 {% endif %}
