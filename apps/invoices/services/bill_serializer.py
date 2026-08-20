@@ -160,27 +160,155 @@ def _serialize_company(company: dict, org=None) -> dict:
     }
 
 
+import re
+
+
+def _normalize_address_field(text: str) -> str:
+    if not text:
+        return ""
+    clean = text.strip().lower()
+    clean = re.sub(r"[\s,\.\-_]+", " ", clean).strip()
+    return clean
+
+
+def _state_name_from_code(code: str) -> str:
+    if not code:
+        return ""
+    try:
+        from apps.organization.services import LocalGSTValidator
+        return LocalGSTValidator.STATE_CODES.get(str(code).zfill(2), "")
+    except Exception:
+        pass
+    return ""
+
+
+def _state_code_from_name(state_name: str) -> str:
+    if not state_name:
+        return ""
+    state_clean = state_name.strip().lower()
+    try:
+        from apps.organization.services import LocalGSTValidator
+        for code, name in LocalGSTValidator.STATE_CODES.items():
+            if name.lower() == state_clean or name.lower().startswith(state_clean):
+                return code
+    except Exception:
+        pass
+    return ""
+
+
 def _serialize_customer(customer: dict) -> dict:
     """Canonical buyer/customer dict."""
+    cust = customer if isinstance(customer, dict) else {}
+    gstin = (cust.get("gstin") or "").strip()
+
+    # Billing address
+    b_addr = (cust.get("address") or cust.get("billing_address_line_1") or "").strip()
+    b_city = (cust.get("city") or cust.get("billing_city") or "").strip()
+    b_state = (cust.get("state") or cust.get("billing_state") or "").strip()
+    b_pin = (cust.get("pincode") or cust.get("billing_pin_code") or "").strip()
+    b_state_code = (cust.get("state_code") or cust.get("billing_state_code") or "").strip()
+
+    if not b_state_code and gstin and len(gstin) >= 2 and gstin[:2].isdigit():
+        b_state_code = gstin[:2]
+    if not b_state_code and b_state:
+        b_state_code = _state_code_from_name(b_state)
+    if not b_state and b_state_code:
+        b_state = _state_name_from_code(b_state_code)
+
+    shipping_same = cust.get("shipping_same_as_billing")
+
+    # Shipping address
+    s_addr = (cust.get("shipping_address") or cust.get("shipping_address_line_1") or "").strip()
+    s_city = (cust.get("shipping_city") or "").strip()
+    s_state = (cust.get("shipping_state") or "").strip()
+    s_pin = (cust.get("shipping_pincode") or cust.get("shipping_pin_code") or "").strip()
+    s_state_code = (cust.get("shipping_state_code") or "").strip()
+
+    # Sanitization 1: If s_addr is a 2-digit numeric state code, move it to s_state_code
+    if s_addr and s_addr.isdigit() and len(s_addr) <= 2:
+        if not s_state_code:
+            s_state_code = s_addr.zfill(2)
+        s_addr = ""
+
+    # Sanitization 2: If s_state is a 2-digit numeric state code, move it to s_state_code & resolve state name
+    if s_state and s_state.isdigit() and len(s_state) <= 2:
+        if not s_state_code:
+            s_state_code = s_state.zfill(2)
+        s_state = _state_name_from_code(s_state_code)
+
+    if not s_state_code and s_state:
+        s_state_code = _state_code_from_name(s_state)
+    if not s_state and s_state_code:
+        s_state = _state_name_from_code(s_state_code)
+
+    if shipping_same is True:
+        is_different = False
+    else:
+        has_shipping = bool(s_addr or s_city or (s_state and s_state != b_state) or (s_pin and s_pin != b_pin))
+
+        # Normalized comparison to compare actual address content
+        norm_b_addr = _normalize_address_field(b_addr)
+        norm_s_addr = _normalize_address_field(s_addr)
+        norm_b_city = _normalize_address_field(b_city)
+        norm_s_city = _normalize_address_field(s_city)
+        norm_b_state = _normalize_address_field(b_state)
+        norm_s_state = _normalize_address_field(s_state)
+        norm_b_pin = _normalize_address_field(b_pin)
+        norm_s_pin = _normalize_address_field(s_pin)
+
+        is_different = has_shipping and (
+            (norm_s_addr and norm_s_addr != norm_b_addr) or
+            (norm_s_city and norm_s_city != norm_b_city) or
+            (norm_s_state and norm_s_state != norm_b_state) or
+            (norm_s_pin and norm_s_pin != norm_b_pin)
+        )
+
+    shipping_parts = [p for p in [s_addr, s_city, f"{s_state} - {s_pin}" if s_state and s_pin else (s_state or s_pin)] if p]
+    shipping_full_address = ", ".join(shipping_parts) if is_different else ""
+
+    if is_different:
+        res_state = s_state
+        res_state_code = s_state_code
+    else:
+        res_state = b_state
+        res_state_code = b_state_code
+
+    if res_state and res_state_code:
+        res_state_display = f"{res_state} - {res_state_code}"
+    elif res_state:
+        res_state_display = res_state
+    elif res_state_code:
+        res_state_display = res_state_code
+    else:
+        res_state_display = ""
+
     return {
-        "name":           customer.get("name", ""),
-        "gstin":          customer.get("gstin", ""),
-        "phone":          customer.get("phone", ""),
-        "email":          customer.get("email", ""),
+        "name":                        cust.get("name", ""),
+        "gstin":                       gstin,
+        "phone":                       cust.get("phone", ""),
+        "email":                       cust.get("email", ""),
 
         # Billing address
-        "address":        customer.get("address", ""),
-        "city":           customer.get("city", ""),
-        "state":          customer.get("state", ""),
-        "pincode":        customer.get("pincode", ""),
-        "state_code":     customer.get("state_code", ""),
+        "address":                     b_addr,
+        "city":                        b_city,
+        "state":                       b_state,
+        "pincode":                     b_pin,
+        "state_code":                  b_state_code,
 
         # Shipping address (may be same as billing)
-        "shipping_name":    customer.get("shipping_name", ""),
-        "shipping_address": customer.get("shipping_address", ""),
-        "shipping_city":    customer.get("shipping_city", ""),
-        "shipping_state":   customer.get("shipping_state", ""),
-        "shipping_pincode": customer.get("shipping_pincode", ""),
+        "shipping_name":               cust.get("shipping_name", ""),
+        "shipping_address":            s_addr,
+        "shipping_city":               s_city,
+        "shipping_state":              s_state,
+        "shipping_pincode":            s_pin,
+        "shipping_state_code":         s_state_code,
+        "has_different_shipping_address": is_different,
+        "shipping_full_address":       shipping_full_address,
+
+        # Resolved state metadata
+        "resolved_state":              res_state,
+        "resolved_state_code":         res_state_code,
+        "resolved_state_display":      res_state_display,
     }
 
 

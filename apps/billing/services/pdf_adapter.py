@@ -41,12 +41,13 @@ def invoice_to_pdf_dicts(invoice: Invoice):
         "gstin": invoice.customer_gstin_snapshot,
         "address": invoice.customer_billing_address_snapshot,
         "state_code": invoice.customer_state_code_snapshot,
-        
+
         "shipping_name": invoice.customer_name_snapshot,
-        "shipping_address": invoice.shipping_address_line_1,
-        "shipping_city": invoice.shipping_city,
-        "shipping_state": invoice.shipping_state,
-        "shipping_pincode": invoice.shipping_pincode,
+        "shipping_address": getattr(invoice, "shipping_address_line_1", "") or getattr(invoice, "shipping_address", ""),
+        "shipping_city": getattr(invoice, "shipping_city", ""),
+        "shipping_state": getattr(invoice, "shipping_state", ""),
+        "shipping_pincode": getattr(invoice, "shipping_pincode", ""),
+        "shipping_state_code": getattr(invoice, "shipping_state_code", ""),
     }
 
     # 3. Items List

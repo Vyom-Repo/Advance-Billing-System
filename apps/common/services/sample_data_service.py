@@ -24,12 +24,12 @@ class SampleDataService:
             from apps.settings_app.models import InvoicePreference
             inv_pref, _ = InvoicePreference.objects.get_or_create(user=user)
             preview_number = inv_pref.get_preview_number()
-            default_notes = inv_pref.default_notes
+            default_notes = inv_pref.default_notes if inv_pref.default_notes != "Thank you for your business." else ""
             default_terms = inv_pref.default_terms
             default_currency = inv_pref.default_currency
         else:
             preview_number = "INV-0001"
-            default_notes = "Thank you for your business."
+            default_notes = ""
             default_terms = "Payment due within 15 days. Subject to local jurisdiction."
             default_currency = "INR"
 
