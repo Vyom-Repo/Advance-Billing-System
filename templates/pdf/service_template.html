@@ -4,11 +4,72 @@
     <meta charset="UTF-8">
     <title>Service Invoice Template</title>
     <style>
-        @page { size: A4 portrait; margin: 0 }
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+        @page {
+            size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-right: {{ layout_frame.body_padding_right|default:"15mm" }};
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            display: block;
+        }
+        {% else %}
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        {% endif %}
         * { box-sizing: border-box }
-        html, body { margin: 0; padding: 0; background: #eee; font-family: Arial, Helvetica, sans-serif; color: #111 }
-        body { padding: 7mm }
-        .invoice { width: 196mm; min-height: 282mm; margin: auto; background: #fff; padding: 4mm 5mm 3mm; font-size: 6.2px; line-height: 1.18 }
+        html, body {
+            margin: 0;
+            padding: 0;
+            {% if layout_frame.has_letterhead_background %}
+            background: transparent !important;
+            {% else %}
+            background: #eee;
+            {% endif %}
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+        }
+        body {
+            {% if layout_frame.has_letterhead_background %}
+            padding: 0;
+            {% else %}
+            padding: 7mm;
+            {% endif %}
+        }
+        .invoice {
+            {% if layout_frame.has_letterhead_background %}
+            width: 100%;
+            min-height: auto;
+            margin: 0;
+            background: transparent !important;
+            padding: 0;
+            border: none;
+            {% else %}
+            width: 196mm;
+            min-height: 282mm;
+            margin: auto;
+            background: #fff;
+            padding: 4mm 5mm 3mm;
+            {% endif %}
+            font-size: 6.2px;
+            line-height: 1.18;
+        }
         .top { display: grid; grid-template-columns: 62% 38%; border-bottom: 1px solid #333; min-height: 24mm }
         .brand { display: flex; align-items: flex-start; gap: 2mm }
         .brand-logo { width: 10mm; height: 10mm; border-radius: 2mm; background: linear-gradient(135deg, #e84b9b, #8c3bb8); color: #fff; font-size: 17px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-top: 1mm }
@@ -64,6 +125,12 @@
 </head>
 
 <body>
+    {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+    <div class="letterhead-bg">
+        <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+    </div>
+    {% endif %}
+
     <div class="invoice">
 
         <header class="top">

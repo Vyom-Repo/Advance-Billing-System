@@ -6,10 +6,51 @@
     <meta charset="UTF-8">
     <title>Tax Invoice</title>
     <style>
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+        @page {
+            size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: 10.4mm;
+            margin-right: 10.4mm;
+            {% if config.show_page_numbers %}
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                color: #555555;
+            }
+            {% endif %}
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -10.4mm;
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            display: block;
+        }
+        {% else %}
         @page {
             size: A4 portrait;
             margin: 0;
+            {% if config.show_page_numbers %}
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                color: #555555;
+            }
+            {% endif %}
         }
+        {% endif %}
 
         * {
             box-sizing: border-box;
@@ -20,7 +61,11 @@
         html,
         body {
             font-family: Arial, sans-serif;
+            {% if layout_frame.has_letterhead_background %}
+            background: transparent !important;
+            {% else %}
             background: #ffffff;
+            {% endif %}
             margin: 0;
             padding: 0;
             -webkit-print-color-adjust: exact;
@@ -29,14 +74,21 @@
         }
 
         .page-container {
+            {% if layout_frame.has_letterhead_background %}
+            width: 100%;
+            min-height: auto;
+            margin: 0;
+            background: transparent !important;
+            padding: 0;
+            {% else %}
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
             margin: 0 auto;
             background: #ffffff;
             padding: 10.4mm 10.4mm 10.4mm 10.4mm;
+            {% endif %}
             position: relative;
             box-sizing: border-box;
-            overflow: hidden;
         }
 
         /* Top Header Title Bar */
@@ -157,6 +209,9 @@
             border-left: 1.5px solid #111111;
             border-right: 1.5px solid #111111;
             border-bottom: 1.5px solid #111111;
+            {% if layout_frame.has_letterhead_background %}
+            border-top: 1.5px solid #111111;
+            {% endif %}
             font-size: 6.96pt;
             font-weight: 400;
             line-height: 8.26pt;
@@ -530,6 +585,12 @@
 </head>
 
 <body>
+    {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+    <div class="letterhead-bg">
+        <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+    </div>
+    {% endif %}
+
     <div class="page-container">
 
         <div class="top-header">
@@ -538,6 +599,7 @@
             <div class="right-text">ORIGINAL FOR RECIPIENT</div>
         </div>
 
+        {% if not layout_frame.has_letterhead_background %}
         <div class="top-section">
             <table class="header-wrapper-table">
                 <tr>
@@ -562,6 +624,7 @@
                 </tr>
             </table>
         </div>
+        {% endif %}
 
         <div class="details-section">
             <div class="details-left">

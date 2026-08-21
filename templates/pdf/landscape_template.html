@@ -5,11 +5,71 @@
     <meta charset="UTF-8">
     <title>Landscape GST Invoice</title>
     <style>
-        @page { size: A4 landscape; margin: 0 }
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+        @page {
+            size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"landscape" }};
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-right: {{ layout_frame.body_padding_right|default:"15mm" }};
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: 297mm;
+            height: 210mm;
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: 297mm;
+            height: 210mm;
+            display: block;
+        }
+        {% else %}
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        {% endif %}
         * { box-sizing: border-box }
-        html, body { margin: 0; padding: 0; background: #eee; font-family: Arial, Helvetica, sans-serif; color: #111 }
-        body { padding: 8mm }
-        .invoice { width: 281mm; min-height: 194mm; margin: auto; background: #fff; border: 1px solid #555; font-size: 7px; line-height: 1.15 }
+        html, body {
+            margin: 0;
+            padding: 0;
+            {% if layout_frame.has_letterhead_background %}
+            background: transparent !important;
+            {% else %}
+            background: #eee;
+            {% endif %}
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+        }
+        body {
+            {% if layout_frame.has_letterhead_background %}
+            padding: 0;
+            {% else %}
+            padding: 8mm;
+            {% endif %}
+        }
+        .invoice {
+            {% if layout_frame.has_letterhead_background %}
+            width: 100%;
+            min-height: auto;
+            margin: 0;
+            background: transparent !important;
+            border: none;
+            {% else %}
+            width: 281mm;
+            min-height: 194mm;
+            margin: auto;
+            background: #fff;
+            border: 1px solid #555;
+            {% endif %}
+            font-size: 7px;
+            line-height: 1.15;
+        }
         .top { display: grid; grid-template-columns: 19% 56% 25%; min-height: 27mm; border-bottom: 1px solid #555 }
         .logo { padding: 3mm; border-right: 1px solid #555; display: flex; align-items: center }
         .logo-mark { width: 25mm; height: 18mm; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #16842b; font-size: 13px }
@@ -66,27 +126,31 @@
 </head>
 
 <body>
+    {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+    <div class="letterhead-bg">
+        <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+    </div>
+    {% endif %}
+
     <div class="invoice">
 
         <!-- HEADER -->
         <div class="top">
-            {% if config.show_company_logo %}
+            {% if config.show_company_logo and company.logo_url and not layout_frame.has_letterhead_background %}
             <div class="logo">
-                {% if company.logo_url %}
-                    <img src="{{ company.logo_url }}" alt="Logo" style="max-height:18mm;max-width:20mm;">
-                {% else %}
-                    <div class="logo-mark">{{ company.name }}</div>
-                {% endif %}
+                <img src="{{ company.logo_url }}" alt="Logo" style="max-height:18mm;max-width:20mm;">
             </div>
             {% endif %}
 
             <div class="company">
+                {% if config.show_company_header and not layout_frame.has_letterhead_background %}
                 <h1>{{ company.name }}</h1>
                 {% if company.gstin %}<p>GSTIN: {{ company.gstin }}</p>{% endif %}
                 {% if company.address %}<p>{{ company.address }}</p>{% endif %}
                 {% if company.city %}<p>{{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</p>{% endif %}
                 {% if company.phone %}<p>Phone: {{ company.phone }}</p>{% endif %}
                 {% if company.email %}<p>Email: {{ company.email }}</p>{% endif %}
+                {% endif %}
             </div>
 
             <div class="invoice-head">

@@ -76,8 +76,8 @@ logger = logging.getLogger(__name__)
 
 # Map legacy/alias template slugs to actual existing PDF template files
 _TEMPLATE_SLUG_MAP = {
-    "letterhead": "letterhead_invoice",
-    "letterhead_invoice": "letterhead_invoice",
+    "letterhead": "compact_template",
+    "letterhead_invoice": "compact_template",
     "gst_classic": "compact_template",
     "flipkart_invoice": "compact_template",
     "retail_gst_compact": "compact_template",
@@ -274,8 +274,8 @@ class InvoicePreviewService:
                 exc_info=True,
             )
 
-        # Fallback render hierarchy: use pdf/letterhead_invoice.html if letterhead enabled, else pdf/simple_invoice.html
-        fallback_template = "pdf/letterhead_invoice.html" if config.get("print_on_letterhead") else "pdf/simple_invoice.html"
+        # Fallback render hierarchy: simple_invoice.html if primary template rendering fails
+        fallback_template = "pdf/simple_invoice.html"
         try:
             fallback_html = render_to_string(fallback_template, context)
             fallback_pdf = weasyprint.HTML(

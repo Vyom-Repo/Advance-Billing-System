@@ -1,6 +1,5 @@
-"""
-apps/common/services/layout_engine.py
-"""
+import os
+import pathlib
 
 class PrintableFrameBuilder:
     @staticmethod
@@ -9,10 +8,9 @@ class PrintableFrameBuilder:
         Builds a deterministic, scalable layout frame for rendering printable documents.
 
         LETTERHEAD MODE:
-            - The page has NO margins (full-bleed background image covers the sheet).
-            - The <body> acts as the Printable Content Frame with padding equal to the
-              header/footer offsets the user configured. This is exactly how Microsoft
-              Word prints onto company stationery.
+            - Full-bleed background image covers the sheet when print_on_letterhead is True
+              and a valid uploaded letterhead file exists.
+            - Header/footer offsets control content top/bottom margins.
 
         STANDARD MODE:
             - Normal page margins apply. No background image.
@@ -20,7 +18,6 @@ class PrintableFrameBuilder:
         Returns:
             dict: Layout frame parameters injected into the template context.
         """
-        # Read preferences
         if isinstance(prefs, dict):
             paper_size      = prefs.get("paper_size", "A4")
             orientation     = prefs.get("orientation", "Portrait")
@@ -41,49 +38,63 @@ class PrintableFrameBuilder:
             base_margin = "15mm"
 
         # ── LETTERHEAD MODE ──────────────────────────────────────────────────────
-        if print_on_lh and org and getattr(org, "letterhead", None):
-            top_offset    = getattr(org, "letterhead_header_offset", 30)
-            bottom_offset = getattr(org, "letterhead_footer_offset", 25)
+        has_lh = False
+        bg_url = None
+        top_offset = 30
+        bottom_offset = 25
 
-            import pathlib
-            try:
-                bg_url = pathlib.Path(org.letterhead.path).as_uri()
-            except Exception:
-                bg_url = f"file://{org.letterhead.path}"
+        if print_on_lh and org:
+            lh_file = getattr(org, "letterhead", None)
+            if lh_file and hasattr(lh_file, "path"):
+                try:
+                    if os.path.exists(lh_file.path):
+                        has_lh = True
+                        bg_url = pathlib.Path(lh_file.path).as_uri()
+                        header_offset = None
+                        footer_offset = None
+                        if isinstance(prefs, dict):
+                            header_offset = prefs.get("letterhead_header_offset") or prefs.get("header_offset")
+                            footer_offset = prefs.get("letterhead_footer_offset") or prefs.get("footer_offset")
+                        if header_offset is None:
+                            header_offset = getattr(org, "letterhead_header_offset", 30)
+                        if footer_offset is None:
+                            footer_offset = getattr(org, "letterhead_footer_offset", 25)
 
+                        top_offset = header_offset if header_offset is not None else 30
+                        bottom_offset = footer_offset if footer_offset is not None else 25
+                except Exception:
+                    has_lh = False
+
+        if has_lh and bg_url:
             return {
-                # Page is full-bleed: no margins, background covers entire sheet
                 "has_letterhead_background": True,
                 "background_image_url": bg_url,
-                "paper_size":    paper_size,
-                "orientation":   orientation,
-                # Page margins are zero — the full-bleed background covers the sheet
-                "margin_top":    "0",
+                "paper_size": paper_size,
+                "orientation": orientation,
+                "margin_top": "0",
                 "margin_bottom": "0",
-                "margin_left":   "0",
-                "margin_right":  "0",
-                # The master table spacers will use these padding values to push content down
-                "body_padding_top":    f"{top_offset}mm",
+                "margin_left": "0",
+                "margin_right": "0",
+                "body_padding_top": f"{top_offset}mm",
                 "body_padding_bottom": f"{bottom_offset}mm",
-                "body_padding_left":   "15mm",
-                "body_padding_right":  "15mm",
-                "letterhead_mode":     True,
+                "body_padding_left": "15mm",
+                "body_padding_right": "15mm",
+                "letterhead_mode": True,
             }
 
         # ── STANDARD MODE ────────────────────────────────────────────────────────
         return {
             "has_letterhead_background": False,
-            "background_image_url":      None,
-            "paper_size":    paper_size,
-            "orientation":   orientation,
-            "margin_top":    base_margin,
+            "background_image_url": "",
+            "paper_size": paper_size,
+            "orientation": orientation,
+            "margin_top": base_margin,
             "margin_bottom": base_margin,
-            "margin_left":   base_margin,
-            "margin_right":  base_margin,
-            # No body padding override in standard mode
-            "body_padding_top":    None,
-            "body_padding_bottom": None,
-            "body_padding_left":   None,
-            "body_padding_right":  None,
-            "letterhead_mode":     False,
+            "margin_left": base_margin,
+            "margin_right": base_margin,
+            "body_padding_top": "0",
+            "body_padding_bottom": "0",
+            "body_padding_left": "0",
+            "body_padding_right": "0",
+            "letterhead_mode": False,
         }

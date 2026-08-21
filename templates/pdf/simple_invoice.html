@@ -4,25 +4,38 @@
     <meta charset="UTF-8">
     <title>Tax Invoice</title>
     <style>
-        {% if layout_frame.has_letterhead_background %}
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
         @page {
             size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
-            margin: 0;
-            background-image: url("{{ layout_frame.background_image_url }}");
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-right: {{ layout_frame.body_padding_right|default:"15mm" }};
             @bottom-right {
                 {% if config.show_page_numbers %}
                 content: "Page " counter(page) " of " counter(pages);
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 9px;
                 color: #555555;
-                padding-right: 15mm;
-                padding-bottom: 10mm;
                 {% else %}
                 content: "";
                 {% endif %}
             }
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            display: block;
         }
         {% else %}
         @page {
@@ -61,17 +74,7 @@
             border-collapse: collapse;
         }
 
-        .master-wrapper-table > thead > tr > td,
-        .master-wrapper-table > tfoot > tr > td {
-            padding: 0;
-            margin: 0;
-        }
-
         .printable-content {
-            {% if layout_frame.has_letterhead_background %}
-            padding-left: {{ layout_frame.body_padding_left|default:"15mm" }};
-            padding-right: {{ layout_frame.body_padding_right|default:"15mm" }};
-            {% endif %}
             width: 100%;
         }
 
@@ -356,19 +359,13 @@
 </head>
 <body>
 
+{% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+<div class="letterhead-bg">
+    <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+</div>
+{% endif %}
+
 <table class="master-wrapper-table">
-    {% if layout_frame.has_letterhead_background %}
-    <thead>
-        <tr style="height: {{ layout_frame.body_padding_top|default:'30mm' }};">
-            <td></td>
-        </tr>
-    </thead>
-    <tfoot>
-        <tr style="height: {{ layout_frame.body_padding_bottom|default:'25mm' }};">
-            <td></td>
-        </tr>
-    </tfoot>
-    {% endif %}
 
     <tbody>
         <tr>

@@ -12,10 +12,13 @@
        Data source of truth: canonical bill serializer context.
        ------------------------------------------------------------------ */
 
-        {% if layout_frame.has_letterhead_background %}
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
         @page {
             size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
-            margin: {{ layout_frame.body_padding_top|default:"30mm" }} {{ layout_frame.body_padding_right|default:"15mm" }} {{ layout_frame.body_padding_bottom|default:"25mm" }} {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-right: {{ layout_frame.body_padding_right|default:"15mm" }};
 
             @bottom-left {
                 content: "";
@@ -24,6 +27,21 @@
             @bottom-right {
                 content: "";
             }
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            display: block;
         }
         {% else %}
         @page {
@@ -805,8 +823,10 @@
 
 <body>
 
-    {% if layout_frame.has_letterhead_background %}
-    <div class="letterhead-background"></div>
+    {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+    <div class="letterhead-bg">
+        <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+    </div>
     {% endif %}
 
     <!-- WeasyPrint running footer. Page numbers use real PDF counters. -->

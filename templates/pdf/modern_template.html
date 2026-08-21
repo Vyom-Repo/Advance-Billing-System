@@ -5,10 +5,35 @@
     <meta charset="UTF-8">
     <title>Modern Invoice Template</title>
     <style>
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+        @page {
+            size: {{ layout_frame.paper_size|default:"A4" }} {{ layout_frame.orientation|default:"Portrait" }};
+            margin-top: {{ layout_frame.body_padding_top|default:"30mm" }};
+            margin-bottom: {{ layout_frame.body_padding_bottom|default:"25mm" }};
+            margin-left: {{ layout_frame.body_padding_left|default:"15mm" }};
+            margin-right: {{ layout_frame.body_padding_right|default:"15mm" }};
+        }
+
+        .letterhead-bg {
+            position: fixed;
+            top: -{{ layout_frame.body_padding_top|default:"30mm" }};
+            left: -{{ layout_frame.body_padding_left|default:"15mm" }};
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            z-index: -1000;
+        }
+
+        .letterhead-bg img {
+            width: {% if layout_frame.orientation == "landscape" %}297mm{% else %}210mm{% endif %};
+            height: {% if layout_frame.orientation == "landscape" %}210mm{% else %}297mm{% endif %};
+            display: block;
+        }
+        {% else %}
         @page {
             size: A4 portrait;
             margin: 0;
         }
+        {% endif %}
 
         * {
             box-sizing: border-box;
@@ -18,21 +43,37 @@
         body {
             margin: 0;
             padding: 0;
+            {% if layout_frame.has_letterhead_background %}
+            background: transparent !important;
+            {% else %}
             background: #eeeeee;
+            {% endif %}
             font-family: Arial, Helvetica, sans-serif;
             color: #111;
         }
 
         body {
+            {% if layout_frame.has_letterhead_background %}
+            padding: 0;
+            {% else %}
             padding: 7mm;
+            {% endif %}
         }
 
         .invoice {
+            {% if layout_frame.has_letterhead_background %}
+            width: 100%;
+            min-height: auto;
+            margin: 0;
+            background: transparent !important;
+            border: none;
+            {% else %}
             width: 196mm;
             min-height: 282mm;
             margin: auto;
             background: #fff;
             border: 1px solid #9aa0a6;
+            {% endif %}
             font-size: 6.7px;
             line-height: 1.2;
         }
@@ -291,16 +332,24 @@
 </head>
 
 <body>
+    {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+    <div class="letterhead-bg">
+        <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">
+    </div>
+    {% endif %}
+
     <div class="invoice">
 
         <!-- HEADER -->
         <div class="header">
             <div class="company">
+                {% if config.show_company_header and not layout_frame.has_letterhead_background %}
                 <div class="brand">{{ company.name }}</div>
                 {% if company.gstin %}<p>GSTIN: {{ company.gstin }}</p>{% endif %}
                 <p>{{ company.address }}</p>
                 <p>{{ company.city }}, {{ company.state }}{% if company.pincode %}, {{ company.pincode }}{% endif %}</p>
                 {% if company.phone %}<p>Mobile: {{ company.phone }} &nbsp; {% if company.email %}Email: {{ company.email }}{% endif %}</p>{% endif %}
+                {% endif %}
             </div>
 
             <div class="invoice-title">TAX INVOICE</div>

@@ -412,6 +412,7 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
             from apps.common.services.sample_data_service import SampleDataService
             from apps.common.services.organization_service import OrganizationService
             from apps.common.services.layout_engine import PrintableFrameBuilder
+            import os
 
             data = json.loads(request.body)
 
@@ -426,6 +427,9 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
             org_data = OrganizationService.get_company_assets(request.user)
             if org_data:
                 org_obj = org_data["organization"]
+                logo = org_data.get("logo")
+                sig = org_data.get("signature")
+                lh = org_data.get("letterhead")
                 company = {
                     "name": org_data["business_name"],
                     "address": f"{org_data['address_line_1']} {org_data['address_line_2']}".strip(),
@@ -434,11 +438,18 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
                     "gstin": org_data["gstin"],
                     "email": org_data["email"],
                     "phone": org_data["phone"],
+                    "logo_url": f"file://{logo.path}" if logo and hasattr(logo, "path") and os.path.exists(logo.path) else None,
+                    "signature_url": f"file://{sig.path}" if sig and hasattr(sig, "path") and os.path.exists(sig.path) else None,
+                    "letterhead_url": f"file://{lh.path}" if lh and hasattr(lh, "path") and os.path.exists(lh.path) else None,
+                    "signature_mode": org_data.get("signature_mode") or "none",
+                    "authorized_signatory_name": org_data.get("authorized_signatory_name") or "",
+                    "show_computer_generated_disclaimer": org_data.get("show_computer_generated_disclaimer", False),
                 }
-                if org_data["default_bank"]:
+                if org_data.get("default_bank"):
                     company["bank_name"] = org_data["default_bank"].bank_name
                     company["acc_no"]    = org_data["default_bank"].account_number
                     company["ifsc"]      = org_data["default_bank"].ifsc_code
+                    company["branch"]    = getattr(org_data["default_bank"], "branch_name", "")
             else:
                 org_obj = None
                 company = SampleDataService.sample_company()
@@ -482,6 +493,7 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         from apps.common.services.organization_service import OrganizationService
         from apps.common.services.layout_engine import PrintableFrameBuilder
         from apps.settings_app.models import DocumentPreference
+        import os
 
         # Check for letterhead or template_name GET parameter overrides
         request_overrides = {}
@@ -502,19 +514,29 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         org_data = OrganizationService.get_company_assets(request.user)
         if org_data:
             org_obj = org_data["organization"]
+            logo = org_data.get("logo")
+            sig = org_data.get("signature")
+            lh = org_data.get("letterhead")
             company = {
-                "name":    org_data["business_name"],
+                "name": org_data["business_name"],
                 "address": f"{org_data['address_line_1']} {org_data['address_line_2']}".strip(),
-                "city":    org_data["city"],
-                "state":   org_data["state"],
-                "gstin":   org_data["gstin"],
-                "email":   org_data["email"],
-                "phone":   org_data["phone"],
+                "city": org_data["city"],
+                "state": org_data["state"],
+                "gstin": org_data["gstin"],
+                "email": org_data["email"],
+                "phone": org_data["phone"],
+                "logo_url": f"file://{logo.path}" if logo and hasattr(logo, "path") and os.path.exists(logo.path) else None,
+                "signature_url": f"file://{sig.path}" if sig and hasattr(sig, "path") and os.path.exists(sig.path) else None,
+                "letterhead_url": f"file://{lh.path}" if lh and hasattr(lh, "path") and os.path.exists(lh.path) else None,
+                "signature_mode": org_data.get("signature_mode") or "none",
+                "authorized_signatory_name": org_data.get("authorized_signatory_name") or "",
+                "show_computer_generated_disclaimer": org_data.get("show_computer_generated_disclaimer", False),
             }
-            if org_data["default_bank"]:
+            if org_data.get("default_bank"):
                 company["bank_name"] = org_data["default_bank"].bank_name
                 company["acc_no"]    = org_data["default_bank"].account_number
                 company["ifsc"]      = org_data["default_bank"].ifsc_code
+                company["branch"]    = getattr(org_data["default_bank"], "branch_name", "")
         else:
             org_obj = None
             company = SampleDataService.sample_company()
