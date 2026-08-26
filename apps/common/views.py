@@ -117,3 +117,86 @@ def error_500(request: HttpRequest) -> HttpResponse:
     """Custom 500 handler — professional page rather than Django's default."""
     logger.error("500 Internal Server Error on: %s", request.path)
     return render(request, "500.html", {"page_title": "Server Error"}, status=500)
+
+
+# =============================================================================
+# NOTIFICATION API ENDPOINTS
+# =============================================================================
+
+from apps.common.mixins import BillingLoginRequiredMixin  # noqa: E402, PLC0415
+from apps.common.models import Notification  # noqa: E402, PLC0415
+
+
+class NotificationListView(BillingLoginRequiredMixin, View):
+    """
+    GET /api/notifications/
+    Returns the latest 20 notifications for the authenticated user and authorized organization,
+    plus the unread_count. Database is single source of truth.
+    """
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
+        org = getattr(request.user, "organization", None)
+        qs = Notification.objects.filter(user=request.user)
+        if org:
+            qs = qs.filter(organization=org)
+
+        unread_count = qs.filter(is_read=False).count()
+        recent_qs = qs.order_by("-created_at")[:20]
+        notifications_data = [item.to_dict() for item in recent_qs]
+
+        return JsonResponse({
+            "unread_count": unread_count,
+            "notifications": notifications_data,
+        }, status=200)
+
+
+class NotificationMarkReadView(BillingLoginRequiredMixin, View):
+    """
+    POST /api/notifications/<int:pk>/read/
+    Marks a single notification as read. Enforces user & org ownership.
+    """
+
+    def post(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> JsonResponse:
+        org = getattr(request.user, "organization", None)
+        qs = Notification.objects.filter(id=pk, user=request.user)
+        if org:
+            qs = qs.filter(organization=org)
+
+        notification = qs.first()
+        if not notification:
+            return JsonResponse({"error": "Notification not found or access denied"}, status=404)
+
+        if not notification.is_read:
+            notification.is_read = True
+            notification.save(update_fields=["is_read", "updated_at"])
+
+        count_qs = Notification.objects.filter(user=request.user, is_read=False)
+        if org:
+            count_qs = count_qs.filter(organization=org)
+
+        return JsonResponse({
+            "status": "success",
+            "id": notification.id,
+            "is_read": True,
+            "unread_count": count_qs.count(),
+        }, status=200)
+
+
+class NotificationMarkAllReadView(BillingLoginRequiredMixin, View):
+    """
+    POST /api/notifications/read-all/
+    Marks all notifications for the authenticated user & organization as read.
+    """
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
+        org = getattr(request.user, "organization", None)
+        qs = Notification.objects.filter(user=request.user, is_read=False)
+        if org:
+            qs = qs.filter(organization=org)
+
+        updated_count = qs.update(is_read=True)
+        return JsonResponse({
+            "status": "success",
+            "updated_count": updated_count,
+            "unread_count": 0,
+        }, status=200)

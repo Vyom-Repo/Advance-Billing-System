@@ -4,106 +4,431 @@
 {% block extra_css %}
 <style>
     .invoice-detail-container {
-        max-width: 960px; margin: 0 auto;
-        width: 100%; box-sizing: border-box;
+        max-width: 960px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
         padding: var(--space-8) var(--space-6) var(--space-24);
         animation: fadeIn 0.4s var(--transition-base);
     }
-    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-8); }
-    .detail-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--color-text-primary); letter-spacing: -0.02em; margin-bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-3); word-break: break-word; }
-    .detail-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-    .info-card { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm); width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; overflow-wrap: break-word; word-break: break-word; }
-    .info-card-title { font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-4); }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-    .info-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-    .info-grid > *, .info-grid-3 > * { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
-    .info-row { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
-    .info-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .info-value { font-size: var(--text-sm); color: var(--color-text-primary); font-weight: var(--font-medium); overflow-wrap: break-word; word-break: break-word; }
-    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: var(--font-medium); }
-    .badge-draft { background: rgba(251,191,36,0.12); color: #f59e0b; border: 1px solid rgba(251,191,36,0.25); }
-    .badge-issued { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
-    .badge-cancelled { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
-    .lines-table-wrapper { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
-    .lines-table { width: 100%; border-collapse: collapse; min-width: 650px; }
-    .lines-table th { font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
-    .lines-table td { padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); vertical-align: middle; }
-    .lines-table tr:last-child td { border-bottom: none; }
-    .lines-table .mono { font-family: var(--font-mono); }
-    .lines-table .text-right { text-align: right; }
-    .summary-section { margin-left: auto; max-width: 360px; width: 100%; box-sizing: border-box; }
-    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-1.5) 0; font-size: var(--text-sm); gap: var(--space-2); }
-    .summary-row.grand { border-top: 2px solid var(--color-border); margin-top: var(--space-3); padding-top: var(--space-3); font-size: var(--text-lg); font-weight: var(--font-bold); }
-    .summary-label { color: var(--color-text-secondary); }
-    .summary-value { font-family: var(--font-brand); font-weight: var(--font-semibold); color: var(--color-text-primary); }
-    .detail-actions form.action-form { display: inline-flex; margin: 0; padding: 0; }
-    .lines-mobile-list { display: none; }
-    @media (max-width: 768px) {
-        .invoice-detail-container { padding: var(--space-4) var(--space-3) var(--space-16); width: 100%; max-width: 100%; }
-        .detail-header { flex-direction: column; align-items: stretch; gap: var(--space-4); width: 100%; }
-        .info-grid, .info-grid-3 { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-        .detail-actions { width: 100%; max-width: 100%; flex-direction: column; gap: var(--space-3); box-sizing: border-box; }
-        .detail-actions form.action-form,
-        .detail-actions .btn { width: 100% !important; max-width: 100% !important; min-height: 44px; justify-content: center; align-items: center; box-sizing: border-box !important; display: flex; white-space: normal !important; text-align: center; }
-        .detail-actions form.action-form .btn { width: 100% !important; max-width: 100% !important; min-height: 44px; justify-content: center; align-items: center; box-sizing: border-box !important; display: flex; white-space: normal !important; text-align: center; }
-        .summary-section { max-width: 100%; width: 100%; }
-        .info-card { padding: var(--space-4); }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        margin-bottom: var(--space-8);
     }
+
+    .detail-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        word-break: break-word;
+    }
+
+    .detail-actions {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+    }
+
+    .info-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .info-card-title {
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: var(--space-4);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+    }
+
+    .info-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-4);
+    }
+
+    .info-grid>*,
+    .info-grid-3>* {
+        min-width: 0;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .info-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    .info-label {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-value {
+        font-size: var(--text-sm);
+        color: var(--color-text-primary);
+        font-weight: var(--font-medium);
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: var(--font-medium);
+    }
+
+    .badge-draft {
+        background: rgba(251, 191, 36, 0.12);
+        color: #f59e0b;
+        border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .badge-issued {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .badge-cancelled {
+        background: rgba(148, 163, 184, 0.12);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .lines-table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+    }
+
+    .lines-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 650px;
+    }
+
+    .lines-table th {
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+        white-space: nowrap;
+    }
+
+    .lines-table td {
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-text-primary);
+        border-bottom: 1px solid var(--color-border);
+        vertical-align: middle;
+    }
+
+    .lines-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .lines-table .mono {
+        font-family: var(--font-mono);
+    }
+
+    .lines-table .text-right {
+        text-align: right;
+    }
+
+    .summary-section {
+        margin-left: auto;
+        max-width: 360px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-1.5) 0;
+        font-size: var(--text-sm);
+        gap: var(--space-2);
+    }
+
+    .summary-row.grand {
+        border-top: 2px solid var(--color-border);
+        margin-top: var(--space-3);
+        padding-top: var(--space-3);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+    }
+
+    .summary-label {
+        color: var(--color-text-secondary);
+    }
+
+    .summary-value {
+        font-family: var(--font-brand);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+
+    .detail-actions form.action-form {
+        display: inline-flex;
+        margin: 0;
+        padding: 0;
+    }
+
+    .lines-mobile-list {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .invoice-detail-container {
+            padding: var(--space-4) var(--space-3) var(--space-16);
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .detail-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: var(--space-4);
+            width: 100%;
+        }
+
+        .info-grid,
+        .info-grid-3 {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .detail-actions {
+            width: 100%;
+            max-width: 100%;
+            flex-direction: column;
+            gap: var(--space-3);
+            box-sizing: border-box;
+        }
+
+        .detail-actions form.action-form,
+        .detail-actions .btn {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 44px;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box !important;
+            display: flex;
+            white-space: normal !important;
+            text-align: center;
+        }
+
+        .detail-actions form.action-form .btn {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 44px;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box !important;
+            display: flex;
+            white-space: normal !important;
+            text-align: center;
+        }
+
+        .summary-section {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .info-card {
+            padding: var(--space-4);
+        }
+    }
+
     @media (max-width: 640px) {
-        .lines-table-wrapper { display: none; }
-        .lines-mobile-list { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+        .lines-table-wrapper {
+            display: none;
+        }
+
+        .lines-mobile-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
         .line-item-card {
             background: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--color-border);
             border-radius: 12px;
             padding: 16px 18px;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
         }
+
         .line-item-header {
-            display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
         }
+
         .line-item-title-group {
-            display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
         }
+
         .line-item-num {
             background: var(--color-bg-surface);
             border: 1px solid var(--color-border);
             color: var(--color-text-secondary);
-            font-size: 11px; font-weight: var(--font-bold); font-family: var(--font-mono);
-            border-radius: var(--radius-sm); width: 22px; height: 22px;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+            font-size: 11px;
+            font-weight: var(--font-bold);
+            font-family: var(--font-mono);
+            border-radius: var(--radius-sm);
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
         }
-        .line-item-name-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+        .line-item-name-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
         .line-item-name {
-            font-size: 16px; font-weight: 600; color: var(--color-text-primary);
-            overflow-wrap: break-word; word-break: break-word; line-height: 1.35;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.35;
         }
+
         .line-item-taxability {
-            font-size: 12px; color: var(--color-text-muted); text-transform: capitalize; font-weight: 500;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            text-transform: capitalize;
+            font-weight: 500;
         }
+
         .line-item-total {
-            font-size: 16px; font-weight: 700; color: var(--color-text-primary);
-            font-family: var(--font-mono); white-space: nowrap; flex-shrink: 0; text-align: right; margin-top: 1px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-align: right;
+            margin-top: 1px;
         }
+
         .line-item-details-grid {
-            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 14px 18px;
         }
-        .line-item-detail { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-        .line-item-detail.grid-span-2 { grid-column: span 2; }
+
+        .line-item-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .line-item-detail.grid-span-2 {
+            grid-column: span 2;
+        }
+
         .line-item-detail .detail-label {
-            font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
         }
+
         .line-item-detail .detail-val {
-            font-size: 14px; color: var(--color-text-primary); font-weight: 500;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 14px;
+            color: var(--color-text-primary);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .line-item-detail .detail-val.mono { font-family: var(--font-mono); }
+
+        .line-item-detail .detail-val.mono {
+            font-family: var(--font-mono);
+        }
     }
+
     @media (max-width: 576px) {
-        .invoice-detail-container { padding: var(--space-3) var(--space-2) var(--space-12); }
-        .info-grid, .info-grid-3 { grid-template-columns: 1fr; }
-        .detail-title { font-size: var(--text-xl); flex-wrap: wrap; gap: var(--space-2); }
+        .invoice-detail-container {
+            padding: var(--space-3) var(--space-2) var(--space-12);
+        }
+
+        .info-grid,
+        .info-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-title {
+            font-size: var(--text-xl);
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
     }
 </style>
 {% endblock %}
@@ -133,15 +458,20 @@
                     {% if invoice.status == "draft" %}
                     <form method="post" action="{% url 'billing:issue' invoice.uuid %}" class="action-form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary" onclick="return confirm('Issue this invoice? This cannot be undone.')">
+                        <button type="submit" class="btn btn-primary"
+                            onclick="return confirm('Issue this invoice? This cannot be undone.')">
                             <i data-lucide="send"></i> Issue Invoice
                         </button>
                     </form>
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
-                    <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i> Edit Invoice</a>
-                    <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-danger"><i data-lucide="trash-2"></i> Delete</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank"
+                        rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <a href="{% url 'billing:edit' invoice.uuid %}" class="btn btn-outline"><i data-lucide="edit-3"></i>
+                        Edit Invoice</a>
+                    <a href="{% url 'billing:delete' invoice.uuid %}" class="btn btn-danger"><i
+                            data-lucide="trash-2"></i> Delete</a>
                     {% elif invoice.status == "issued" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-primary" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-primary" target="_blank"
+                        rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
                     <form method="post" action="{% url 'billing:cancel' invoice.uuid %}" class="action-form">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this invoice?')">
@@ -149,9 +479,11 @@
                         </button>
                     </form>
                     {% elif invoice.status == "cancelled" %}
-                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
+                    <a href="{% url 'billing:preview' invoice.uuid %}" class="btn btn-outline" target="_blank"
+                        rel="noopener noreferrer"><i data-lucide="file-text"></i> Preview PDF</a>
                     {% endif %}
-                    <a href="{% url 'billing:index' %}" class="btn btn-outline"><i data-lucide="arrow-left"></i> Back</a>
+                    <a href="{% url 'billing:index' %}" class="btn btn-outline"><i data-lucide="arrow-left"></i>
+                        Back</a>
                 </div>
             </div>
 
@@ -236,22 +568,18 @@
                             <tr>
                                 <td>{{ line.position }}</td>
                                 <td>
-                                    <div style="font-weight:var(--font-medium);">
-                                        {% if line.product_name_snapshot %}{{ line.product_name_snapshot }}{% elif line.product %}{{ line.product.name }}{% else %}—{% endif %}
-                                    </div>
+                                    <div style="font-weight:var(--font-medium);">{% if line.product_name_snapshot %}{{ line.product_name_snapshot }}{% elif line.product %}{{ line.product.name }}{% else %}—{% endif %}</div>
                                     {% if line.taxability_type_snapshot %}<div style="font-size:var(--text-xs);color:var(--color-text-muted);">{{ line.taxability_type_snapshot }}</div>{% endif %}
                                 </td>
                                 <td class="mono" style="font-size:var(--text-xs);">{{ line.hsn_sac_snapshot|default:"—" }}</td>
                                 <td class="text-right mono">{{ line.quantity }}</td>
                                 <td class="text-right mono">₹{{ line.unit_price|floatformat:2 }}</td>
                                 <td class="text-right mono" style="font-size:var(--text-xs);">
-                                    {% if line.discount_type != "none" %}
-                                    {{ line.discount_value }}{% if line.discount_type == "percentage" %}%{% else %}₹{% endif %}
-                                    {% if line.discount_amount %}(₹{{ line.discount_amount|floatformat:2 }}){% endif %}
-                                    {% else %}—{% endif %}
+                                    {% if line.discount_type != "none" %}{{ line.discount_value }}{% if line.discount_type == "percentage" %}%{% else %}₹{% endif %}{% if line.discount_amount %} (₹{{ line.discount_amount|floatformat:2 }}){% endif %}{% else %}—{% endif %}
                                 </td>
                                 <td class="text-right mono">₹{{ line.taxable_value|floatformat:2 }}</td>
-                                <td class="text-right" style="font-size:var(--text-xs);color:var(--color-text-secondary);">
+                                <td class="text-right"
+                                    style="font-size:var(--text-xs);color:var(--color-text-secondary);">
                                     {% if line.cgst_amount %}<div>CGST: ₹{{ line.cgst_amount|floatformat:2 }}</div>{% endif %}
                                     {% if line.sgst_amount %}<div>SGST: ₹{{ line.sgst_amount|floatformat:2 }}</div>{% endif %}
                                     {% if line.igst_amount %}<div>IGST: ₹{{ line.igst_amount|floatformat:2 }}</div>{% endif %}

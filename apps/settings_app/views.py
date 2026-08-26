@@ -195,7 +195,9 @@ class SettingsSystemView(BillingLoginRequiredMixin, PageTitleMixin, TemplateView
         org_name = "None"
         try:
             from apps.organization.models import Organization
-            org = Organization.objects.filter(user=self.request.user).first()
+            org = getattr(self.request.user, "organization", None)
+            if not org:
+                org = Organization.objects.filter(owner=self.request.user).first()
             if org:
                 org_name = org.business_name
         except Exception:

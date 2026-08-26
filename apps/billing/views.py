@@ -256,6 +256,25 @@ class InvoiceCreateView(InvoiceOrganizationMixin, PageTitleMixin, View):
                 import logging
                 logging.error(f"Failed to calculate totals for draft invoice: {e}")
 
+            # Trigger persistent notification for draft invoice creation
+            try:
+                from apps.common.models import NotificationCategory  # noqa: PLC0415
+                from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+                NotificationService.create(
+                    user=request.user,
+                    organization=org,
+                    category=NotificationCategory.BILLING,
+                    event_type="invoice_created",
+                    title="Draft Invoice Created",
+                    message=f"Draft invoice {invoice.invoice_number or 'Draft'} created for {invoice.customer_name_snapshot or 'customer'}.",
+                    entity_type="invoice",
+                    entity_id=str(invoice.uuid),
+                    request=request,
+                )
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to create invoice_created notification: {e}")
+
             messages.success(request, "Draft invoice created successfully.")
             return redirect("billing:detail", uuid=invoice.uuid)
 
@@ -430,6 +449,24 @@ class InvoiceIssueView(InvoiceOrganizationMixin, View):
         invoice = self.get_org_invoice(uuid)
         try:
             issued = finalize_invoice(invoice)
+            try:
+                from apps.common.models import NotificationCategory  # noqa: PLC0415
+                from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+                NotificationService.create(
+                    user=request.user,
+                    organization=issued.organization,
+                    category=NotificationCategory.BILLING,
+                    event_type="invoice_issued",
+                    title="Invoice Issued",
+                    message=f"Invoice {issued.invoice_number} issued successfully.",
+                    entity_type="invoice",
+                    entity_id=str(issued.uuid),
+                    request=request,
+                )
+            except Exception as ne:
+                import logging
+                logging.error(f"Failed to trigger invoice_issued notification: {ne}")
+
             messages.success(
                 request,
                 f"Invoice {issued.invoice_number} issued successfully."
@@ -460,6 +497,24 @@ class InvoiceCancelView(InvoiceOrganizationMixin, View):
         invoice = self.get_org_invoice(uuid)
         try:
             cancel_invoice(invoice)
+            try:
+                from apps.common.models import NotificationCategory  # noqa: PLC0415
+                from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+                NotificationService.create(
+                    user=request.user,
+                    organization=invoice.organization,
+                    category=NotificationCategory.BILLING,
+                    event_type="invoice_cancelled",
+                    title="Invoice Cancelled",
+                    message=f"Invoice {invoice.invoice_number} has been cancelled.",
+                    entity_type="invoice",
+                    entity_id=str(invoice.uuid),
+                    request=request,
+                )
+            except Exception as ne:
+                import logging
+                logging.error(f"Failed to trigger invoice_cancelled notification: {ne}")
+
             messages.success(request, f"Invoice {invoice.invoice_number} cancelled.")
             return redirect("billing:detail", uuid=invoice.uuid)
         except ValidationError as e:
@@ -467,6 +522,40 @@ class InvoiceCancelView(InvoiceOrganizationMixin, View):
             for err in error_list:
                 messages.error(request, err)
             return redirect("billing:detail", uuid=invoice.uuid)
+
+
+# ---------------------------------------------------------------------------
+# Invoice Mail (On-demand email delivery to Organization Owner)
+# ---------------------------------------------------------------------------
+
+class InvoiceMailView(InvoiceOrganizationMixin, View):
+    """
+    POST-only. On-demand email delivery of invoice copy to the Organization Owner.
+    Validates organization scoping, owner email, renders PDF, and emails owner.
+    """
+
+    def post(self, request, uuid):
+        invoice = self.get_org_invoice(uuid)
+        
+        from apps.billing.services.invoice_email_service import InvoiceEmailService, EmailTrigger
+        from django.urls import reverse
+
+        try:
+            success, msg = InvoiceEmailService.send_invoice_email(
+                invoice,
+                trigger=EmailTrigger.MANUAL,
+                user=request.user
+            )
+            if success:
+                messages.success(request, msg)
+            else:
+                messages.error(request, msg)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Error during manual invoice mailing to owner: %s", str(e), exc_info=True)
+            messages.error(request, "Failed to send invoice email to the organization owner. Please try again.")
+
+        return redirect(request.META.get("HTTP_REFERER") or reverse("billing:detail", kwargs={"uuid": invoice.uuid}))
 
 
 # ---------------------------------------------------------------------------

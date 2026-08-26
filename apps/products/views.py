@@ -91,6 +91,25 @@ class ProductCreateView(ProductOrganizationMixin, PageTitleMixin, CreateView):
         form.instance.organization = self.get_organization()
         response = super().form_valid(form)
         product = self.object
+
+        try:
+            from apps.common.models import NotificationCategory  # noqa: PLC0415
+            from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+            NotificationService.create(
+                user=self.request.user,
+                organization=self.get_organization(),
+                category=NotificationCategory.SYSTEM,
+                event_type="product_created",
+                title="Product / Service Added",
+                message=f"Product '{product.name}' was created.",
+                entity_type="product",
+                entity_id=str(product.uuid),
+                request=self.request,
+            )
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to trigger product_created notification: {e}")
+
         messages.success(self.request, f"Product '{product.name}' created successfully.")
 
         # If launched from invoice create, redirect back with new product in the right line

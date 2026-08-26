@@ -19,6 +19,19 @@ class InvoiceStatus(models.TextChoices):
     CANCELLED = "cancelled", _("Cancelled")
 
 
+class EmailStatus(models.TextChoices):
+    NOT_SENT = "not_sent", _("Not Sent")
+    QUEUED = "queued", _("Queued")
+    SENDING = "sending", _("Sending")
+    SENT = "sent", _("Sent")
+    FAILED = "failed", _("Failed")
+
+
+class EmailTrigger(models.TextChoices):
+    AUTOMATIC = "automatic", _("Automatic")
+    MANUAL = "manual", _("Manual")
+
+
 class DiscountType(models.TextChoices):
     PERCENTAGE = "percentage", _("Percentage")
     FIXED = "fixed", _("Fixed")
@@ -83,6 +96,22 @@ class Invoice(TimeStampedModel):
     notes = models.TextField(blank=True)
     terms = models.TextField(blank=True)
     currency = models.CharField(max_length=3, default='INR')
+
+    # Email Delivery Audit
+    email_sent = models.BooleanField(default=False)
+    email_last_sent_at = models.DateTimeField(null=True, blank=True)
+    email_last_status = models.CharField(
+        max_length=20,
+        choices=EmailStatus.choices,
+        default=EmailStatus.NOT_SENT
+    )
+    email_last_trigger = models.CharField(
+        max_length=20,
+        choices=EmailTrigger.choices,
+        blank=True
+    )
+    email_last_error = models.TextField(blank=True)
+    email_recipient = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ["-invoice_date", "-created_at"]

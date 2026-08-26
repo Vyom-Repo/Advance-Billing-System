@@ -20,13 +20,35 @@
                     <span class="breadcrumb-separator" style="color: var(--color-border-strong); margin: 0 2px;">/</span>
                 {% endif %}
                 <span class="breadcrumb-current" style="color: var(--color-text-primary); font-weight: var(--font-semibold);">{{ page_heading|default:page_title|default:"Advance Billing" }}</span>
+                {% if section_subtitle %}
+                <span class="topbar-context" style="color: var(--color-text-secondary); opacity: 0.75; font-style: italic; font-size: var(--text-xs); margin-left: 4px;">· {{ section_subtitle }}</span>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <div class="topbar-right">
+    <div class="topbar-right" style="display: flex; align-items: center; gap: var(--space-3);">
+        <!-- Notification Dropdown Component (Single Source of Truth) -->
+        <div class="notification-menu" style="position: relative;">
+            <button class="topbar-action notification-bell-btn" id="notification-bell-btn" title="Notifications" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+                <i data-lucide="bell" style="width: 19px; height: 19px;"></i>
+                <span class="notification-badge" id="notification-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">
+                    {% if unread_notifications_count > 99 %}99+{% else %}{{ unread_notifications_count }}{% endif %}
+                </span>
+            </button>
+            <div class="notification-dropdown" id="notification-dropdown">
+                <div class="notification-header">
+                    <span class="notification-title">Notifications</span>
+                    <button type="button" id="mark-all-read-btn" class="notification-mark-all-btn">Mark all as read</button>
+                </div>
+                <div class="notification-list" id="notification-list">
+                    <div class="notification-loading">Loading notifications...</div>
+                </div>
+            </div>
+        </div>
+
         <!-- User Menu Dropdown (Reused) -->
-        <div class="user-menu">
+        <div class="user-menu" style="position: relative;">
             <button class="user-menu-btn" id="user-menu-btn" aria-haspopup="true" aria-expanded="false">
                 <div class="avatar avatar-sm">
                     {{ request.user.first_name|default:request.user.email|make_list|first|upper }}

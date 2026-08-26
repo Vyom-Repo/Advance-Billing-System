@@ -629,8 +629,8 @@
                             </div>
                         </div>
 
-                        <label class="toggle-switch">
-                            {{ form.show_company_logo }}
+                        <label class="toggle-switch" for="{{ form.show_company_logo.id_for_label }}">
+                            <input type="checkbox" name="show_company_logo" id="{{ form.show_company_logo.id_for_label }}" class="toggle-input" {% if form.show_company_logo.value %}checked{% endif %}>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -639,8 +639,10 @@
                             <div class="toggle-title">Company Header</div>
                             <div class="toggle-desc">Displays company name, address, and GSTIN.</div>
                         </div>
-                        <label class="toggle-switch">{{ form.show_company_header }}<span
-                                class="toggle-slider"></span></label>
+                        <label class="toggle-switch" for="{{ form.show_company_header.id_for_label }}">
+                            <input type="checkbox" name="show_company_header" id="{{ form.show_company_header.id_for_label }}" class="toggle-input" {% if form.show_company_header.value %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
                     <div class="toggle-row" style="flex-wrap: wrap;">
                         <div
@@ -649,8 +651,10 @@
                                 <div class="toggle-title">Company Footer</div>
                                 <div class="toggle-desc">Display a custom message at the bottom of pages.</div>
                             </div>
-                            <label class="toggle-switch">{{ form.show_company_footer }}<span
-                                    class="toggle-slider"></span></label>
+                            <label class="toggle-switch" for="{{ form.show_company_footer.id_for_label }}">
+                                <input type="checkbox" name="show_company_footer" id="{{ form.show_company_footer.id_for_label }}" class="toggle-input" {% if form.show_company_footer.value %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
                         <div id="footer-text-panel" style="width: 100%; margin-top: var(--space-2); display: none;">
                             {{ form.custom_footer_message }}
@@ -1177,6 +1181,7 @@
         const showCompanyFooterInput = document.getElementById('id_show_company_footer');
         const letterheadWarning = document.getElementById('letterhead-branding-warning');
         
+        let isLetterheadDisabledState = false;
         let originalLogoState = showCompanyLogoInput ? showCompanyLogoInput.checked : false;
         let originalHeaderState = showCompanyHeaderInput ? showCompanyHeaderInput.checked : false;
         let originalFooterState = showCompanyFooterInput ? showCompanyFooterInput.checked : false;
@@ -1185,11 +1190,11 @@
             if (!printOnLetterheadInput || !showCompanyLogoInput || !showCompanyHeaderInput || !showCompanyFooterInput) return;
             
             if (printOnLetterheadInput.checked) {
-                // If it wasn't already disabled by us, save the state
-                if (!showCompanyLogoInput.disabled) {
+                if (!isLetterheadDisabledState) {
                     originalLogoState = showCompanyLogoInput.checked;
                     originalHeaderState = showCompanyHeaderInput.checked;
                     originalFooterState = showCompanyFooterInput.checked;
+                    isLetterheadDisabledState = true;
                 }
 
                 showCompanyLogoInput.checked = false;
@@ -1203,12 +1208,19 @@
                 showCompanyLogoInput.closest('.toggle-switch').style.opacity = '0.5';
                 showCompanyHeaderInput.closest('.toggle-switch').style.opacity = '0.5';
                 showCompanyFooterInput.closest('.toggle-switch').style.opacity = '0.5';
+
+                showCompanyLogoInput.closest('.toggle-switch').style.pointerEvents = 'none';
+                showCompanyHeaderInput.closest('.toggle-switch').style.pointerEvents = 'none';
+                showCompanyFooterInput.closest('.toggle-switch').style.pointerEvents = 'none';
                 
                 if (letterheadWarning) letterheadWarning.style.display = 'block';
             } else {
-                showCompanyLogoInput.checked = originalLogoState;
-                showCompanyHeaderInput.checked = originalHeaderState;
-                showCompanyFooterInput.checked = originalFooterState;
+                if (isLetterheadDisabledState) {
+                    showCompanyLogoInput.checked = originalLogoState;
+                    showCompanyHeaderInput.checked = originalHeaderState;
+                    showCompanyFooterInput.checked = originalFooterState;
+                    isLetterheadDisabledState = false;
+                }
 
                 showCompanyLogoInput.disabled = false;
                 showCompanyHeaderInput.disabled = false;
@@ -1217,6 +1229,10 @@
                 showCompanyLogoInput.closest('.toggle-switch').style.opacity = '1';
                 showCompanyHeaderInput.closest('.toggle-switch').style.opacity = '1';
                 showCompanyFooterInput.closest('.toggle-switch').style.opacity = '1';
+
+                showCompanyLogoInput.closest('.toggle-switch').style.pointerEvents = 'auto';
+                showCompanyHeaderInput.closest('.toggle-switch').style.pointerEvents = 'auto';
+                showCompanyFooterInput.closest('.toggle-switch').style.pointerEvents = 'auto';
                 
                 if (letterheadWarning) letterheadWarning.style.display = 'none';
             }

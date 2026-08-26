@@ -75,6 +75,25 @@ class CustomerCreateView(CustomerOrganizationMixin, PageTitleMixin, CreateView):
         form.instance.organization = self.get_organization()
         response = super().form_valid(form)
         customer = self.object
+        
+        try:
+            from apps.common.models import NotificationCategory  # noqa: PLC0415
+            from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+            NotificationService.create(
+                user=self.request.user,
+                organization=self.get_organization(),
+                category=NotificationCategory.CUSTOMERS,
+                event_type="customer_created",
+                title="Customer Added",
+                message=f"Customer '{customer.name}' was added.",
+                entity_type="customer",
+                entity_id=str(customer.uuid),
+                request=self.request,
+            )
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to trigger customer_created notification: {e}")
+
         messages.success(self.request, f"Customer '{customer.name}' created successfully.")
 
         # If launched from invoice create, redirect back with new customer pre-selected

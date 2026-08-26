@@ -14,6 +14,7 @@ urlpatterns = [
     # Lifecycle actions
     path("<uuid:uuid>/issue/", views.InvoiceIssueView.as_view(), name="issue"),
     path("<uuid:uuid>/cancel/", views.InvoiceCancelView.as_view(), name="cancel"),
+    path("<uuid:uuid>/mail/", views.InvoiceMailView.as_view(), name="mail"),
     # Preview (Phase 10 entry point)
     path("<uuid:uuid>/preview/", views.InvoicePreviewView.as_view(), name="preview"),
     # Draft calculation preview (AJAX — display only, not persisted)

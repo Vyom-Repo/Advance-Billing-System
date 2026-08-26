@@ -10,58 +10,8 @@
     {% include "base/sidebar.html" %}
 
     <main class="main-content">
-        <!-- Topbar -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <button id="mobile-menu-toggle" class="mobile-toggle topbar-action">
-                    <i data-lucide="menu"></i>
-                </button>
-                <div class="topbar-title">
-                    <span>Dashboard</span>
-                    <span class="topbar-context">· Business overview</span>
-                </div>
-            </div>
-            
-            <div class="topbar-right">
-                <button class="topbar-action" title="Notifications" aria-label="Notifications">
-                    <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
-                </button>
-                
-                <!-- User Menu -->
-                <div class="user-menu">
-                    <button class="user-menu-btn" id="user-menu-btn" aria-label="User Account Menu">
-                        <div class="avatar avatar-sm">
-                            {{ request.user.first_name|default:request.user.email|make_list|first|upper }}
-                        </div>
-                        <span class="user-menu-name">{{ request.user.first_name|default:"User" }}</span>
-                        <i data-lucide="chevron-down"></i>
-                    </button>
-                    
-                    <div class="dropdown-menu" id="user-menu-dropdown">
-                        <div class="dropdown-item" style="pointer-events: none;">
-                            <div>
-                                <div style="font-weight: 500; color: var(--color-text-primary);">{{ request.user.get_full_name|default:request.user.email }}</div>
-                                <div style="font-size: var(--text-xs);">{{ user_org.business_name|default:"No Organization" }}</div>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="{% url 'settings_app:index' %}" class="dropdown-item">
-                            <i data-lucide="user"></i> My Profile
-                        </a>
-                        <a href="{% url 'organization:index' %}" class="dropdown-item">
-                            <i data-lucide="building"></i> Organization
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <form action="{% url 'auth:logout' %}" method="post" style="display: block; width: 100%;">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: none; text-align: left;">
-                                <i data-lucide="log-out"></i> Sign Out
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <!-- Topbar Header (Single Source of Truth) -->
+        {% include "base/header.html" with page_heading="Dashboard" section_subtitle="Business overview" %}
 
         <!-- Page Content -->
         <div class="page-content animate-fade-in" style="padding-top: var(--space-6); padding-bottom: var(--space-8);">

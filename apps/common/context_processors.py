@@ -13,6 +13,8 @@ Processors registered:
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.http import HttpRequest
 
 
@@ -54,18 +56,25 @@ def app_context(request: HttpRequest) -> dict[str, Any]:
         "APP_VERSION": settings.APP_VERSION,
     }
 
-    # Inject the user's organization if authenticated and org exists
+    # Inject the user's organization and notification unread count if authenticated
     if request.user.is_authenticated:
         try:
-            # Organization model will be built in the organization phase.
-            # This try/except ensures no crash during the foundation phase.
             from apps.organization.models import Organization  # noqa: PLC0415
-            context["user_org"] = Organization.objects.filter(
-                user=request.user
+            user_org = Organization.objects.filter(
+                owner=request.user
             ).first()
-        except Exception:  # noqa: BLE001
+            context["user_org"] = user_org
+
+            from apps.common.models import Notification  # noqa: PLC0415
+            n_qs = Notification.objects.filter(user=request.user, is_read=False)
+            if user_org:
+                n_qs = n_qs.filter(organization=user_org)
+            context["unread_notifications_count"] = n_qs.count()
+        except (ObjectDoesNotExist, AttributeError, DatabaseError):
             context["user_org"] = None
+            context["unread_notifications_count"] = 0
     else:
         context["user_org"] = None
+        context["unread_notifications_count"] = 0
 
     return context

@@ -66,6 +66,25 @@ class OrganizationDetailView(BillingLoginRequiredMixin, PageTitleMixin, UpdateVi
         return context
 
     def form_valid(self, form):
+        if form.has_changed():
+            try:
+                from apps.common.models import NotificationCategory  # noqa: PLC0415
+                from apps.common.services.notification_service import NotificationService  # noqa: PLC0415
+                NotificationService.create(
+                    user=self.request.user,
+                    organization=self.request.user.organization,
+                    category=NotificationCategory.ORGANIZATION,
+                    event_type="organization_updated",
+                    title="Organization Profile Updated",
+                    message="Organization profile and business details were updated.",
+                    entity_type="organization",
+                    entity_id=str(self.request.user.organization.id),
+                    request=self.request,
+                )
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to trigger organization_updated notification: {e}")
+
         messages.success(self.request, "Organization details updated successfully.")
         return super().form_valid(form)
 

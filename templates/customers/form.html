@@ -159,7 +159,8 @@
         margin-left: 2px;
     }
 
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
         width: 100%;
         padding: var(--space-3) var(--space-4);
         background: var(--color-bg-input);
@@ -171,7 +172,8 @@
         box-sizing: border-box;
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus,
+    .form-select:focus {
         outline: none;
         border-color: var(--color-accent);
         box-shadow: 0 0 0 3px var(--color-accent-subtle);
@@ -282,18 +284,31 @@
         }
     }
 
-        /* Mobile fixes */
-        .state-row-wrapper { grid-column: span 2; }
+    /* Mobile fixes */
+    .state-row-wrapper {
+        grid-column: span 2;
+    }
+
+    .state-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--space-4);
+    }
+
+    @media (max-width: 640px) {
+        .state-row-wrapper {
+            grid-column: span 1;
+        }
+
         .state-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: var(--space-4);
+            grid-template-columns: 1fr;
+            gap: var(--space-3);
         }
-        @media (max-width: 640px) {
-            .state-row-wrapper { grid-column: span 1; }
-            .state-row { grid-template-columns: 1fr; gap: var(--space-3); }
-            .segmented-grid { grid-template-columns: 1fr !important; }
+
+        .segmented-grid {
+            grid-template-columns: 1fr !important;
         }
+    }
 </style>
 {% endblock %}
 
@@ -305,17 +320,18 @@
         <!-- Mobile Topbar -->
         {% url 'customers:list' as cust_list_url %}
         {% if form.instance.pk %}
-            {% url 'customers:detail' form.instance.pk as cust_back_url %}
-            {% include "base/header.html" with parent_title="Sales / Customers" parent_url=cust_list_url back_url=cust_back_url page_heading=form.instance.name %}
+        {% url 'customers:detail' form.instance.pk as cust_back_url %}
+        {% include "base/header.html" with parent_title="Sales / Customers" parent_url=cust_list_url back_url=cust_back_url page_heading=form.instance.name %}
         {% else %}
-            {% include "base/header.html" with parent_title="Sales / Customers" parent_url=cust_list_url back_url=cust_list_url page_heading="New Customer" %}
+        {% include "base/header.html" with parent_title="Sales / Customers" parent_url=cust_list_url back_url=cust_list_url page_heading="New Customer" %}
         {% endif %}
 
         <div class="customer-form-container">
             <!-- Header -->
             <div class="form-header">
                 <div>
-                    <h1 class="form-title">{% if form.instance.pk %}Edit Customer{% else %}Create Customer{% endif %}</h1>
+                    <h1 class="form-title">{% if form.instance.pk %}Edit Customer{% else %}Create Customer{% endif %}
+                    </h1>
                     <p class="form-subtitle">{% if form.instance.pk %}Update billing information for {{ form.instance.name }}{% else %}Add a customer master record for your organization.{% endif %}</p>
                 </div>
                 <a href="{% url 'customers:index' %}" class="btn btn-outline btn-sm">
@@ -327,7 +343,8 @@
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
-                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: var(--space-4); border-radius: var(--radius-lg); margin-bottom: var(--space-6); font-size: var(--text-sm);">
+                <div
+                    style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: var(--space-4); border-radius: var(--radius-lg); margin-bottom: var(--space-6); font-size: var(--text-sm);">
                     {% for error in form.non_field_errors %}
                     <div>{{ error }}</div>
                     {% endfor %}
@@ -351,14 +368,16 @@
                     <div class="form-group">
                         <label class="form-label">Customer Type</label>
                         <div class="segmented-grid">
-                            <div class="radio-card {% if form.customer_type.value == 'business' or not form.customer_type.value %}active{% endif %}" id="card-type-business" onclick="selectCustomerType('business')">
+                            <div class="radio-card {% if form.customer_type.value == 'business' or not form.customer_type.value %}active{% endif %}"
+                                id="card-type-business" onclick="selectCustomerType('business')">
                                 <div class="radio-card-icon"><i data-lucide="building-2"></i></div>
                                 <div class="radio-card-text">
                                     <span class="radio-card-title">Business</span>
                                     <span class="radio-card-desc">Companies, firms, organizations</span>
                                 </div>
                             </div>
-                            <div class="radio-card {% if form.customer_type.value == 'individual' %}active{% endif %}" id="card-type-individual" onclick="selectCustomerType('individual')">
+                            <div class="radio-card {% if form.customer_type.value == 'individual' %}active{% endif %}"
+                                id="card-type-individual" onclick="selectCustomerType('individual')">
                                 <div class="radio-card-icon"><i data-lucide="user"></i></div>
                                 <div class="radio-card-text">
                                     <span class="radio-card-title">Individual</span>
@@ -372,14 +391,16 @@
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">GST Registration Status</label>
                         <div class="segmented-grid">
-                            <div class="radio-card {% if form.gst_status.value == 'registered' or not form.gst_status.value %}active{% endif %}" id="card-gst-registered" onclick="selectGSTStatus('registered')">
+                            <div class="radio-card {% if form.gst_status.value == 'registered' or not form.gst_status.value %}active{% endif %}"
+                                id="card-gst-registered" onclick="selectGSTStatus('registered')">
                                 <div class="radio-card-icon"><i data-lucide="file-check-2"></i></div>
                                 <div class="radio-card-text">
                                     <span class="radio-card-title">GST Registered</span>
                                     <span class="radio-card-desc">Has 15-character GSTIN</span>
                                 </div>
                             </div>
-                            <div class="radio-card {% if form.gst_status.value == 'unregistered' %}active{% endif %}" id="card-gst-unregistered" onclick="selectGSTStatus('unregistered')">
+                            <div class="radio-card {% if form.gst_status.value == 'unregistered' %}active{% endif %}"
+                                id="card-gst-unregistered" onclick="selectGSTStatus('unregistered')">
                                 <div class="radio-card-icon"><i data-lucide="file-x-2"></i></div>
                                 <div class="radio-card-text">
                                     <span class="radio-card-title">GST Unregistered</span>
@@ -437,7 +458,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Address Line 2 <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
+                        <label class="form-label">Address Line 2 <span
+                                style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
                         {{ form.billing_address_line_2 }}
                     </div>
 
@@ -450,7 +472,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="form-group state-row state-row-wrapper" >
+                        <div class="form-group state-row state-row-wrapper">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label">State <span class="required">*</span></label>
                                 {{ form.state_select }}
@@ -461,7 +483,9 @@
 
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label">State Code</label>
-                                <input type="text" id="display_state_code" class="form-control" readonly style="background: rgba(255, 255, 255, 0.03); color: var(--color-text-muted);" value="{{ form.billing_state_code.value|default:'' }}">
+                                <input type="text" id="display_state_code" class="form-control" readonly
+                                    style="background: rgba(255, 255, 255, 0.03); color: var(--color-text-muted);"
+                                    value="{{ form.billing_state_code.value|default:'' }}">
                             </div>
                         </div>
                     </div>
@@ -540,7 +564,7 @@
     function validateGSTINFormat(gstin) {
         const badgeWrapper = document.getElementById('gstin-badge-wrapper');
         const badge = document.getElementById('gstin-badge');
-        
+
         if (!gstin) {
             badgeWrapper.style.display = 'none';
             return;
@@ -611,9 +635,9 @@
         const currentStatus = document.getElementById('id_gst_status').value || 'registered';
         selectCustomerType(currentType);
         selectGSTStatus(currentStatus);
-        
 
-        
+
+
 
         if (window.lucide) lucide.createIcons();
     });

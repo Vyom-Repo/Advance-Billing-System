@@ -106,10 +106,203 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 3. Theme Toggle Support (Optional UI hook)
-    // The theme is primarily handled by the server (Django session + context processor),
-    // but this function allows client-side preview before saving to backend.
     window.setTheme = function(themeId) {
         document.documentElement.setAttribute('data-theme', themeId);
-        // In a full implementation, you would also POST to a Django view to save to session.
     };
+
+    // 6. User Menu & Notification Dropdown Handlers
+    function getCsrfToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    
+    if (userMenuBtn && userMenuDropdown) {
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isShown = userMenuDropdown.classList.contains('show');
+            closeAllDropdowns();
+            if (!isShown) {
+                userMenuDropdown.classList.add('show');
+                userMenuBtn.setAttribute('aria-expanded', 'true');
+            }
+        });
+    }
+
+    const bellBtn = document.getElementById('notification-bell-btn');
+    const notifDropdown = document.getElementById('notification-dropdown');
+    const notifBadge = document.getElementById('notification-badge');
+    const notifList = document.getElementById('notification-list');
+    const markAllBtn = document.getElementById('mark-all-read-btn');
+
+    function closeAllDropdowns() {
+        if (userMenuDropdown) {
+            userMenuDropdown.classList.remove('show');
+            if (userMenuBtn) userMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+        if (notifDropdown) {
+            notifDropdown.classList.remove('show');
+            if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.notification-menu') && !e.target.closest('.user-menu')) {
+            closeAllDropdowns();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAllDropdowns();
+        }
+    });
+
+    function updateBadgeCount(count) {
+        if (!notifBadge) return;
+        if (count > 0) {
+            notifBadge.textContent = count > 99 ? '99+' : count;
+            notifBadge.style.display = 'inline-flex';
+        } else {
+            notifBadge.style.display = 'none';
+        }
+    }
+
+    function fetchNotifications() {
+        if (!notifList) return;
+        fetch('/api/notifications/', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateBadgeCount(data.unread_count);
+            renderNotificationList(data.notifications || []);
+        })
+        .catch(err => {
+            console.error('Failed to fetch notifications:', err);
+            notifList.innerHTML = '<div class="notification-empty"><div class="notification-empty-desc">Could not load notifications.</div></div>';
+        });
+    }
+
+    function renderNotificationList(items) {
+        if (!notifList) return;
+        if (items.length === 0) {
+            notifList.innerHTML = `
+                <div class="notification-empty">
+                    <div class="notification-empty-title">All caught up!</div>
+                    <div class="notification-empty-desc">You have no notifications right now.</div>
+                </div>
+            `;
+            return;
+        }
+
+        notifList.innerHTML = items.map(item => {
+            const unreadClass = item.is_read ? '' : 'unread';
+            const iconName = item.icon || 'bell';
+            const targetUrl = item.target_url || '';
+            return `
+                <div class="notification-item ${unreadClass}" data-id="${item.id}" data-url="${targetUrl}">
+                    <div class="notification-icon-box">
+                        <i data-lucide="${iconName}" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-item-title">${escapeHtml(item.title)}</div>
+                        <div class="notification-item-message">${escapeHtml(item.message)}</div>
+                        <div class="notification-item-time">${escapeHtml(item.timesince)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        const notifElements = notifList.querySelectorAll('.notification-item');
+        notifElements.forEach(el => {
+            el.addEventListener('click', (e) => {
+                const notifId = el.getAttribute('data-id');
+                const targetUrl = el.getAttribute('data-url');
+                
+                fetch(`/api/notifications/${notifId}/read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(resData => {
+                    el.classList.remove('unread');
+                    if (typeof resData.unread_count !== 'undefined') {
+                        updateBadgeCount(resData.unread_count);
+                    }
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    }
+                })
+                .catch(() => {
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    }
+                });
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#039;");
+    }
+
+    if (bellBtn && notifDropdown) {
+        bellBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isShown = notifDropdown.classList.contains('show');
+            closeAllDropdowns();
+            if (!isShown) {
+                notifDropdown.classList.add('show');
+                bellBtn.setAttribute('aria-expanded', 'true');
+                fetchNotifications();
+            }
+        });
+    }
+
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fetch('/api/notifications/read-all/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateBadgeCount(0);
+                const items = notifList.querySelectorAll('.notification-item');
+                items.forEach(item => item.classList.remove('unread'));
+            })
+            .catch(err => console.error('Failed to mark all as read:', err));
+        });
+    }
 });

@@ -141,8 +141,13 @@ def issue_invoice(invoice: Invoice) -> Invoice:
     if not invoice.customer_name_snapshot:
         raise ValidationError("Invoice customer snapshot is missing. Snapshots must be prepared and saved before issuing.")
 
-    # Lock the preference row for this organization to guarantee atomic number allocation
-    pref = InvoicePreference.objects.select_for_update().get(user=invoice.organization.owner)
+    # Lock the preference row for this organization to guarantee atomic number allocation.
+    # Safely initialize InvoicePreference if it does not exist yet.
+    try:
+        pref = InvoicePreference.objects.select_for_update().get(user=invoice.organization.owner)
+    except InvoicePreference.DoesNotExist:
+        InvoicePreference.objects.get_or_create(user=invoice.organization.owner)
+        pref = InvoicePreference.objects.select_for_update().get(user=invoice.organization.owner)
     
     # Generate number using the locked preference state
     prefix = (pref.invoice_prefix or "").strip().upper()
@@ -166,6 +171,14 @@ def issue_invoice(invoice: Invoice) -> Invoice:
     # Atomically increment the sequence and save
     pref.starting_number += 1
     pref.save(update_fields=['starting_number'])
+
+    # Register post-commit automatic email delivery to organization owner
+    inv_id = invoice.id
+    def trigger_auto_email():
+        from apps.billing.services.invoice_email_service import InvoiceEmailService, EmailTrigger
+        InvoiceEmailService.send_invoice_email_async(inv_id, trigger=EmailTrigger.AUTOMATIC)
+
+    transaction.on_commit(trigger_auto_email)
     
     return invoice
 
