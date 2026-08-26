@@ -133,7 +133,7 @@
 
                 {% if recent_invoices %}
                 <div style="overflow-x: auto;">
-                    <table class="table" style="width: 100%; border-collapse: collapse; font-family: var(--font-brand);">
+                    <table class="table table-responsive-cards" style="width: 100%; border-collapse: collapse; font-family: var(--font-sans);">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--color-border); text-align: left; font-size: var(--text-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
                                 <th style="padding: var(--space-3) var(--space-4);">Invoice #</th>
@@ -147,24 +147,24 @@
                         <tbody>
                             {% for inv in recent_invoices %}
                             <tr style="border-bottom: 1px solid var(--color-border); font-size: var(--text-sm);">
-                                <td style="padding: var(--space-3) var(--space-4); font-weight: 600; color: var(--color-text-primary);">
+                                <td data-label="Invoice #" style="padding: var(--space-3) var(--space-4); font-weight: 600; color: var(--color-text-primary);">
                                     {{ inv.invoice_number|default:"Draft" }}
                                 </td>
-                                <td style="padding: var(--space-3) var(--space-4); color: var(--color-text-primary);">
+                                <td data-label="Customer" style="padding: var(--space-3) var(--space-4); color: var(--color-text-primary);">
                                     {{ inv.customer.name|default:"General Customer" }}
                                 </td>
-                                <td style="padding: var(--space-3) var(--space-4); color: var(--color-text-secondary);">
+                                <td data-label="Date" style="padding: var(--space-3) var(--space-4); color: var(--color-text-secondary);">
                                     {{ inv.invoice_date|date:"d M Y" }}
                                 </td>
-                                <td style="padding: var(--space-3) var(--space-4);">
+                                <td data-label="Status" style="padding: var(--space-3) var(--space-4);">
                                     <span class="badge {% if inv.status == 'ISSUED' %}badge-success{% elif inv.status == 'DRAFT' %}badge-warning{% else %}badge-neutral{% endif %}" style="font-size: var(--text-xs);">
                                         {{ inv.get_status_display }}
                                     </span>
                                 </td>
-                                <td style="padding: var(--space-3) var(--space-4); text-align: right; font-weight: 600; color: var(--color-text-primary);">
+                                <td data-label="Amount" class="tabular-nums" style="padding: var(--space-3) var(--space-4); text-align: right; font-weight: 600; color: var(--color-text-primary);">
                                     {{ inv.grand_total|format_currency:currency_symbol }}
                                 </td>
-                                <td style="padding: var(--space-3) var(--space-4); text-align: right;">
+                                <td data-label="Action" style="padding: var(--space-3) var(--space-4); text-align: right;">
                                     <a href="{% url 'billing:detail' inv.uuid %}" style="color: var(--color-accent); text-decoration: none; font-size: var(--text-xs); font-weight: 500;">View</a>
                                 </td>
                             </tr>
@@ -178,10 +178,10 @@
                         <i data-lucide="file-text" style="width: 24px; height: 24px;"></i>
                     </div>
                     <h4 style="font-family: var(--font-brand); font-weight: 600; font-size: var(--text-md); color: var(--color-text-primary); margin-bottom: var(--space-1);">No invoices generated yet</h4>
-                    <p style="font-family: var(--font-brand); font-style: italic; font-size: var(--text-sm); color: var(--color-text-secondary); max-width: 400px; margin: 0 auto var(--space-4);">
+                    <p style="font-family: var(--font-sans); font-size: var(--text-sm); color: var(--color-text-secondary); max-width: 400px; margin: 0 auto var(--space-4);">
                         Create your first invoice to start tracking revenue and client transactions seamlessly.
                     </p>
-                    <a href="{% url 'billing:create' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-brand); font-weight: 600;">
+                    <a href="{% url 'billing:create' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-sans); font-weight: 600;">
                         <i data-lucide="plus"></i> Create Invoice
                     </a>
                 </div>
@@ -199,7 +199,7 @@
 }
 @media (max-width: 640px) {
     .page-header { flex-direction: column; align-items: stretch; gap: var(--space-3); }
-    .page-header .btn { width: 100%; justify-content: center; min-height: 42px; }
+    .page-header .btn { width: 100%; justify-content: center; min-height: 44px; }
     .chart-card { height: 300px !important; }
 }
 </style>

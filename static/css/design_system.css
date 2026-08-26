@@ -185,7 +185,7 @@
   /* ---- Text ---- */
   --color-text-primary:     #f0f0f8;   /* Headlines, primary copy */
   --color-text-secondary:   #9494b8;   /* Subtext, descriptions */
-  --color-text-muted:       #5a5a7a;   /* Placeholders, disabled */
+  --color-text-muted:       #7878a0;   /* Muted text (WCAG AA 4.5:1 compliant) */
   --color-text-inverse:     #0a0a0f;   /* Text on accent backgrounds */
   --color-text-accent:      var(--palette-accent-300);
   --color-text-link:        var(--palette-accent-300);
@@ -215,10 +215,12 @@
   /* ============================================================
      TYPOGRAPHY
      ============================================================ */
-  --font-brand:     'Lora';
+  --font-brand:     'Lora', serif;
+  --font-sans:      system-ui, -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   --font-display:   var(--font-brand);     /* Headlines, logo, hero */
-  --font-body:      var(--font-brand);     /* Body copy, UI text */
-  --font-mono:      var(--font-brand);     /* Lora everywhere in App UI */
+  --font-body:      var(--font-sans);      /* Clean sans-serif for UI, forms, tables */
+  --font-mono:      var(--font-sans);
+  --font-numeric:   var(--font-sans);
 
   --text-xs:    0.75rem;    /* 12px */
   --text-sm:    0.875rem;   /* 14px */

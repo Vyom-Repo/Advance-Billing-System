@@ -32,9 +32,21 @@ class AdvanceBillingEmailBranding:
         Returns the immutable, official Advance Billing product email branding context.
         """
         site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
-        support_email = getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com")
         app_name = getattr(settings, "APP_NAME", "Advance Billing")
         app_tagline = getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses")
+
+        from email.utils import parseaddr
+
+        raw_setting = (
+            getattr(settings, "SUPPORT_EMAIL", None)
+            or getattr(settings, "SERVER_EMAIL", None)
+            or "advancebillingbyvyom@gmail.com"
+        )
+        parsed_name, parsed_addr = parseaddr(str(raw_setting))
+
+        support_email_address = parsed_addr.strip() if (parsed_addr and "@" in parsed_addr) else "advancebillingbyvyom@gmail.com"
+        support_display_name = parsed_name.strip() if parsed_name else app_name
+        support_email_display = f"{support_display_name} <{support_email_address}>"
 
         is_production = (
             site_url.startswith("https://")
@@ -57,8 +69,14 @@ class AdvanceBillingEmailBranding:
             "border_color": "#E5E7EB",
             "muted_text_color": "#6B7280",
             "font_family": "'Lora', Georgia, 'Times New Roman', serif",
+            "font_weight": "400",
+            "font_style": "italic",
             "font_import_url": "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap",
-            "support_email": support_email,
+            "support_email": support_email_address,
+            "support_email_address": support_email_address,
+            "support_email_display_name": support_display_name,
+            "support_email_display": support_email_display,
+            "support_mailto_url": f"mailto:{support_email_address}",
             "footer_text": f"Powered by {app_name} — {app_tagline}",
             "website": site_url,
         }

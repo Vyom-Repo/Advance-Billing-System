@@ -52,6 +52,7 @@ env = environ.Env(
     EMAIL_HOST_PASSWORD=(str, ""),
     DEFAULT_FROM_EMAIL=(str, "Advance Billing <noreply@advancebilling.in>"),
     SERVER_EMAIL=(str, "Advance Billing <noreply@advancebilling.in>"),
+    SUPPORT_EMAIL=(str, "advancebillingbyvyom@gmail.com"),
 
     # Cloudinary
     CLOUDINARY_CLOUD_NAME=(str, ""),
@@ -285,6 +286,7 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = env("SERVER_EMAIL")
+SUPPORT_EMAIL = env("SUPPORT_EMAIL")
 
 # =============================================================================
 # DEFAULT PRIMARY KEY

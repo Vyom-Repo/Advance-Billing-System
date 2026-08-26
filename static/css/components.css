@@ -51,8 +51,8 @@ img, svg { display: block; max-width: 100%; }
 a { color: var(--color-text-link); text-decoration: none; transition: color var(--transition-fast); }
 a:hover { color: var(--color-text-link-hover); }
 ul, ol { list-style: none; }
-button { cursor: pointer; border: none; background: none; font-family: 'Lora' !important; }
-input, textarea, select, option { font-family: 'Lora' !important; }
+button { cursor: pointer; border: none; background: none; font-family: var(--font-sans) !important; }
+input, textarea, select, option { font-family: var(--font-sans) !important; }
 
 /* ============================================================
    TYPOGRAPHY
@@ -81,12 +81,23 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 .text-warning   { color: var(--color-warning); }
 
 .font-display   { font-family: var(--font-brand); }
+.font-sans      { font-family: var(--font-sans); }
 .font-bold      { font-weight: var(--font-bold); }
 .font-medium    { font-weight: var(--font-medium); }
 .font-italic    { font-style: italic; }
 .text-subtitle  { font-style: italic; color: var(--color-text-secondary); }
 .text-editorial { font-style: italic; }
 .text-helper    { font-style: italic; color: var(--color-text-muted); font-size: var(--text-xs); }
+
+/* Financial & Tabular Numeral Formatting */
+.tabular-nums, .num-value, .currency-val {
+  font-family: var(--font-sans) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.num-right {
+  text-align: right;
+}
 
 /* ============================================================
    BUTTONS
@@ -96,8 +107,9 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
+  height: 40px;
+  padding: 0 var(--space-5);
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   border-radius: var(--radius-md);
@@ -108,15 +120,18 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
   text-decoration: none;
   line-height: 1;
   letter-spacing: 0.01em;
+  box-sizing: border-box;
 }
 .btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
-.btn:disabled {
+.btn:disabled, .btn.disabled {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* Primary — accent filled with Shimmer Sweep */
@@ -156,10 +171,10 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
   background: var(--gradient-accent-hover);
   border-color: rgba(255, 255, 255, 0.4);
   box-shadow: var(--shadow-glow-hover);
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-2px);
   color: #0a0a0f;
 }
-.btn-primary:active { transform: translateY(-1px) scale(1); box-shadow: var(--shadow-glow); }
+.btn-primary:active { transform: translateY(0); box-shadow: var(--shadow-glow); }
 
 /* Secondary & Outline — outlined */
 .btn-secondary,
@@ -198,12 +213,25 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
   color: #fff;
 }
 
-/* Sizes */
-.btn-sm { padding: var(--space-2) var(--space-4); font-size: var(--text-xs); border-radius: var(--radius-sm); }
-.btn-lg { padding: var(--space-4) var(--space-8); font-size: var(--text-md); border-radius: var(--radius-lg); }
-.btn-xl { padding: var(--space-5) var(--space-10); font-size: var(--text-lg); border-radius: var(--radius-lg); }
+/* Standardized Button Sizes */
+.btn-sm { height: 32px; padding: 0 var(--space-3); font-size: var(--text-xs); border-radius: var(--radius-sm); }
+.btn-md { height: 40px; padding: 0 var(--space-5); font-size: var(--text-sm); border-radius: var(--radius-md); }
+.btn-lg { height: 48px; padding: 0 var(--space-8); font-size: var(--text-md); border-radius: var(--radius-lg); }
+.btn-xl { height: 52px; padding: 0 var(--space-10); font-size: var(--text-lg); border-radius: var(--radius-lg); }
 .btn-full { width: 100%; }
-.btn-icon { padding: var(--space-3); aspect-ratio: 1; }
+
+/* Touch Target Minimum (44x44px hit area) for icon-only buttons */
+.btn-icon, .icon-btn, .action-btn {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+}
 
 /* ============================================================
    FORM INPUTS
@@ -215,7 +243,7 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 }
 
 .form-label {
-  font-family: 'Lora' !important;
+  font-family: var(--font-sans) !important;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-text-secondary);
@@ -232,10 +260,10 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 
 .form-input {
   width: 100%;
-  height: 44px;
+  height: 40px;
   padding: 0 var(--space-4);
   font-size: var(--text-sm);
-  font-family: 'Lora' !important;
+  font-family: var(--font-sans) !important;
   color: var(--color-text-primary);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -246,13 +274,14 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 }
 
 .form-input::placeholder {
-  font-family: 'Lora' !important;
-  font-style: italic;
-  opacity: 0.5;
+  font-family: var(--font-sans) !important;
+  font-style: normal;
+  opacity: 0.55;
+  color: var(--color-text-muted);
 }
 
 .form-input:focus {
-  border-color: var(--color-border-focus);
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-subtle);
 }
 
@@ -262,22 +291,20 @@ p { line-height: var(--leading-relaxed); color: var(--color-text-secondary); }
 }
 
 .form-hint {
-  font-family: 'Lora' !important;
-  font-style: italic;
+  font-family: var(--font-sans) !important;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  margin-top: var(--space-1.5);
+  margin-top: 6px;
 }
 
 .form-error-message {
-  font-family: 'Lora' !important;
-  font-style: italic;
+  font-family: var(--font-sans) !important;
   font-size: var(--text-xs);
   color: var(--color-error);
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  margin-top: var(--space-1.5);
+  margin-top: 6px;
 }
 
 .form-divider {
