@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Initialize Chart.js Placeholder (if canvas exists)
+    // 3. Initialize Chart.js (if canvas exists)
     const chartCanvas = document.getElementById('revenueChart');
     if (chartCanvas && typeof Chart !== 'undefined') {
         const ctx = chartCanvas.getContext('2d');
@@ -62,23 +62,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const gridColor = computedStyle.getPropertyValue('--color-border').trim() || 'rgba(255, 255, 255, 0.1)';
         const textColor = computedStyle.getPropertyValue('--color-text-secondary').trim() || '#9494b8';
 
+        // Parse dynamic dataset from canvas attributes
+        const labelsData = chartCanvas.dataset.labels ? JSON.parse(chartCanvas.dataset.labels) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const valuesData = chartCanvas.dataset.values ? JSON.parse(chartCanvas.dataset.values) : [0, 0, 0, 0, 0, 0];
+        const currencySymbol = chartCanvas.dataset.currency || '₹';
+
         // Set Chart.js global default font to Lora
         Chart.defaults.font.family = "'Lora'";
 
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: labelsData,
                 datasets: [{
                     label: 'Revenue',
-                    data: [12000, 19000, 15000, 22000, 28000, 24000],
+                    data: valuesData,
                     borderColor: accentColor,
-                    backgroundColor: `${accentColor}33`, // 20% opacity
-                    borderWidth: 3,
-                    tension: 0.4,
+                    backgroundColor: `${accentColor}26`, // 15% opacity
+                    borderWidth: 2.5,
+                    tension: 0.35,
                     fill: true,
                     pointBackgroundColor: accentColor,
-                    pointBorderColor: '#fff',
+                    pointBorderColor: '#12121a',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6
@@ -99,7 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         bodyFont: { family: "'Lora'", weight: '400' },
                         borderColor: 'rgba(255,255,255,0.1)',
                         borderWidth: 1,
-                        padding: 10
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return ' Revenue: ' + currencySymbol + context.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -108,11 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         ticks: { color: textColor, font: { family: "'Lora'", size: 12 } }
                     },
                     y: {
+                        beginAtZero: true,
+                        suggestedMin: 0,
                         grid: { color: gridColor },
                         ticks: {
                             color: textColor,
                             font: { family: "'Lora'", size: 12 },
-                            callback: (value) => '₹' + (value/1000) + 'k'
+                            callback: (value) => currencySymbol + (value >= 1000 ? (value/1000) + 'k' : value)
                         }
                     }
                 },
