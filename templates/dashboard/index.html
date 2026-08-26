@@ -65,7 +65,7 @@
             <div class="page-header">
                 <div>
                     <h1 class="page-title">Overview</h1>
-                    <p class="text-secondary">Welcome back, {{ request.user.first_name|default:"User" }}</p>
+                    <p class="text-secondary" style="font-style: italic;">Welcome back, {{ request.user.first_name|default:"User" }}</p>
                 </div>
                 <div class="page-actions">
                     <a href="{% url 'billing:index' %}" class="btn btn-primary">
@@ -137,7 +137,7 @@
                         {% for action in quick_actions %}
                         <a href="{{ action.url }}" class="card card-hover" style="padding: var(--space-3) var(--space-4); display: flex; align-items: center; gap: var(--space-4); border: 1px solid var(--color-border-strong);">
                             <div class="avatar avatar-md"><i data-lucide="{{ action.icon }}"></i></div>
-                            <div style="font-weight: var(--font-medium); color: var(--color-text-primary);">{{ action.label }}</div>
+                            <div style="font-family: var(--font-brand); font-weight: var(--font-medium); color: var(--color-text-primary);">{{ action.label }}</div>
                             <i data-lucide="chevron-right" style="margin-left: auto; color: var(--color-text-muted);"></i>
                         </a>
                         {% endfor %}

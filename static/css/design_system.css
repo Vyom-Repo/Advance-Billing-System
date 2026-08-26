@@ -25,7 +25,7 @@
 /* ============================================================
    GOOGLE FONTS IMPORT
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
 /* ============================================================
    PALETTE 1 — BHAGWA (SAFFRON) — Default
@@ -215,9 +215,10 @@
   /* ============================================================
      TYPOGRAPHY
      ============================================================ */
-  --font-display:   'Outfit', sans-serif;  /* Headlines, logo, hero */
-  --font-body:      'Inter', sans-serif;   /* Body copy, UI text */
-  --font-mono:      'JetBrains Mono', 'Fira Code', monospace; /* Code */
+  --font-brand:     'Lora';
+  --font-display:   var(--font-brand);     /* Headlines, logo, hero */
+  --font-body:      var(--font-brand);     /* Body copy, UI text */
+  --font-mono:      var(--font-brand);     /* Lora everywhere in App UI */
 
   --text-xs:    0.75rem;    /* 12px */
   --text-sm:    0.875rem;   /* 14px */

@@ -168,11 +168,12 @@
 }
 
 .loader-tagline {
+  font-family: var(--font-brand);
   font-size: var(--text-xs, 12px);
-  font-weight: var(--font-medium, 500);
+  font-weight: var(--font-normal, 400);
+  font-style: italic;
   color: var(--color-text-muted, #6B7280);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.5px;
   margin: 0 0 var(--space-6, 24px) 0;
   animation: loaderTextFade 600ms ease forwards;
 }

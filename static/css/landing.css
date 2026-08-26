@@ -161,6 +161,7 @@
 .hero-subtitle {
   font-size: var(--text-xl);
   color: var(--color-text-secondary);
+  font-style: italic;
   max-width: 600px;
   margin: 0 auto var(--space-10) auto;
 }
@@ -224,6 +225,10 @@
   margin-bottom: var(--space-4);
 }
 
+.section-header p {
+  font-style: italic;
+}
+
 .feature-card {
   padding: var(--space-8);
   text-align: center;
@@ -244,7 +249,7 @@
 
 .feature-icon svg { width: 32px; height: 32px; }
 .feature-title { margin-bottom: var(--space-3); font-size: var(--text-xl); }
-.feature-desc { color: var(--color-text-secondary); }
+.feature-desc { color: var(--color-text-secondary); font-style: italic; }
 
 /* ============================================================
    HOW IT WORKS
@@ -429,7 +434,7 @@
   margin-bottom: var(--space-10);
 }
 .footer-logo { font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-4); }
-.footer-desc { color: var(--color-text-secondary); max-width: 300px; }
+.footer-desc { color: var(--color-text-secondary); max-width: 300px; font-style: italic; }
 .footer-title { font-size: var(--text-md); font-weight: var(--font-semibold); margin-bottom: var(--space-4); }
 .footer-links li { margin-bottom: var(--space-2); }
 .footer-links a { color: var(--color-text-secondary); }

@@ -62,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const gridColor = computedStyle.getPropertyValue('--color-border').trim() || 'rgba(255, 255, 255, 0.1)';
         const textColor = computedStyle.getPropertyValue('--color-text-secondary').trim() || '#9494b8';
 
+        // Set Chart.js global default font to Lora
+        Chart.defaults.font.family = "'Lora'";
+
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -91,7 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         intersect: false,
                         backgroundColor: '#1a1a28',
                         titleColor: '#fff',
+                        titleFont: { family: "'Lora'", weight: '600' },
                         bodyColor: '#fff',
+                        bodyFont: { family: "'Lora'", weight: '400' },
                         borderColor: 'rgba(255,255,255,0.1)',
                         borderWidth: 1,
                         padding: 10
@@ -100,11 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { color: textColor }
+                        ticks: { color: textColor, font: { family: "'Lora'", size: 12 } }
                     },
                     y: {
                         grid: { color: gridColor },
-                        ticks: { color: textColor, callback: (value) => '₹' + (value/1000) + 'k' }
+                        ticks: {
+                            color: textColor,
+                            font: { family: "'Lora'", size: 12 },
+                            callback: (value) => '₹' + (value/1000) + 'k'
+                        }
                     }
                 },
                 interaction: {

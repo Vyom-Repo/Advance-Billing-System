@@ -8,10 +8,10 @@
 {% block layout %}
 <div class="auth-layout theme-brand">
     <!-- Floating Logo -->
-    <div class="auth-header" style="position: absolute; top: var(--space-6); left: var(--space-6);">
-        <a href="{% url 'landing' %}" class="auth-logo">
+    <div style="position: absolute; top: var(--space-6); left: var(--space-6); z-index: 10;">
+        <a href="{% url 'landing' %}" class="auth-brand-lockup" style="gap: 11px;">
             {% include "common/logo.html" with style="width: 32px; height: 32px; color: var(--color-brand-saffron, #FF7A00);" %}
-            <span>Advance Billing</span>
+            <span class="auth-brand-text">Advance Billing</span>
         </a>
     </div>
 

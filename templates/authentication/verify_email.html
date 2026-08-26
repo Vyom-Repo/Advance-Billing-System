@@ -16,7 +16,7 @@
                     <i data-lucide="check-circle" style="width: 64px; height: 64px; margin: 0 auto;"></i>
                 </div>
                 <h1 class="auth-title">Email Verified!</h1>
-                <p class="text-secondary" style="margin-bottom: var(--space-6);">
+                <p class="text-secondary" style="font-style: italic; margin-bottom: var(--space-6);">
                     Your email address has been successfully verified. You can now sign in to your account.
                 </p>
                 <a href="{% url 'auth:login' %}" class="btn btn-primary btn-full btn-lg">
@@ -28,7 +28,7 @@
                     <i data-lucide="x-circle" style="width: 64px; height: 64px; margin: 0 auto;"></i>
                 </div>
                 <h1 class="auth-title">Link Expired</h1>
-                <p class="text-secondary" style="margin-bottom: var(--space-6);">
+                <p class="text-secondary" style="font-style: italic; margin-bottom: var(--space-6);">
                     The verification link has expired or is invalid. Please sign up again or request a new link.
                 </p>
                 <a href="{% url 'auth:signup' %}" class="btn btn-primary btn-full btn-lg">
@@ -40,7 +40,7 @@
                     <div class="spinner" style="width: 48px; height: 48px; border-width: 4px;"></div>
                 </div>
                 <h1 class="auth-title">Verifying...</h1>
-                <p class="text-secondary" style="margin-bottom: var(--space-6);">
+                <p class="text-secondary" style="font-style: italic; margin-bottom: var(--space-6);">
                     Please wait while we verify your email address.
                 </p>
             {% endif %}
