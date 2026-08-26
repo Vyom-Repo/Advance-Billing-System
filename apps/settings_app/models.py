@@ -287,3 +287,156 @@ class UserBillPreference(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.email} → {self.template_id}"
+
+
+# ---------------------------------------------------------------------------
+# OrganizationBackupSetting & OrganizationBackupLog
+# ---------------------------------------------------------------------------
+
+class BackupStatus(models.TextChoices):
+    NEVER = "never", "Never generated"
+    SCHEDULED = "scheduled", "Scheduled"
+    GENERATING = "generating", "Generating"
+    SENT = "sent", "Sent"
+    FAILED = "failed", "Failed"
+
+
+class BackupTrigger(models.TextChoices):
+    SCHEDULED = "scheduled", "Weekly Scheduled"
+    MANUAL = "manual", "Manual Export"
+
+
+class OrganizationBackupSetting(models.Model):
+    organization = models.OneToOneField(
+        "organization.Organization",
+        on_delete=models.CASCADE,
+        related_name="backup_setting",
+    )
+    weekly_backup_enabled = models.BooleanField(default=False)
+    last_backup_at = models.DateTimeField(null=True, blank=True)
+    next_backup_at = models.DateTimeField(null=True, blank=True)
+    last_status = models.CharField(
+        max_length=20,
+        choices=BackupStatus.choices,
+        default=BackupStatus.NEVER,
+    )
+    last_error = models.TextField(blank=True, default="")
+    last_record_count = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.organization.business_name} Backup Setting ({'Enabled' if self.weekly_backup_enabled else 'Disabled'})"
+
+
+class OrganizationBackupLog(models.Model):
+    organization = models.ForeignKey(
+        "organization.Organization",
+        on_delete=models.CASCADE,
+        related_name="backup_logs",
+    )
+    trigger = models.CharField(
+        max_length=20,
+        choices=BackupTrigger.choices,
+        default=BackupTrigger.SCHEDULED,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=BackupStatus.choices,
+        default=BackupStatus.SENT,
+    )
+    record_count = models.PositiveIntegerField(default=0)
+    file_size_bytes = models.PositiveIntegerField(default=0)
+    error_message = models.TextField(blank=True, default="")
+    recipient_email = models.EmailField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.organization.business_name} [{self.get_trigger_display()}] - {self.status} at {self.created_at}"
+
+
+class DataManagementAction(models.TextChoices):
+    EXPORT = "export", "Data Export"
+    IMPORT = "import", "Data Import"
+    WEEKLY_BACKUP_TOGGLE = "weekly_backup_toggle", "Weekly Backup Toggle"
+    BACKUP_SENT = "backup_sent", "Backup Sent"
+    BACKUP_FAILED = "backup_failed", "Backup Failed"
+    ARCHIVE = "archive", "Archive Records"
+    RESTORE_ARCHIVED = "restore_archived", "Restore Archived Records"
+    CLEANUP = "cleanup", "Data Cleanup"
+    RESTORE_BACKUP = "restore_backup", "Restore from Backup"
+    PERMANENT_DELETE = "permanent_delete", "Permanent Data Deletion"
+
+
+class DataManagementAuditLog(models.Model):
+    """
+    Comprehensive audit log for sensitive Data Management operations.
+    """
+    organization = models.ForeignKey(
+        "organization.Organization",
+        on_delete=models.CASCADE,
+        related_name="data_management_audit_logs",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="data_management_audit_logs",
+    )
+    action = models.CharField(
+        max_length=30,
+        choices=DataManagementAction.choices,
+    )
+    status = models.CharField(max_length=20, default="success")
+    details = models.JSONField(default=dict, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def formatted_details(self) -> str:
+        """Formats raw details JSON dictionary into a clean, human-readable summary string."""
+        if not isinstance(self.details, dict) or not self.details:
+            return "—"
+
+        d = self.details
+        parts = []
+
+        if "recipient" in d:
+            parts.append(f"Recipient: {d['recipient']}")
+            if "trigger" in d and d["trigger"]:
+                parts.append(f"Trigger: {str(d['trigger']).title()}")
+
+        elif "filename" in d or "record_count" in d or "total_records" in d:
+            if "filename" in d:
+                parts.append(f"File: {d['filename']}")
+            if "record_count" in d:
+                parts.append(f"Records: {d['record_count']}")
+            elif "total_records" in d:
+                parts.append(f"Records: {d['total_records']}")
+
+        elif "enabled" in d:
+            status_str = "Enabled" if d["enabled"] else "Disabled"
+            parts.append(f"Weekly Backup {status_str}")
+
+        elif "error" in d:
+            parts.append(f"Error: {d['error']}")
+
+        else:
+            for k, v in d.items():
+                k_title = k.replace("_", " ").title()
+                parts.append(f"{k_title}: {v}")
+
+        return " • ".join(parts) if parts else "—"
+
+    def __str__(self) -> str:
+        user_str = self.user.email if self.user else "System"
+        return f"[{self.get_action_display()}] by {user_str} ({self.organization.business_name}) at {self.created_at}"
+
+
+

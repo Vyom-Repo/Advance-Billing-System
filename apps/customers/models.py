@@ -60,6 +60,10 @@ class Customer(TimeStampedModel):
     billing_pin_code = models.CharField(max_length=10)
     billing_country = models.CharField(max_length=100, default="India")
 
+    # Archiving
+    is_archived = models.BooleanField(default=False, db_index=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

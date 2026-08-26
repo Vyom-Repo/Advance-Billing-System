@@ -1,0 +1,876 @@
+{% extends "settings_app/settings_base.html" %}
+
+{% block settings_title %}Data Management{% endblock %}
+
+{% block settings_css %}
+<style>
+    /* Data Management Core Aesthetics */
+    .dm-header-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+        flex-wrap: wrap;
+    }
+
+    .dm-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .dm-subtitle {
+        color: var(--color-text-secondary);
+        font-size: var(--text-sm);
+        margin-top: var(--space-1);
+    }
+
+    .dm-badge-security {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--color-accent-subtle);
+        color: var(--color-accent);
+        border: 1px solid var(--color-accent-border);
+        border-radius: var(--radius-full);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+    }
+
+    /* Footprint Metric Grid */
+    .dm-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+
+    .dm-metric-card {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-5);
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .dm-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-accent-border);
+    }
+
+    .dm-metric-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .dm-metric-icon.total { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+    .dm-metric-icon.cust { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+    .dm-metric-icon.prod { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+    .dm-metric-icon.inv { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+
+    .dm-metric-val {
+        font-family: var(--font-mono);
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        line-height: 1.1;
+    }
+
+    .dm-metric-label {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        font-weight: var(--font-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 4px;
+    }
+
+    /* Section Cards */
+    .dm-card {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.2s ease;
+    }
+
+    .dm-card:hover {
+        border-color: var(--color-border);
+    }
+
+    .dm-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+        flex-wrap: wrap;
+    }
+
+    .dm-card-title {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .dm-card-icon-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-accent);
+        flex-shrink: 0;
+    }
+
+    .dm-card-desc {
+        color: var(--color-text-secondary);
+        font-size: var(--text-sm);
+        margin-top: 2px;
+        line-height: 1.5;
+    }
+
+    /* Action Buttons Normalization */
+    .dm-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+    }
+
+    .dm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 var(--space-4);
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .dm-btn-primary {
+        background: var(--color-accent);
+        color: #FFFFFF;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .dm-btn-primary:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dm-btn-outline {
+        background: var(--color-bg-card);
+        color: var(--color-text-primary);
+        border-color: var(--color-border);
+    }
+
+    .dm-btn-outline:hover {
+        background: var(--color-bg-raised);
+        border-color: var(--color-accent-border);
+        color: var(--color-accent);
+    }
+
+    .dm-btn-danger {
+        background: var(--color-error);
+        color: #FFFFFF;
+        border-color: var(--color-error);
+    }
+
+    .dm-btn-danger:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    .dm-btn-sm {
+        height: 34px;
+        padding: 0 var(--space-3);
+        font-size: var(--text-xs);
+    }
+
+    .dm-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    /* Status Indicators & Pulsing Dot */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: var(--radius-full);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+    }
+
+    .status-badge.sent, .status-badge.successful, .status-badge.success, .status-badge.enabled {
+        background: var(--color-success-bg);
+        color: var(--color-success);
+        border: 1px solid var(--color-success-border);
+    }
+
+    .status-badge.failed {
+        background: var(--color-error-bg);
+        color: var(--color-error);
+        border: 1px solid var(--color-error-border);
+    }
+
+    .status-badge.never, .status-badge.disabled {
+        background: var(--color-bg-raised);
+        color: var(--color-text-muted);
+        border: 1px solid var(--color-border);
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--color-success);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Audit Table Styling */
+    .dm-table-wrap {
+        overflow-x: auto;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
+        margin-top: var(--space-4);
+    }
+
+    .dm-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-sm);
+        text-align: left;
+    }
+
+    .dm-table th {
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-bg-raised);
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: var(--font-semibold);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .dm-table td {
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-primary);
+        vertical-align: middle;
+    }
+
+    .dm-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .dm-table tr:hover td {
+        background: var(--color-bg-raised);
+    }
+
+    /* Modal Overlay & Dialog */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: var(--space-4);
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        max-width: 620px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: var(--space-6);
+        box-shadow: var(--shadow-lg);
+        animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modal-pop {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Stepper Header in Modal */
+    .restore-stepper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: var(--space-5);
+        padding: var(--space-3);
+        background: var(--color-bg-raised);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-muted);
+    }
+
+    .step-item.active {
+        color: var(--color-accent);
+    }
+
+    .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--color-border);
+        color: var(--color-text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .step-item.active .step-num {
+        background: var(--color-accent);
+        color: #FFFFFF;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+</style>
+{% endblock %}
+
+{% block settings_content %}
+<!-- HERO BANNER -->
+<div class="dm-header-banner">
+    <div>
+        <div class="dm-title">
+            <i data-lucide="database" style="width:26px;height:26px;color:var(--color-accent);"></i>
+            Data Management
+        </div>
+        <p class="dm-subtitle">Protect, export, and restore your Advance Billing business data.</p>
+    </div>
+    <div class="dm-badge-security">
+        <i data-lucide="shield-check" style="width:14px;height:14px;"></i>
+        Atomic Backup & Security Active
+    </div>
+</div>
+
+<!-- FOOTPRINT METRIC GRID -->
+<div class="dm-metrics-grid">
+    <div class="dm-metric-card">
+        <div class="dm-metric-icon total">
+            <i data-lucide="layers" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="dm-metric-val">{{ total_records }}</div>
+            <div class="dm-metric-label">Total Records</div>
+        </div>
+    </div>
+    <div class="dm-metric-card">
+        <div class="dm-metric-icon cust">
+            <i data-lucide="users" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="dm-metric-val">{{ counts.customers|default:0 }}</div>
+            <div class="dm-metric-label">Customers</div>
+        </div>
+    </div>
+    <div class="dm-metric-card">
+        <div class="dm-metric-icon prod">
+            <i data-lucide="package" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="dm-metric-val">{{ counts.products|default:0 }}</div>
+            <div class="dm-metric-label">Products & Services</div>
+        </div>
+    </div>
+    <div class="dm-metric-card">
+        <div class="dm-metric-icon inv">
+            <i data-lucide="file-text" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="dm-metric-val">{{ counts.invoices|default:0 }}</div>
+            <div class="dm-metric-label">Invoices</div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. BACKUP & EXPORT DATA -->
+<div class="dm-card">
+    <div class="dm-card-header">
+        <div style="display:flex; align-items:flex-start; gap:var(--space-3);">
+            <div class="dm-card-icon-badge">
+                <i data-lucide="download" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+                <div class="dm-card-title">Backup & Export</div>
+                <p class="dm-card-desc">Download a complete point-in-time snapshot of your business data in versioned Excel or machine-readable JSON format.</p>
+            </div>
+        </div>
+        <div class="dm-actions">
+            <a href="{% url 'settings_app:excel_export' %}" class="dm-btn dm-btn-primary" id="btn-excel-export">
+                <i data-lucide="file-spreadsheet" style="width:16px;height:16px;"></i> Export Excel Backup (.xlsx)
+            </a>
+            <a href="{% url 'settings_app:data_export' %}" class="dm-btn dm-btn-outline" id="btn-manual-export">
+                <i data-lucide="file-json" style="width:16px;height:16px;"></i> Export JSON Backup
+            </a>
+        </div>
+    </div>
+    <div style="font-size:var(--text-xs); color:var(--color-text-muted); display:flex; align-items:center; gap:6px;">
+        <i data-lucide="info" style="width:14px;height:14px;color:var(--color-accent);"></i>
+        Excel backups include interactive Business KPI Dashboards, GST Sales/HSN Summaries, and raw normalized database sheets.
+    </div>
+</div>
+
+<!-- 2. WEEKLY AUTOMATIC BACKUP -->
+<div class="dm-card">
+    <div class="dm-card-header">
+        <div style="display:flex; align-items:flex-start; gap:var(--space-3);">
+            <div class="dm-card-icon-badge">
+                <i data-lucide="mail-check" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+                <div class="dm-card-title">
+                    Weekly Data Backup
+                    {% if backup_setting.weekly_backup_enabled %}
+                    <span class="status-badge enabled"><span class="pulse-dot"></span> Active Schedule</span>
+                    {% else %}
+                    <span class="status-badge disabled">Disabled</span>
+                    {% endif %}
+                </div>
+                <p class="dm-card-desc">Automatically receive your complete backup (both JSON + Excel attachments) directly to your organization owner email.</p>
+            </div>
+        </div>
+        <div class="dm-actions">
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_weekly_backup">
+                <input type="hidden" name="weekly_backup_enabled" value="{% if backup_setting.weekly_backup_enabled %}false{% else %}true{% endif %}">
+                <button type="submit" class="dm-btn {% if backup_setting.weekly_backup_enabled %}dm-btn-outline{% else %}dm-btn-primary{% endif %} dm-btn-sm">
+                    {% if backup_setting.weekly_backup_enabled %}
+                    <i data-lucide="pause-circle" style="width:14px;height:14px;"></i> Disable Schedule
+                    {% else %}
+                    <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Enable Schedule
+                    {% endif %}
+                </button>
+            </form>
+            <form id="form-instant-mail" method="post" action="{% url 'settings_app:data_backup_mail' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="dm-btn dm-btn-outline dm-btn-sm" id="btn-instant-mail">
+                    <i data-lucide="send" style="width:14px;height:14px;"></i> Send Backup Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCHEDULE DETAILS GRID -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--space-4); background: var(--color-bg-raised); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
+        <div>
+            <div style="font-size:var(--text-xs); color:var(--color-text-muted); font-weight:var(--font-semibold); text-transform:uppercase; letter-spacing:0.04em;">Recipient Email</div>
+            <div style="font-family:var(--font-mono); font-size:var(--text-sm); color:var(--color-text-primary); margin-top:4px; font-weight:var(--font-semibold);">
+                {{ owner_email|default:"No email configured" }}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:var(--text-xs); color:var(--color-text-muted); font-weight:var(--font-semibold); text-transform:uppercase; letter-spacing:0.04em;">Last Backup Sent</div>
+            <div style="font-size:var(--text-sm); color:var(--color-text-primary); margin-top:4px; font-weight:var(--font-semibold);">
+                {{ backup_setting.last_backup_at|date:"d M Y H:i"|default:"Never generated" }}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:var(--text-xs); color:var(--color-text-muted); font-weight:var(--font-semibold); text-transform:uppercase; letter-spacing:0.04em;">Next Scheduled Run</div>
+            <div style="font-size:var(--text-sm); color:var(--color-text-primary); margin-top:4px; font-weight:var(--font-semibold);">
+                {% if backup_setting.weekly_backup_enabled %}
+                    {{ backup_setting.next_backup_at|date:"d M Y"|default:"Scheduled weekly" }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. IMPORT DATA & RESTORE BACKUP -->
+<div class="dm-card">
+    <div class="dm-card-header" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
+        <div style="display:flex; align-items:flex-start; gap:var(--space-3);">
+            <div class="dm-card-icon-badge">
+                <i data-lucide="upload-cloud" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+                <div class="dm-card-title">Import Data & Restore Backup</div>
+                <p class="dm-card-desc">Restore your organization from an authentic Advance Billing Excel Backup (.xlsx) with 2-phase dry-run preview and atomic transaction safety.</p>
+            </div>
+        </div>
+        <div class="dm-actions">
+            <button type="button" class="dm-btn dm-btn-outline" onclick="openModal('excel-restore-modal')">
+                <i data-lucide="file-spreadsheet" style="width:16px;height:16px;"></i> Import Backup (.xlsx)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 4. BACKUP HISTORY & AUDIT LOG -->
+<div class="dm-card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-2);">
+        <div class="dm-card-title">
+            <i data-lucide="history" style="width:18px;height:18px;color:var(--color-text-secondary);"></i>
+            Backup History & Audit Log
+        </div>
+    </div>
+    
+    <div class="dm-table-wrap">
+        <table class="dm-table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Action</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in audit_logs %}
+                <tr>
+                    <td style="font-family:var(--font-mono); font-size:var(--text-xs);">{{ log.created_at|date:"d M Y H:i" }}</td>
+                    <td><span style="font-weight:var(--font-semibold); color:var(--color-text-primary);">{{ log.get_action_display }}</span></td>
+                    <td>{{ log.user.email|default:"System" }}</td>
+                    <td>
+                        {% if log.status == "success" %}
+                            <span class="status-badge sent"><i data-lucide="check" style="width:12px;height:12px;"></i> Success</span>
+                        {% else %}
+                            <span class="status-badge failed"><i data-lucide="x" style="width:12px;height:12px;"></i> {{ log.status|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:var(--text-xs); color:var(--color-text-secondary);">{{ log.formatted_details }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align:center; color:var(--color-text-muted); padding:var(--space-6);">
+                        No audit logs recorded yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ==================== EXCEL RESTORE MODAL (2-PHASE DRY-RUN PREVIEW) ==================== -->
+<div id="excel-restore-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="font-size:var(--text-lg); font-weight:var(--font-bold); color:var(--color-text-primary); display:flex; align-items:center; gap:8px;">
+                <i data-lucide="file-spreadsheet" style="width:20px;height:20px;color:var(--color-accent);"></i>
+                Restore from Advance Billing Excel Backup
+            </h3>
+            <button type="button" class="btn btn-icon" onclick="closeModal('excel-restore-modal')" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+        </div>
+
+        <!-- STEPPER INDICATOR -->
+        <div class="restore-stepper">
+            <div id="stepper-1" class="step-item active">
+                <div class="step-num">1</div>
+                <span>Select & Validate</span>
+            </div>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--color-text-muted);"></i>
+            <div id="stepper-2" class="step-item">
+                <div class="step-num">2</div>
+                <span>Preview & Confirm</span>
+            </div>
+        </div>
+
+        <form id="form-excel-restore" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Step 1: File Upload -->
+            <div id="excel-step-1">
+                <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-bottom:var(--space-4); line-height:1.5;">
+                    Select an official <strong>Advance Billing Excel Backup (.xlsx)</strong> workbook. The system will execute a read-only Phase 1 dry-run validation preview before any database modification occurs.
+                </p>
+
+                <div style="margin-bottom:var(--space-4);">
+                    <label style="display:block; font-size:var(--text-sm); font-weight:var(--font-semibold); margin-bottom:6px;">Select Backup Workbook (.xlsx)</label>
+                    <input type="file" id="excel-backup-input" name="backup_file" accept=".xlsx" required class="form-control" style="width:100%;">
+                </div>
+
+                <div id="excel-validate-error" style="display:none; padding:12px; border-radius:var(--radius-md); background:var(--color-error-bg); border:1px solid var(--color-error-border); color:var(--color-error); font-size:var(--text-sm); margin-bottom:var(--space-4);"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:var(--space-2);">
+                    <button type="button" class="dm-btn dm-btn-outline" onclick="closeModal('excel-restore-modal')">Cancel</button>
+                    <button type="button" id="btn-validate-excel" class="dm-btn dm-btn-primary" onclick="validateExcelBackup()">
+                        <i data-lucide="search-check" style="width:16px;height:16px;"></i> Validate & Preview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Validation Preview & Confirmation -->
+            <div id="excel-step-2" style="display:none;">
+                <div style="padding:12px; border-radius:var(--radius-md); background:var(--color-success-bg); border:1px solid var(--color-success-border); color:var(--color-success); font-size:var(--text-sm); margin-bottom:var(--space-4); display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="check-circle-2" style="width:18px;height:18px;"></i>
+                    <div>
+                        <strong>Validation Succeeded</strong> — Official Advance Billing Backup Verified (Schema 1.0)
+                    </div>
+                </div>
+
+                <div style="background:var(--color-bg-raised); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:14px; margin-bottom:var(--space-4);">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:var(--text-xs); color:var(--color-text-secondary); margin-bottom:12px;">
+                        <div>Organization: <strong id="preview-org-name" style="color:var(--color-text-primary);"></strong></div>
+                        <div>Schema Version: <strong id="preview-schema" style="color:var(--color-text-primary);"></strong></div>
+                    </div>
+
+                    <table style="width:100%; font-size:var(--text-xs); border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--color-border); text-align:left;">
+                                <th style="padding:6px 8px; color:var(--color-text-muted);">Business Dataset</th>
+                                <th style="padding:6px 8px; color:var(--color-text-muted);">Total</th>
+                                <th style="padding:6px 8px; color:var(--color-text-muted);">New Records</th>
+                                <th style="padding:6px 8px; color:var(--color-text-muted);">Existing Records</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="font-size:var(--text-xs); color:var(--color-text-muted); margin-bottom:var(--space-4); line-height:1.5;">
+                    Clicking <strong>Restore Data</strong> will execute Phase 2 atomic database restoration inside a single transaction. If any error occurs, all changes will be automatically rolled back.
+                </p>
+
+                <div style="display:flex; justify-content:flex-end; gap:var(--space-2);">
+                    <button type="button" class="dm-btn dm-btn-outline" onclick="resetExcelModal()">Back</button>
+                    <button type="button" id="btn-execute-restore" class="dm-btn dm-btn-primary" onclick="executeExcelRestore()">
+                        <i data-lucide="database-backup" style="width:16px;height:16px;"></i> Restore Data
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('active');
+    }
+
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    }
+
+    function resetExcelModal() {
+        document.getElementById('excel-step-1').style.display = 'block';
+        document.getElementById('excel-step-2').style.display = 'none';
+        document.getElementById('excel-validate-error').style.display = 'none';
+        document.getElementById('stepper-1').classList.add('active');
+        document.getElementById('stepper-2').classList.remove('active');
+    }
+
+    async function validateExcelBackup() {
+        const input = document.getElementById('excel-backup-input');
+        const errDiv = document.getElementById('excel-validate-error');
+        const btn = document.getElementById('btn-validate-excel');
+
+        if (!input.files || input.files.length === 0) {
+            errDiv.innerText = 'Please select an Excel backup (.xlsx) file.';
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        errDiv.style.display = 'none';
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;display:inline-block;"></i> Validating...`;
+        if (window.lucide) lucide.createIcons();
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('backup_file', input.files[0]);
+
+        try {
+            const resp = await fetch("{% url 'settings_app:excel_import_validate' %}", {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="search-check" style="width:16px;height:16px;"></i> Validate & Preview`;
+            if (window.lucide) lucide.createIcons();
+
+            if (!resp.ok || !data.success) {
+                errDiv.innerText = data.message || 'Validation failed.';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            // Populate Step 2 Preview
+            const p = data.preview;
+            document.getElementById('preview-org-name').innerText = p.organization_name;
+            document.getElementById('preview-schema').innerText = p.schema_version;
+
+            const tbody = document.getElementById('preview-table-body');
+            tbody.innerHTML = `
+                <tr style="border-bottom:1px solid var(--color-border);"><td style="padding:6px 8px; font-weight:600;">Customers</td><td style="padding:6px 8px;">${p.counts.customers.total}</td><td style="padding:6px 8px; color:var(--color-success); font-weight:600;">${p.counts.customers.created}</td><td style="padding:6px 8px;">${p.counts.customers.updated}</td></tr>
+                <tr style="border-bottom:1px solid var(--color-border);"><td style="padding:6px 8px; font-weight:600;">Products & Services</td><td style="padding:6px 8px;">${p.counts.products.total}</td><td style="padding:6px 8px; color:var(--color-success); font-weight:600;">${p.counts.products.created}</td><td style="padding:6px 8px;">${p.counts.products.updated}</td></tr>
+                <tr style="border-bottom:1px solid var(--color-border);"><td style="padding:6px 8px; font-weight:600;">Invoices</td><td style="padding:6px 8px;">${p.counts.invoices.total}</td><td style="padding:6px 8px; color:var(--color-success); font-weight:600;">${p.counts.invoices.created}</td><td style="padding:6px 8px;">${p.counts.invoices.updated}</td></tr>
+                <tr style="border-bottom:1px solid var(--color-border);"><td style="padding:6px 8px; font-weight:600;">Invoice Line Items</td><td style="padding:6px 8px;">${p.counts.invoice_items.total}</td><td style="padding:6px 8px; color:var(--color-success); font-weight:600;">${p.counts.invoice_items.created}</td><td style="padding:6px 8px;">0</td></tr>
+            `;
+
+            document.getElementById('excel-step-1').style.display = 'none';
+            document.getElementById('excel-step-2').style.display = 'block';
+            document.getElementById('stepper-1').classList.remove('active');
+            document.getElementById('stepper-2').classList.add('active');
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="search-check" style="width:16px;height:16px;"></i> Validate & Preview`;
+            errDiv.innerText = 'Network error during validation: ' + err.message;
+            errDiv.style.display = 'block';
+        }
+    }
+
+    async function executeExcelRestore() {
+        const input = document.getElementById('excel-backup-input');
+        const btn = document.getElementById('btn-execute-restore');
+
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;display:inline-block;"></i> Restoring Database...`;
+        if (window.lucide) lucide.createIcons();
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('backup_file', input.files[0]);
+
+        try {
+            const resp = await fetch("{% url 'settings_app:excel_import_restore' %}", {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                window.location.reload();
+            } else {
+                alert('Restore Failed: ' + (data.message || 'Unknown error'));
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="database-backup" style="width:16px;height:16px;"></i> Restore Data`;
+            }
+        } catch (err) {
+            alert('Network error during restore: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="database-backup" style="width:16px;height:16px;"></i> Restore Data`;
+        }
+    }
+
+    document.getElementById('form-instant-mail')?.addEventListener('submit', function(e) {
+        const btn = document.getElementById('btn-instant-mail');
+        if (!btn || btn.disabled) {
+            e.preventDefault();
+            return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;display:inline-block;"></i> Sending...`;
+        if (window.lucide) lucide.createIcons();
+    });
+
+    // Danger Zone Delete Account Eligibility Handler
+    const passInput = document.getElementById('delete-password-input');
+    const phraseInput = document.getElementById('delete-phrase-input');
+    const submitBtn = document.getElementById('btn-submit-delete-account');
+
+    function checkDeleteEligibility() {
+        if (!passInput || !phraseInput || !submitBtn) return;
+        const passValid = passInput.value.trim().length > 0;
+        const phraseValid = phraseInput.value === 'DELETE';
+        submitBtn.disabled = !(passValid && phraseValid);
+    }
+
+    passInput?.addEventListener('input', checkDeleteEligibility);
+    phraseInput?.addEventListener('input', checkDeleteEligibility);
+
+    document.getElementById('form-delete-account')?.addEventListener('submit', function(e) {
+        if (!submitBtn || submitBtn.disabled) {
+            e.preventDefault();
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;display:inline-block;"></i> Deleting Organization...`;
+        if (window.lucide) lucide.createIcons();
+    });
+</script>
+{% endblock %}

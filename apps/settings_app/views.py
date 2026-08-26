@@ -582,3 +582,479 @@ class SettingsInvoiceReferenceView(BillingLoginRequiredMixin, View):
         except TemplateDoesNotExist:
             return HttpResponse(f"Reference file not found for template: {template_name}", status=404)
 
+
+class SettingsDataManagementView(BillingLoginRequiredMixin, PageTitleMixin, View):
+    template_name = "settings_app/data_management.html"
+    page_title = "Data Management — Advance Billing"
+
+    def get_organization(self, request):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+        return org
+
+    def get(self, request, *args, **kwargs):
+        org = self.get_organization(request)
+        if not org:
+            messages.error(request, "Organization not found for current user.")
+            return redirect("organization:index")
+
+        from apps.settings_app.models import OrganizationBackupLog, DataManagementAuditLog  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+
+        setting = OrganizationBackupService.get_or_create_backup_setting(org)
+        backup_logs = OrganizationBackupLog.objects.filter(organization=org)[:10]
+        audit_logs = DataManagementAuditLog.objects.filter(organization=org)[:10]
+
+        _, counts = OrganizationBackupService.generate_backup_datasets(org)
+        total_records = sum(counts.values())
+
+        context = {
+            "title": self.page_title,
+            "page_title": self.page_title,
+            "org": org,
+            "backup_setting": setting,
+            "backup_logs": backup_logs,
+            "audit_logs": audit_logs,
+            "counts": counts,
+            "total_records": total_records,
+            "owner_email": org.owner.email if org.owner else "",
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        org = self.get_organization(request)
+        if not org:
+            messages.error(request, "Organization not found.")
+            return redirect("settings_app:data_management")
+
+        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+        from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+        from apps.settings_app.models import DataManagementAction  # noqa: PLC0415
+
+        setting = OrganizationBackupService.get_or_create_backup_setting(org)
+        action = request.POST.get("action")
+
+        if action == "toggle_weekly_backup":
+            enabled = request.POST.get("weekly_backup_enabled") == "true"
+            setting.weekly_backup_enabled = enabled
+            if enabled and not setting.next_backup_at:
+                from django.utils import timezone  # noqa: PLC0415
+                from datetime import timedelta  # noqa: PLC0415
+                setting.next_backup_at = timezone.now() + timedelta(days=7)
+            setting.save()
+
+            DataManagementAuditService.log_action(
+                organization=org,
+                user=request.user,
+                action=DataManagementAction.WEEKLY_BACKUP_TOGGLE,
+                details={"enabled": enabled},
+                request=request,
+                notify_user=False,
+            )
+
+            messages.success(
+                request,
+                f"Weekly data backup {'enabled' if enabled else 'disabled'}."
+            )
+
+        return redirect("settings_app:data_management")
+
+
+class SettingsDataExportView(BillingLoginRequiredMixin, View):
+    """
+    Manual Export Download View.
+    Generates and streams advance-billing-export-YYYY-MM-DD.zip to the user.
+    """
+
+    def get(self, request, *args, **kwargs):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.settings_app.models import OrganizationBackupLog, BackupTrigger, BackupStatus, DataManagementAction  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+        from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        if not org or (org.owner != request.user and not request.user.is_superuser):
+            messages.error(request, "Only the organization owner can export complete business data.")
+            return redirect("settings_app:data_management")
+
+        try:
+            zip_bytes, filename, manifest = OrganizationBackupService.generate_backup_zip(org)
+
+            # Record Log Entry & Audit Log
+            OrganizationBackupLog.objects.create(
+                organization=org,
+                trigger=BackupTrigger.MANUAL,
+                status=BackupStatus.SENT,
+                record_count=manifest["total_records"],
+                file_size_bytes=len(zip_bytes),
+                recipient_email=request.user.email,
+            )
+
+            DataManagementAuditService.log_action(
+                organization=org,
+                user=request.user,
+                action=DataManagementAction.EXPORT,
+                details={"record_count": manifest["total_records"], "filename": filename},
+                request=request,
+                notify_user=True,
+                notification_title="Data Export Downloaded",
+                notification_message=f"Manual export ZIP containing {manifest['total_records']} records was generated and downloaded.",
+            )
+
+            response = HttpResponse(zip_bytes, content_type="application/zip")
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            return response
+        except Exception as e:
+            messages.error(request, f"Failed to generate data export: {str(e)}")
+            return redirect("settings_app:data_management")
+
+
+class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
+    """
+    Dedicated Instant Backup Mail View.
+    Generates a fresh structured backup ZIP and emails it immediately to the organization owner.
+    """
+
+    def post(self, request, *args, **kwargs):
+        from django.http import JsonResponse  # noqa: PLC0415
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.settings_app.models import BackupTrigger, DataManagementAction  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+        from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        is_json_request = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
+
+        # 1. Organization permission check
+        if not org or (org.owner != request.user and not request.user.is_superuser):
+            msg = "Only the organization owner can trigger instant backup email delivery."
+            if is_json_request:
+                return JsonResponse({"success": False, "message": msg}, status=403)
+            messages.error(request, msg)
+            return redirect("settings_app:data_management")
+
+        # 2. Owner validation & email check
+        owner = getattr(org, "owner", None)
+        if not owner:
+            msg = "Unable to send the backup because the organization owner could not be found."
+            if is_json_request:
+                return JsonResponse({"success": False, "message": msg}, status=400)
+            messages.error(request, msg)
+            return redirect("settings_app:data_management")
+
+        if not owner.email:
+            msg = "The organization owner does not have a valid email address."
+            if is_json_request:
+                return JsonResponse({"success": False, "message": msg}, status=400)
+            messages.error(request, msg)
+            return redirect("settings_app:data_management")
+
+        # 3. Generate fresh backup & send email
+        try:
+            success, result_msg = OrganizationBackupService.send_weekly_backup_email(
+                org, force=True, trigger=BackupTrigger.MANUAL
+            )
+
+            if success:
+                user_msg = f"Backup emailed successfully to the organization owner ({owner.email})."
+                DataManagementAuditService.log_action(
+                    organization=org,
+                    user=request.user,
+                    action=DataManagementAction.BACKUP_SENT,
+                    details={"recipient": owner.email, "trigger": "manual"},
+                    request=request,
+                    notify_user=True,
+                    notification_title="Instant Backup Emailed",
+                    notification_message=user_msg,
+                )
+                if is_json_request:
+                    return JsonResponse({"success": True, "message": user_msg})
+                messages.success(request, user_msg)
+            else:
+                user_msg = "We couldn't send the backup email. Please try again."
+                DataManagementAuditService.log_action(
+                    organization=org,
+                    user=request.user,
+                    action=DataManagementAction.BACKUP_FAILED,
+                    details={"error": result_msg, "trigger": "manual"},
+                    status="failed",
+                    request=request,
+                )
+                if is_json_request:
+                    return JsonResponse({"success": False, "message": user_msg}, status=500)
+                messages.error(request, user_msg)
+
+        except Exception as e:
+            logger.exception("Instant backup mail failed")
+            user_msg = "We couldn't generate the backup. Please try again."
+            if is_json_request:
+                return JsonResponse({"success": False, "message": user_msg}, status=500)
+            messages.error(request, user_msg)
+
+        return redirect("settings_app:data_management")
+
+
+
+
+
+class SettingsExcelExportView(BillingLoginRequiredMixin, View):
+    """
+    Generates and downloads the official versioned Advance Billing Excel Backup (.xlsx).
+    """
+
+    def get(self, request, *args, **kwargs):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.settings_app.services.excel_backup_service import ExcelBackupService  # noqa: PLC0415
+        from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+        from apps.settings_app.models import DataManagementAction  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        if not org:
+            messages.error(request, "Organization not found.")
+            return redirect("settings_app:data_management")
+
+        excel_bytes, filename, manifest = ExcelBackupService.generate_backup_workbook(org)
+
+        DataManagementAuditService.log_action(
+            organization=org,
+            user=request.user,
+            action=DataManagementAction.EXPORT,
+            details=manifest,
+            request=request,
+            notify_user=False,
+        )
+
+        response = HttpResponse(
+            excel_bytes,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class SettingsExcelImportValidateView(BillingLoginRequiredMixin, View):
+    """
+    PHASE 1: Read-only validation & dry-run preview for Excel Backups.
+    """
+
+    def post(self, request, *args, **kwargs):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.settings_app.services.excel_restore_service import ExcelRestoreService  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        if not org:
+            return JsonResponse({"success": False, "message": "Organization not found."}, status=400)
+
+        if "backup_file" not in request.FILES:
+            return JsonResponse({"success": False, "message": "Please select an Excel backup (.xlsx) file to validate."}, status=400)
+
+        f = request.FILES["backup_file"]
+        is_valid, msg, preview = ExcelRestoreService.validate_and_preview(f.read(), f.name, org)
+
+        if is_valid:
+            return JsonResponse({"success": True, "message": msg, "preview": preview})
+        else:
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+
+class SettingsExcelImportRestoreView(BillingLoginRequiredMixin, View):
+    """
+    PHASE 2: Atomic transactional restoration from verified Excel Backup.
+    """
+
+    def post(self, request, *args, **kwargs):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.settings_app.services.excel_restore_service import ExcelRestoreService  # noqa: PLC0415
+        from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+        from apps.settings_app.models import DataManagementAction  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        if not org:
+            return JsonResponse({"success": False, "message": "Organization not found."}, status=400)
+
+        if "backup_file" not in request.FILES:
+            return JsonResponse({"success": False, "message": "Please select an Excel backup (.xlsx) file to restore."}, status=400)
+
+        f = request.FILES["backup_file"]
+        success, msg, preview = ExcelRestoreService.execute_restore(f.read(), f.name, org)
+
+        if success:
+            messages.success(request, msg)
+            DataManagementAuditService.log_action(
+                organization=org,
+                user=request.user,
+                action=DataManagementAction.RESTORE_BACKUP,
+                details=preview,
+                request=request,
+                notify_user=True,
+                notification_title="Backup Restored Successfully",
+                notification_message=msg,
+            )
+            return JsonResponse({"success": True, "message": msg, "preview": preview})
+        else:
+            return JsonResponse({"success": False, "message": msg}, status=400)
+
+
+class SettingsDangerZoneView(BillingLoginRequiredMixin, View):
+    """
+    Dedicated Settings View for Danger Zone.
+    Renders permanent/destructive account-level operations.
+    """
+    page_title = "Danger Zone"
+    template_name = "settings_app/danger_zone.html"
+
+    def get_organization(self, request):
+        from apps.organization.models import Organization  # noqa: PLC0415
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+        return org
+
+    def get(self, request, *args, **kwargs):
+        org = self.get_organization(request)
+        if not org:
+            messages.error(request, "Organization not found for current user.")
+            return redirect("organization:index")
+
+        context = {
+            "title": self.page_title,
+            "page_title": self.page_title,
+            "org": org,
+            "owner_email": org.owner.email if org.owner else "",
+        }
+        return render(request, self.template_name, context)
+
+
+class SettingsDeleteAccountView(BillingLoginRequiredMixin, View):
+    """
+    Production-Grade Irreversible Organization & Account Deletion view.
+    Enforces:
+    - POST only (rejects GET requests with redirect/error)
+    - CSRF protection
+    - Authentication & Organization Owner authorization check
+    - Password re-authentication verification
+    - Confirmation phrase ("DELETE") exact match
+    - Atomic database transaction safe cascading cleanup
+    - Invalidation of session and post-deletion redirection
+    """
+
+    def get(self, request, *args, **kwargs):
+        messages.error(request, "Account deletion cannot be triggered via GET request.")
+        return redirect("settings_app:danger_zone")
+
+    def post(self, request, *args, **kwargs):
+        from django.contrib.auth import logout
+        from django.db import transaction
+        from apps.organization.models import Organization  # noqa: PLC0415
+        from apps.billing.models import Invoice, InvoiceLine  # noqa: PLC0415
+        from apps.customers.models import Customer  # noqa: PLC0415
+        from apps.products.models import Product  # noqa: PLC0415
+        from apps.common.models import Notification  # noqa: PLC0415
+        from apps.settings_app.models import (  # noqa: PLC0415
+            OrganizationBackupSetting,
+            OrganizationBackupLog,
+            DataManagementAuditLog,
+            DataManagementAction,
+            UserBillPreference,
+        )
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            org = Organization.objects.filter(owner=request.user).first()
+
+        if not org:
+            messages.error(request, "Organization not found for current user.")
+            return redirect("settings_app:danger_zone")
+
+        # 1. Authorization: Only the Organization Owner or Superuser can delete
+        if org.owner != request.user and not request.user.is_superuser:
+            messages.error(
+                request,
+                "Permission Denied: Only the organization owner can permanently delete the organization."
+            )
+            return redirect("settings_app:danger_zone")
+
+        # 2. Password Re-Authentication
+        password = request.POST.get("password", "")
+        if not password or not request.user.check_password(password):
+            messages.error(
+                request,
+                "Deletion Failed: Invalid password. Password re-authentication is required to delete your organization."
+            )
+            return redirect("settings_app:danger_zone")
+
+        # 3. Explicit Confirmation Phrase Match
+        confirmation_phrase = request.POST.get("confirmation_phrase", "")
+        if confirmation_phrase != "DELETE":
+            messages.error(
+                request,
+                "Deletion Failed: You must type 'DELETE' in exact uppercase letters to confirm deletion."
+            )
+            return redirect("settings_app:danger_zone")
+
+        # 4. Atomic Transactional Deletion
+        business_name = org.business_name
+        user = request.user
+
+        try:
+            with transaction.atomic():
+                # Record Audit Log before deletion
+                DataManagementAuditLog.objects.create(
+                    organization=org,
+                    user=user,
+                    action=DataManagementAction.PERMANENT_DELETE,
+                    status="success",
+                    details={
+                        "organization_name": business_name,
+                        "owner_email": user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                    },
+                )
+
+                # Delete dependent records in dependency order
+                InvoiceLine.objects.filter(invoice__organization=org).delete()
+                Invoice.objects.filter(organization=org).delete()
+                Customer.objects.filter(organization=org).delete()
+                Product.objects.filter(organization=org).delete()
+                Notification.objects.filter(organization=org).delete()
+                OrganizationBackupSetting.objects.filter(organization=org).delete()
+                OrganizationBackupLog.objects.filter(organization=org).delete()
+                UserBillPreference.objects.filter(user=user).delete()
+
+                # Delete Organization
+                org.delete()
+
+                # Logout user session cleanly
+                logout(request)
+
+            messages.success(
+                request,
+                f"Your organization '{business_name}' and all associated data have been permanently deleted."
+            )
+            return redirect("auth:login")
+
+        except Exception as exc:
+            messages.error(
+                request,
+                "We couldn't complete the deletion due to a system error. Your data has not been deleted. Please try again."
+            )
+            return redirect("settings_app:data_management")
+
+

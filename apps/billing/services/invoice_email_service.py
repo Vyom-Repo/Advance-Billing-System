@@ -149,7 +149,12 @@ class InvoiceEmailService:
             else:
                 due_date_str = str(invoice.due_date)
 
+        from apps.common.services.email_service import AdvanceBillingEmailBranding  # noqa: PLC0415
+        email_branding = AdvanceBillingEmailBranding.get_email_branding()
+
         context = {
+            "email_branding": email_branding,
+            "branding": email_branding,
             "owner_name": owner_name,
             "org_name": org_name,
             "customer_name": invoice.customer_name_snapshot or (invoice.customer.name if invoice.customer else "Customer"),
@@ -158,11 +163,10 @@ class InvoiceEmailService:
             "due_date": due_date_str,
             "total_amount": f"{invoice.grand_total:,.2f}",
             "currency": invoice.currency or "INR",
-            "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
-            "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
+            "app_name": email_branding["app_name"],
+            "app_tagline": email_branding["tagline"],
+            "support_email": email_branding["support_email"],
         }
-        context.update(EmailBranding.get_logo_context())
 
         # 3. Render HTML and Plain Text
         try:

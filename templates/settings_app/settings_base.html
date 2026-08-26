@@ -153,15 +153,15 @@
                     <a href="{% url 'settings_app:notifications' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
                         <i data-lucide="bell"></i> Notifications
                     </a>
-                    
-                    <div style="height: 1px; background: var(--color-border); margin: var(--space-4) 0;"></div>
-                    <div style="font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 var(--space-4) var(--space-2); font-weight: var(--font-semibold);">Danger Zone</div>
-                    
                     <a href="{% url 'settings_app:data_management' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'data_management' %}active{% endif %}">
                         <i data-lucide="database"></i> Data Management
                     </a>
-                    <a href="{% url 'settings_app:delete_account' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'delete_account' %}active{% endif %}" style="color: var(--color-error);">
-                        <i data-lucide="trash-2"></i> Delete Account
+
+                    <div style="height: 1px; background: var(--color-border); margin: var(--space-4) 0;"></div>
+                    <div style="font-size: var(--text-xs); color: var(--color-error); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 var(--space-4) var(--space-2); font-weight: var(--font-semibold);">Danger Zone</div>
+                    
+                    <a href="{% url 'settings_app:danger_zone' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'danger_zone' %}active{% endif %}">
+                        <i data-lucide="trash-2" style="color:var(--color-error);"></i> Danger Zone
                     </a>
                 </nav>
                 

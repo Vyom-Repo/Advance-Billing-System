@@ -209,6 +209,10 @@ class Product(TimeStampedModel):
         ),
     )
 
+    # Archiving
+    is_archived = models.BooleanField(default=False, db_index=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+
     # ------------------------------------------------------------------
     # Meta
     # ------------------------------------------------------------------

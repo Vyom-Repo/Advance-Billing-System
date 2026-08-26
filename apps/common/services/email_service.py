@@ -1,9 +1,10 @@
 """
 apps/common/services/email_service.py
-Advance Billing — Centralized Production Email Service
+Advance Billing — Centralized Production Email Service & Product Branding System
 """
 
 import logging
+from typing import Any, Dict
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -12,39 +13,70 @@ from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 
 
-class EmailBranding:
+class AdvanceBillingEmailBranding:
     """
-    Advance Billing Email Branding
+    Official Advance Billing Product Email Branding.
 
-    Development:
-    - Premium HTML text branding
-    - No logo images
-    - No CID attachments
-    - No MIME attachments
+    STRICT BEHAVIOR MANDATE:
+    All emails sent by Advance Billing MUST use Advance Billing product-level
+    branding exclusively (logo, brand colors, Lora font, Advance Billing header & footer).
 
-    Production:
-    - Public HTTPS PNG logo
-    - Automatic environment detection via SITE_URL
-    - Zero code changes required after deployment
-
-    This architecture is considered FINAL unless email branding requirements change.
+    Organization/company branding (logos, colors, invoice design) belongs strictly
+    to customer-facing document/PDF rendering and MUST NEVER be used to alter
+    the visual presentation of outgoing email shells.
     """
 
     @classmethod
-    def get_logo_context(cls) -> dict[str, str]:
-        site_url = getattr(settings, "SITE_URL", "").rstrip("/")
+    def get_email_branding(cls) -> Dict[str, Any]:
+        """
+        Returns the immutable, official Advance Billing product email branding context.
+        """
+        site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+        support_email = getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com")
+        app_name = getattr(settings, "APP_NAME", "Advance Billing")
+        app_tagline = getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses")
 
-        # Production check: Must use https:// and not be localhost/127.0.0.1
         is_production = (
             site_url.startswith("https://")
             and "127.0.0.1" not in site_url
             and "localhost" not in site_url
         )
+        logo_url = f"{site_url}/static/branding/logo-email.png" if is_production else ""
 
-        if is_production:
-            return {"logo_src": f"{site_url}/static/branding/logo-email.png"}
+        return {
+            "brand_name": app_name,
+            "app_name": app_name,
+            "tagline": app_tagline,
+            "logo_url": logo_url,
+            "primary_color": "#1E293B",      # Sleek Slate/Dark primary header
+            "secondary_color": "#FF7A00",    # Signature Advance Billing Orange Accent
+            "accent_color": "#FF7A00",
+            "text_color": "#111827",
+            "body_bg_color": "#F9FAFB",
+            "card_bg_color": "#FFFFFF",
+            "border_color": "#E5E7EB",
+            "muted_text_color": "#6B7280",
+            "font_family": "'Lora', Georgia, 'Times New Roman', serif",
+            "font_import_url": "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap",
+            "support_email": support_email,
+            "footer_text": f"Powered by {app_name} — {app_tagline}",
+            "website": site_url,
+        }
 
-        return {"logo_src": ""}
+    @classmethod
+    def resolve(cls, organization=None) -> Dict[str, Any]:
+        """Backwards compatibility helper returning product-level branding."""
+        return cls.get_email_branding()
+
+    @classmethod
+    def get_logo_context(cls) -> Dict[str, str]:
+        branding = cls.get_email_branding()
+        return {"logo_src": branding["logo_url"]}
+
+
+# Aliases for backwards compatibility
+EmailBrandingService = AdvanceBillingEmailBranding
+EmailBranding = AdvanceBillingEmailBranding
 
 
 class EmailService:
@@ -62,23 +94,26 @@ class EmailService:
         subject = "Verify your Advance Billing account"
         recipient_email = user.email
 
-        # Get first name or default email username
         first_name = ""
         if hasattr(user, "first_name") and user.first_name:
             first_name = user.first_name
         else:
             first_name = recipient_email.split("@")[0]
 
+        email_branding = AdvanceBillingEmailBranding.get_email_branding()
+
         context = {
+            "email_branding": email_branding,
+            "branding": email_branding,
             "user": user,
             "first_name": first_name.capitalize(),
             "verify_url": verify_url,
             "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
-            "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
-            "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
+            "support_email": email_branding["support_email"],
+            "app_name": email_branding["app_name"],
+            "app_tagline": email_branding["tagline"],
+            "logo_src": email_branding["logo_url"],
         }
-        context.update(EmailBranding.get_logo_context())
 
         try:
             html_content = render_to_string("emails/verification_email.html", context)
@@ -113,16 +148,20 @@ class EmailService:
         else:
             first_name = recipient_email.split("@")[0]
 
+        email_branding = AdvanceBillingEmailBranding.get_email_branding()
+
         context = {
+            "email_branding": email_branding,
+            "branding": email_branding,
             "user": user,
             "first_name": first_name.capitalize(),
             "reset_url": reset_url,
             "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
-            "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
-            "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
+            "support_email": email_branding["support_email"],
+            "app_name": email_branding["app_name"],
+            "app_tagline": email_branding["tagline"],
+            "logo_src": email_branding["logo_url"],
         }
-        context.update(EmailBranding.get_logo_context())
 
         try:
             html_content = render_to_string("emails/password_reset_email.html", context)
@@ -157,16 +196,20 @@ class EmailService:
         else:
             first_name = recipient_email.split("@")[0]
 
+        email_branding = AdvanceBillingEmailBranding.get_email_branding()
+
         context = {
+            "email_branding": email_branding,
+            "branding": email_branding,
             "user": user,
             "first_name": first_name.capitalize(),
             "otp_code": otp_code,
             "site_url": getattr(settings, "SITE_URL", "http://127.0.0.1:8000"),
-            "support_email": getattr(settings, "SERVER_EMAIL", "advancebillingbyvyom@gmail.com"),
-            "app_name": getattr(settings, "APP_NAME", "Advance Billing"),
-            "app_tagline": getattr(settings, "APP_TAGLINE", "GST Billing Made Simple for Indian Businesses"),
+            "support_email": email_branding["support_email"],
+            "app_name": email_branding["app_name"],
+            "app_tagline": email_branding["tagline"],
+            "logo_src": email_branding["logo_url"],
         }
-        context.update(EmailBranding.get_logo_context())
 
         try:
             html_content = render_to_string("emails/otp_email.html", context)

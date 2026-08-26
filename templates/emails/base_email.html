@@ -4,57 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{% block email_subject %}{{ app_name }}{% endblock %}</title>
+    <title>{% block email_subject %}Advance Billing{% endblock %}</title>
+    <!-- Google Fonts Lora Import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="{{ email_branding.font_import_url|default:'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap' }}" rel="stylesheet">
     <style type="text/css">
-        /* Client Resets */
+        @import url('{{ email_branding.font_import_url|default:"https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" }}');
+        
+        /* Email Client Resets */
         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
         img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
         table { border-collapse: collapse !important; }
-        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F9FAFB; color: #111827; font-family: 'Lora'; }
+        body {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            background-color: {{ email_branding.body_bg_color|default:"#F9FAFB" }};
+            color: {{ email_branding.text_color|default:"#111827" }};
+            font-family: {{ email_branding.font_family|default:"'Lora', Georgia, 'Times New Roman', serif" }};
+        }
         
+        h1, h2, h3, p, td, span, div, a {
+            font-family: {{ email_branding.font_family|default:"'Lora', Georgia, 'Times New Roman', serif" }};
+        }
+
         .btn-primary:hover {
-            background-color: #FF8C1A !important;
-            box-shadow: 0 6px 20px rgba(255, 122, 0, 0.4) !important;
+            opacity: 0.9 !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
         }
         .fallback-link:hover {
             text-decoration: underline !important;
         }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F9FAFB; color: #111827; font-family: 'Lora';">
+<body style="margin: 0; padding: 0; background-color: {{ email_branding.body_bg_color|default:'#F9FAFB' }}; color: {{ email_branding.text_color|default:'#111827' }}; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
 
     <!-- Outer Background Wrapper -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F9FAFB; padding: 48px 16px; font-family: 'Lora';">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: {{ email_branding.body_bg_color|default:'#F9FAFB' }}; padding: 40px 16px; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
         <tr>
             <td align="center">
                 
                 <!-- Main Container Card (600px Max Width, White Surface) -->
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); font-family: 'Lora';">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: {{ email_branding.card_bg_color|default:'#FFFFFF' }}; border: 1px solid {{ email_branding.border_color|default:'#E5E7EB' }}; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
                     
-                    <!-- HEADER SECTION -->
+                    <!-- TOP ACCENT BAR (Advance Billing Orange Accent) -->
                     <tr>
-                        <td align="center" style="padding: 44px 40px 32px 40px; background-color: #FFFFFF;">
+                        <td style="background-color: {{ email_branding.secondary_color|default:'#FF7A00' }}; height: 5px; width: 100%;"></td>
+                    </tr>
+
+                    <!-- HEADER SECTION (Advance Billing Product Identity) -->
+                    <tr>
+                        <td align="center" style="padding: 36px 40px 28px 40px; background-color: #FFFFFF;">
                             <table border="0" cellpadding="0" cellspacing="0">
-                                {% if logo_src %}
+                                {% if email_branding.logo_url %}
                                 <tr>
                                     <td align="center" style="padding-bottom: 14px;">
-                                        <!-- Responsive Email Logo (CID Inline in Dev / Public HTTPS URL in Prod) -->
-                                        <img src="{{ logo_src }}" width="56" height="56" alt="Advance Billing" style="display: block; border: 0; outline: none; text-decoration: none; width: 56px; height: 56px; margin: 0 auto;">
+                                        <img src="{{ email_branding.logo_url }}" width="56" height="56" alt="Advance Billing" style="display: block; border: 0; outline: none; text-decoration: none; width: 56px; height: 56px; margin: 0 auto;">
                                     </td>
                                 </tr>
                                 {% endif %}
                                 <tr>
                                     <td align="center">
-                                        <span style="font-size: 26px; font-weight: 700; color: #111827; letter-spacing: -0.02em; font-family: 'Lora';">
-                                            Advance <span style="color: #FF7A00;">Billing</span>
+                                        <span style="font-size: 26px; font-weight: 700; color: {{ email_branding.primary_color|default:'#1E293B' }}; letter-spacing: -0.02em; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
+                                            Advance <span style="color: {{ email_branding.secondary_color|default:'#FF7A00' }};">Billing</span>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td align="center" style="padding-top: 6px;">
-                                        <span style="font-size: 13px; font-weight: 400; font-style: italic; color: #6B7280; letter-spacing: 0.2px; font-family: 'Lora';">
-                                            {{ app_tagline|default:"GST Billing Made Simple for Indian Businesses" }}
+                                        <span style="font-size: 13px; font-weight: 400; font-style: italic; color: {{ email_branding.muted_text_color|default:'#6B7280' }}; letter-spacing: 0.2px; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
+                                            {{ email_branding.tagline|default:"GST Billing Made Simple for Indian Businesses" }}
                                         </span>
                                     </td>
                                 </tr>
@@ -65,34 +87,34 @@
                     <!-- DIVIDER -->
                     <tr>
                         <td style="padding: 0 40px;">
-                            <div style="height: 1px; background-color: #F3F4F6; width: 100%;"></div>
+                            <div style="height: 1px; background-color: {{ email_branding.border_color|default:'#F3F4F6' }}; width: 100%;"></div>
                         </td>
                     </tr>
 
                     <!-- MAIN BODY -->
                     <tr>
-                        <td style="padding: 36px 40px;">
+                        <td style="padding: 32px 40px;">
                             
                             <!-- Email Title -->
                             <div style="margin-bottom: 20px;">
-                                <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #111827; line-height: 1.3; letter-spacing: -0.01em;">
+                                <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: {{ email_branding.primary_color|default:'#111827' }}; line-height: 1.3; letter-spacing: -0.01em; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
                                     {% block email_title %}{% endblock %}
                                 </h1>
                             </div>
 
                             <!-- Email Body Copy -->
-                            <div style="font-size: 15px; line-height: 1.6; color: #4B5563; margin-bottom: 32px;">
+                            <div style="font-size: 15px; line-height: 1.6; color: #4B5563; margin-bottom: 28px; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
                                 {% block email_body %}{% endblock %}
                             </div>
 
                             <!-- Primary CTA Button Section -->
                             {% block email_button_section %}
-                            <div style="margin-bottom: 32px; text-align: center;">
+                            <div style="margin-bottom: 28px; text-align: center;">
                                 {% block email_button %}{% endblock %}
                             </div>
                             {% endblock %}
 
-                            <!-- Note / Expiration Box -->
+                            <!-- Note Section -->
                             {% block email_note_section %}
                             {% endblock %}
 
@@ -102,26 +124,26 @@
 
                             <!-- Team Signature -->
                             {% block email_signature %}
-                            <div style="margin-top: 32px; font-size: 14px; color: #4B5563;">
+                            <div style="margin-top: 28px; font-size: 14px; color: #4B5563; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
                                 Best regards,<br>
-                                <strong style="color: #111827;">The {{ app_name }} Team</strong>
+                                <strong style="color: {{ email_branding.primary_color|default:'#111827' }};">The {{ email_branding.app_name|default:"Advance Billing" }} Team</strong>
                             </div>
                             {% endblock %}
 
                         </td>
                     </tr>
 
-                    <!-- FOOTER SECTION -->
+                    <!-- FOOTER SECTION (Advance Billing Footer) -->
                     <tr>
-                        <td style="padding: 0 40px 36px 40px; background-color: #FFFFFF;">
-                            <div style="height: 1px; background-color: #F3F4F6; width: 100%; margin-bottom: 28px;"></div>
+                        <td style="padding: 0 40px 32px 40px; background-color: #FFFFFF;">
+                            <div style="height: 1px; background-color: {{ email_branding.border_color|default:'#F3F4F6' }}; width: 100%; margin-bottom: 24px;"></div>
                             
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
-                                    <td align="center" style="font-size: 13px; color: #6B7280; line-height: 1.6;">
-                                        <div>If you did not request this email, you can safely ignore it.</div>
-                                        <div style="margin-top: 6px;">Need help? Contact support at <a href="mailto:{{ support_email }}" style="color: #FF7A00; text-decoration: none; font-weight: 500;">{{ support_email }}</a></div>
-                                        <div style="margin-top: 14px; color: #9CA3AF; font-size: 12px;">&copy; {% now "Y" %} {{ app_name }}. All rights reserved.</div>
+                                    <td align="center" style="font-size: 13px; color: {{ email_branding.muted_text_color|default:'#6B7280' }}; line-height: 1.6; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
+                                        <div>{{ email_branding.footer_text|default:"Powered by Advance Billing — GST Billing Made Simple for Indian Businesses" }}</div>
+                                        <div style="margin-top: 6px;">Need help? Contact support at <a href="mailto:{{ email_branding.support_email }}" style="color: {{ email_branding.secondary_color|default:'#FF7A00' }}; text-decoration: none; font-weight: 500;">{{ email_branding.support_email }}</a></div>
+                                        <div style="margin-top: 14px; color: #9CA3AF; font-size: 12px;">&copy; {% now "Y" %} {{ email_branding.app_name|default:"Advance Billing" }}. All rights reserved.</div>
                                     </td>
                                 </tr>
                             </table>

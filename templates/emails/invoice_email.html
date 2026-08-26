@@ -12,7 +12,7 @@ Invoice {{ invoice_number }} Copy
 <p>A copy of invoice <strong>{{ invoice_number }}</strong> has been generated for <strong>{{ org_name }}</strong>.</p>
 
 <!-- Invoice Details Summary Box -->
-<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0; background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0; background-color: #F9FAFB; border: 1px solid {{ email_branding.border_color|default:'#E5E7EB' }}; border-radius: 12px; padding: 20px; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
     <tr>
         <td style="padding: 6px 12px; font-size: 14px; color: #6B7280; width: 40%;">Invoice Number:</td>
         <td style="padding: 6px 12px; font-size: 14px; color: #111827; font-weight: 600;">{{ invoice_number }}</td>
@@ -33,7 +33,7 @@ Invoice {{ invoice_number }} Copy
     {% endif %}
     <tr>
         <td style="padding: 6px 12px; font-size: 14px; color: #6B7280;">Total Amount:</td>
-        <td style="padding: 6px 12px; font-size: 16px; color: #FF7A00; font-weight: 700;">{{ currency }} {{ total_amount }}</td>
+        <td style="padding: 6px 12px; font-size: 16px; color: {{ email_branding.secondary_color|default:'#FF7A00' }}; font-weight: 700;">{{ currency }} {{ total_amount }}</td>
     </tr>
 </table>
 
@@ -45,8 +45,8 @@ Invoice {{ invoice_number }} Copy
 {% block email_button_section %}{% endblock %}
 
 {% block email_signature %}
-<div style="margin-top: 32px; font-size: 14px; color: #4B5563;">
+<div style="margin-top: 28px; font-size: 14px; color: #4B5563; font-family: {{ email_branding.font_family|default:'\'Lora\', Georgia, \'Times New Roman\', serif' }};">
     Best regards,<br>
-    <strong style="color: #111827;">{{ app_name }}</strong>
+    <strong style="color: {{ email_branding.primary_color|default:'#111827' }};">The {{ email_branding.app_name|default:"Advance Billing" }} Team</strong>
 </div>
 {% endblock %}
