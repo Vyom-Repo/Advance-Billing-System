@@ -166,3 +166,91 @@ class NotificationSystemTests(TestCase):
         self.assertEqual(notif.get_target_url(), "")
         self.assertIn("target_url", notif.to_dict())
         self.assertEqual(notif.to_dict()["target_url"], "")
+
+    def test_settings_notifications_view_rendering(self):
+        """Verify Settings -> Notifications populates context data correctly with existing DB notifications."""
+        notif = NotificationService.create(
+            user=self.user1,
+            organization=self.org1,
+            category=NotificationCategory.BILLING,
+            event_type="invoice_created",
+            title="Billing Notice",
+            message="Invoice generated successfully"
+        )
+
+        response = self.client1.get(reverse("settings_app:notifications"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("notifications_list", response.context)
+        notif_list = response.context["notifications_list"]
+        self.assertEqual(len(notif_list), 1)
+        self.assertEqual(notif_list[0]["title"], "Billing Notice")
+        self.assertEqual(notif_list[0]["desc"], "Invoice generated successfully")
+        self.assertFalse(notif_list[0]["is_read"])
+
+    def test_settings_notifications_multi_tenant_isolation(self):
+        """Verify Settings -> Notifications strictly isolates notifications per user & organization."""
+        # Create notification for user 2
+        NotificationService.create(
+            user=self.user2,
+            organization=self.org2,
+            category=NotificationCategory.SECURITY,
+            event_type="password_changed",
+            title="User 2 Security Alert",
+            message="Password updated"
+        )
+
+        # User 1 views settings notifications
+        response1 = self.client1.get(reverse("settings_app:notifications"))
+        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(len(response1.context["notifications_list"]), 0)
+
+        # User 2 views settings notifications
+        response2 = self.client2.get(reverse("settings_app:notifications"))
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(len(response2.context["notifications_list"]), 1)
+        self.assertEqual(response2.context["notifications_list"][0]["title"], "User 2 Security Alert")
+
+    def test_notification_delete_api(self):
+        """Verify POST /api/notifications/<pk>/delete/ securely deletes a notification record."""
+        notif = NotificationService.create(
+            user=self.user1,
+            organization=self.org1,
+            category=NotificationCategory.SYSTEM,
+            event_type="system_update",
+            title="System Maintenance",
+            message="Scheduled downtime tonight"
+        )
+
+        # User 2 attempts to delete User 1's notification -> 404
+        res_fail = self.client2.post(reverse("notification_delete_api", kwargs={"pk": notif.pk}))
+        self.assertEqual(res_fail.status_code, 404)
+        self.assertTrue(Notification.objects.filter(pk=notif.pk).exists())
+
+        # User 1 deletes own notification -> 200
+        res_ok = self.client1.post(reverse("notification_delete_api", kwargs={"pk": notif.pk}))
+        self.assertEqual(res_ok.status_code, 200)
+        self.assertFalse(Notification.objects.filter(pk=notif.pk).exists())
+
+    def test_all_category_notifications_render(self):
+        """Verify notifications of all supported categories render smoothly."""
+        categories = [
+            (NotificationCategory.BILLING, "billing"),
+            (NotificationCategory.CUSTOMERS, "customers"),
+            (NotificationCategory.ORGANIZATION, "organization"),
+            (NotificationCategory.SECURITY, "security"),
+            (NotificationCategory.SETTINGS, "settings"),
+            (NotificationCategory.SYSTEM, "system"),
+        ]
+        for cat_enum, cat_str in categories:
+            NotificationService.create(
+                user=self.user1,
+                organization=self.org1,
+                category=cat_enum,
+                event_type=f"{cat_str}_event",
+                title=f"{cat_str.capitalize()} Title",
+                message=f"{cat_str.capitalize()} Message"
+            )
+
+        response = self.client1.get(reverse("settings_app:notifications"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["notifications_list"]), len(categories))

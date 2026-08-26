@@ -224,15 +224,24 @@ class SettingsNotificationsView(BillingLoginRequiredMixin, PageTitleMixin, Templ
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        from apps.common.models import Notification
-        from django.utils import timezone
-        from django.utils.timesince import timesince
+        from apps.common.models import Notification  # noqa: PLC0415
+        from django.utils import timezone  # noqa: PLC0415
+        from django.utils.timesince import timesince  # noqa: PLC0415
         
         now = timezone.now()
         today_date = now.date()
         yesterday_date = today_date - timezone.timedelta(days=1)
         
-        db_notifications = Notification.objects.filter(user=self.request.user).order_by('-created_at')
+        org = getattr(self.request.user, "organization", None)
+        if not org:
+            from apps.organization.models import Organization  # noqa: PLC0415
+            org = Organization.objects.filter(owner=self.request.user).first()
+
+        qs = Notification.objects.filter(user=self.request.user)
+        if org:
+            qs = qs.filter(organization=org)
+
+        db_notifications = qs.order_by('-created_at')
         
         notifications = []
         for n in db_notifications:
@@ -250,36 +259,35 @@ class SettingsNotificationsView(BillingLoginRequiredMixin, PageTitleMixin, Templ
                 group = "Earlier"
                 time_str = n.created_at.strftime("%b %d").replace(" 0", " ")
                 
-            # Assign icons based on category
+            # Assign colors based on category & event_type icon
+            icon = n.get_icon_name() or "bell"
             if n.category == "billing":
-                icon = "file-text"
                 icon_color = "var(--color-success)"
                 icon_bg = "var(--color-success-bg)"
             elif n.category == "customers":
-                icon = "users"
                 icon_color = "var(--color-info)"
                 icon_bg = "var(--color-info-bg)"
             elif n.category == "organization":
-                icon = "building"
                 icon_color = "var(--color-text-secondary)"
                 icon_bg = "var(--color-bg-raised)"
             elif n.category == "security":
-                icon = "shield"
                 icon_color = "var(--color-warning)"
                 icon_bg = "var(--color-warning-bg)"
             elif n.category == "settings":
-                icon = "settings"
                 icon_color = "var(--color-text-secondary)"
                 icon_bg = "var(--color-bg-raised)"
             else:
-                icon = "bell"
                 icon_color = "var(--color-accent)"
                 icon_bg = "var(--color-accent-subtle)"
                 
+            target_url = n.get_target_url()
+
             notifications.append({
                 "id": str(n.id),
+                "pk": n.id,
                 "title": n.title,
                 "desc": n.message,
+                "message": n.message,
                 "category": n.category,
                 "icon": icon,
                 "icon_color": icon_color,
@@ -287,7 +295,8 @@ class SettingsNotificationsView(BillingLoginRequiredMixin, PageTitleMixin, Templ
                 "is_read": n.is_read,
                 "group": group,
                 "time": time_str,
-                "action_url": "#"
+                "action_url": target_url or "#",
+                "target_url": target_url or "",
             })
             
         context['notifications_list'] = notifications

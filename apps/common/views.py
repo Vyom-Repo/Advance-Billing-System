@@ -136,6 +136,10 @@ class NotificationListView(BillingLoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         org = getattr(request.user, "organization", None)
+        if not org:
+            from apps.organization.models import Organization  # noqa: PLC0415
+            org = Organization.objects.filter(owner=request.user).first()
+
         qs = Notification.objects.filter(user=request.user)
         if org:
             qs = qs.filter(organization=org)
@@ -158,6 +162,10 @@ class NotificationMarkReadView(BillingLoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> JsonResponse:
         org = getattr(request.user, "organization", None)
+        if not org:
+            from apps.organization.models import Organization  # noqa: PLC0415
+            org = Organization.objects.filter(owner=request.user).first()
+
         qs = Notification.objects.filter(id=pk, user=request.user)
         if org:
             qs = qs.filter(organization=org)
@@ -190,6 +198,10 @@ class NotificationMarkAllReadView(BillingLoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         org = getattr(request.user, "organization", None)
+        if not org:
+            from apps.organization.models import Organization  # noqa: PLC0415
+            org = Organization.objects.filter(owner=request.user).first()
+
         qs = Notification.objects.filter(user=request.user, is_read=False)
         if org:
             qs = qs.filter(organization=org)
@@ -199,4 +211,37 @@ class NotificationMarkAllReadView(BillingLoginRequiredMixin, View):
             "status": "success",
             "updated_count": updated_count,
             "unread_count": 0,
+        }, status=200)
+
+
+class NotificationDeleteView(BillingLoginRequiredMixin, View):
+    """
+    POST /api/notifications/<int:pk>/delete/
+    Deletes a single notification. Enforces user & org ownership.
+    """
+
+    def post(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> JsonResponse:
+        org = getattr(request.user, "organization", None)
+        if not org:
+            from apps.organization.models import Organization  # noqa: PLC0415
+            org = Organization.objects.filter(owner=request.user).first()
+
+        qs = Notification.objects.filter(id=pk, user=request.user)
+        if org:
+            qs = qs.filter(organization=org)
+
+        notification = qs.first()
+        if not notification:
+            return JsonResponse({"error": "Notification not found or access denied"}, status=404)
+
+        notification.delete()
+
+        count_qs = Notification.objects.filter(user=request.user, is_read=False)
+        if org:
+            count_qs = count_qs.filter(organization=org)
+
+        return JsonResponse({
+            "status": "success",
+            "id": pk,
+            "unread_count": count_qs.count(),
         }, status=200)

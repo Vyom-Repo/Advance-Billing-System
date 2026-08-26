@@ -171,6 +171,7 @@
 {% endblock %}
 
 {% block settings_content %}
+{% csrf_token %}
 <div style="margin-bottom: var(--space-8);">
     <h1 style="font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--color-text-primary); margin-bottom: var(--space-2);">Notifications</h1>
     <p style="color: var(--color-text-secondary); font-size: var(--text-base);">Stay updated with everything happening inside your workspace.</p>
@@ -199,6 +200,7 @@
         <button type="button" class="notif-chip" data-filter="customers">Customers</button>
         <button type="button" class="notif-chip" data-filter="organization">Organization</button>
         <button type="button" class="notif-chip" data-filter="security">Security</button>
+        <button type="button" class="notif-chip" data-filter="settings">Settings</button>
         <button type="button" class="notif-chip" data-filter="system">System</button>
     </div>
 </div>
@@ -217,12 +219,26 @@
     <p style="color: var(--color-text-secondary); font-size: var(--text-sm); font-style: italic;">New notifications will appear here.</p>
 </div>
 
-<!-- Inject Mock Data for JS -->
+<!-- Inject Data for JS -->
 {{ notifications_list|json_script:"notif-data" }}
 
 <script>
-    // Load static mock data
-    let notifications = JSON.parse(document.getElementById('notif-data').textContent);
+    function getCsrfToken() {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        if (cookieValue) return cookieValue;
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        return input ? input.value : '';
+    }
+
+    let notifications = [];
+    try {
+        notifications = JSON.parse(document.getElementById('notif-data').textContent) || [];
+    } catch (e) {
+        notifications = [];
+    }
     let currentFilter = 'all';
     let searchQuery = '';
 
@@ -236,11 +252,9 @@
         const chips = document.querySelectorAll('.notif-chip');
         chips.forEach(chip => {
             chip.addEventListener('click', (e) => {
-                // Update active class
                 chips.forEach(c => c.classList.remove('active'));
                 e.target.classList.add('active');
                 
-                // Update filter and re-render
                 currentFilter = e.target.getAttribute('data-filter');
                 renderTimeline();
             });
@@ -248,52 +262,116 @@
     }
 
     function filterNotifications() {
-        searchQuery = document.getElementById('notif-search').value.toLowerCase();
+        searchQuery = (document.getElementById('notif-search').value || '').toLowerCase();
         renderTimeline();
     }
 
-    function markAsRead(id) {
-        const index = notifications.findIndex(n => n.id === id);
-        if (index > -1) {
-            notifications[index].is_read = true;
-            renderTimeline();
+    function updateHeaderBadge(count) {
+        const notifBadge = document.getElementById('notif-badge');
+        if (notifBadge) {
+            if (count > 0) {
+                notifBadge.textContent = count > 99 ? '99+' : count;
+                notifBadge.style.display = 'inline-flex';
+            } else {
+                notifBadge.style.display = 'none';
+            }
         }
+    }
+
+    function markAsRead(id, event) {
+        if (event) event.stopPropagation();
+        fetch(`/api/notifications/${id}/read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const index = notifications.findIndex(n => String(n.id) === String(id));
+            if (index > -1) {
+                notifications[index].is_read = true;
+                renderTimeline();
+            }
+            if (typeof data.unread_count !== 'undefined') {
+                updateHeaderBadge(data.unread_count);
+            }
+        })
+        .catch(err => console.error('Failed to mark notification read:', err));
     }
     
     function markAllAsRead() {
-        notifications.forEach(n => n.is_read = true);
-        renderTimeline();
+        fetch('/api/notifications/read-all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            notifications.forEach(n => n.is_read = true);
+            renderTimeline();
+            updateHeaderBadge(0);
+        })
+        .catch(err => console.error('Failed to mark all as read:', err));
     }
 
-    function deleteNotification(id) {
-        const el = document.getElementById(id);
+    function deleteNotification(id, event) {
+        if (event) event.stopPropagation();
+        const el = document.getElementById('notif-card-' + id);
         if (el) {
-            // Animation
             el.style.opacity = '0';
             el.style.transform = 'translateX(20px)';
-            
+        }
+
+        fetch(`/api/notifications/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
             setTimeout(() => {
-                notifications = notifications.filter(n => n.id !== id);
+                notifications = notifications.filter(n => String(n.id) !== String(id));
                 renderTimeline();
-            }, 300);
-        } else {
-            notifications = notifications.filter(n => n.id !== id);
+                if (typeof data.unread_count !== 'undefined') {
+                    updateHeaderBadge(data.unread_count);
+                }
+            }, 200);
+        })
+        .catch(err => {
+            console.error('Failed to delete notification:', err);
             renderTimeline();
+        });
+    }
+
+    function handleCardClick(id, targetUrl) {
+        const item = notifications.find(n => String(n.id) === String(id));
+        if (item && !item.is_read) {
+            markAsRead(id);
+        }
+        if (targetUrl && targetUrl !== '#' && targetUrl !== 'javascript:void(0);') {
+            window.location.href = targetUrl;
         }
     }
 
     function renderTimeline() {
         const container = document.getElementById('notif-timeline');
         const emptyState = document.getElementById('notif-empty-state');
+        if (!container || !emptyState) return;
         container.innerHTML = '';
         
         // Filter logic
         let filtered = notifications.filter(n => {
-            // Search filter
-            const matchesSearch = n.title.toLowerCase().includes(searchQuery) || n.desc.toLowerCase().includes(searchQuery);
+            const title = (n.title || '').toLowerCase();
+            const desc = (n.desc || n.message || '').toLowerCase();
+            const matchesSearch = title.includes(searchQuery) || desc.includes(searchQuery);
             if (!matchesSearch) return false;
             
-            // Category/Status filter
             if (currentFilter === 'all') return true;
             if (currentFilter === 'unread') return !n.is_read;
             return n.category === currentFilter;
@@ -306,7 +384,7 @@
             emptyState.style.display = 'none';
         }
 
-        // Group by Date (Group property)
+        // Group by Date safely
         const groups = {
             'Today': [],
             'Yesterday': [],
@@ -314,54 +392,65 @@
         };
         
         filtered.forEach(n => {
-            if (groups[n.group]) groups[n.group].push(n);
+            const grp = (n.group && groups.hasOwnProperty(n.group)) ? n.group : 'Earlier';
+            groups[grp].push(n);
         });
 
         // Render groups
         for (const [groupName, items] of Object.entries(groups)) {
             if (items.length > 0) {
-                // Group Header
                 const header = document.createElement('div');
                 header.className = 'notif-group-title';
                 header.innerText = groupName;
                 container.appendChild(header);
                 
-                // Items
                 items.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'notif-card';
-                    card.id = item.id;
+                    card.id = 'notif-card-' + item.id;
+                    const url = item.target_url || item.action_url || '';
+                    if (url && url !== '#') {
+                        card.style.cursor = 'pointer';
+                    }
                     
                     const unreadDot = !item.is_read ? `<div class="notif-unread-dot"></div>` : '';
+                    const iconName = item.icon || 'bell';
+                    const iconBg = item.icon_bg || 'var(--color-accent-subtle)';
+                    const iconColor = item.icon_color || 'var(--color-accent)';
                     
                     card.innerHTML = `
                         ${unreadDot}
-                        <div class="notif-icon-wrapper" style="background: ${item.icon_bg}; color: ${item.icon_color};">
-                            <i data-lucide="${item.icon}" style="width: 20px; height: 20px;"></i>
+                        <div class="notif-icon-wrapper" style="background: ${iconBg}; color: ${iconColor};">
+                            <i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i>
                         </div>
                         <div class="notif-content">
-                            <div class="notif-title">${item.title}</div>
-                            <div class="notif-desc">${item.desc}</div>
-                            <div class="notif-time">${item.time}</div>
+                            <div class="notif-title">${item.title || ''}</div>
+                            <div class="notif-desc">${item.desc || item.message || ''}</div>
+                            <div class="notif-time">${item.time || ''}</div>
                         </div>
                         <div class="notif-actions">
                             ${!item.is_read ? `
-                            <button type="button" class="notif-action-btn" onclick="markAsRead('${item.id}')" title="Mark as read">
+                            <button type="button" class="notif-action-btn" onclick="markAsRead('${item.id}', event)" title="Mark as read">
                                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                             </button>
                             ` : ''}
-                            <button type="button" class="notif-action-btn delete" onclick="deleteNotification('${item.id}')" title="Delete">
+                            <button type="button" class="notif-action-btn delete" onclick="deleteNotification('${item.id}', event)" title="Delete">
                                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                             </button>
                         </div>
                     `;
+
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.notif-actions')) return;
+                        handleCardClick(item.id, url);
+                    });
+
                     container.appendChild(card);
                 });
             }
         }
         
-        // Re-initialize icons for newly added elements
-        if (window.lucide) {
+        if (window.lucide && typeof lucide.createIcons === 'function') {
             lucide.createIcons();
         }
     }
