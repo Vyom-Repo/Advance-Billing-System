@@ -1,0 +1,44 @@
+{% comment %}
+pdf/watermark_snippet.html
+Advance Billing FREE-tier watermark.
+
+Included via: {% if show_watermark %}{% include "pdf/watermark_snippet.html" %}{% endif %}
+
+Positioning — WeasyPrint fixed-element behaviour:
+  position:fixed is relative to the PHYSICAL page, not the content area.
+
+  Letterhead OFF:
+    @page margin is ~0 or small, so top:6px lands at the top of content. ✓
+
+  Letterhead ON:
+    @page sets margin-top = layout_frame.body_padding_top (e.g. 30mm).
+    The letterhead image fills that margin area (position:fixed; top:-Xmm).
+    Without adjustment, top:6px would sit inside the letterhead image.
+    Fix: top = calc(body_padding_top + 6px) — aligns watermark with the
+    top of the content area, immediately below the letterhead.
+
+z-index: 9999 places it above the letterhead background (z-index: -1000)
+and all normal content.
+{% endcomment %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,400&display=swap');
+
+    .ab-watermark {
+        position: fixed;
+        {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
+        top: {{ layout_frame.body_padding_top|default:"30mm" }};
+        {% else %}
+        top: 6px;
+        {% endif %}
+        right: 10px;
+        font-family: 'Lora', Georgia, 'Times New Roman', serif;
+        font-weight: 400;
+        font-style: italic;
+        font-size: 8px;
+        color: #000000;
+        z-index: 9999;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+</style>
+<div class="ab-watermark">Made with ❤️ in Advance Billing by Vyom</div>

@@ -722,6 +722,7 @@
 </head>
 
 <body>
+{% if show_watermark %}{% include "pdf/watermark_snippet.html" %}{% endif %}
     {% if layout_frame.has_letterhead_background and layout_frame.background_image_url %}
     <div class="letterhead-bg">
         <img src="{{ layout_frame.background_image_url }}" alt="Letterhead Background">

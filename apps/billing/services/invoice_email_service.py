@@ -302,8 +302,11 @@ class InvoiceEmailService:
             filename = f"Invoice_{inv_num}.pdf"
             email.attach(filename=filename, content=pdf_bytes, mimetype="application/pdf")
 
-            # 4. Dispatch Email
-            email.send(fail_silently=False)
+            # 4. Dispatch Email (simulated safely in Demo Mode)
+            if getattr(org.owner, "username", "") == "demo_user" or (user and getattr(user, "username", "") == "demo_user"):
+                logger.info("Demo Mode: Simulated email sending for invoice %s", inv_num)
+            else:
+                email.send(fail_silently=False)
 
             # 5. Audit Success Update
             invoice.email_sent = True

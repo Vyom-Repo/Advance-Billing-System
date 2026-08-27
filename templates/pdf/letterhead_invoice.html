@@ -253,6 +253,7 @@
     </style>
 </head>
 <body>
+{% if show_watermark %}{% include "pdf/watermark_snippet.html" %}{% endif %}
 
 <table class="master-wrapper-table">
     <thead>

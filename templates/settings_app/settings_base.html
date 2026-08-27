@@ -153,6 +153,7 @@
                     <a href="{% url 'settings_app:notifications' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
                         <i data-lucide="bell"></i> Notifications
                     </a>
+                    {% if not is_demo_mode %}
                     <a href="{% url 'settings_app:data_management' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'data_management' %}active{% endif %}">
                         <i data-lucide="database"></i> Data Management
                     </a>
@@ -163,6 +164,7 @@
                     <a href="{% url 'settings_app:danger_zone' %}" class="settings-nav-item {% if request.resolver_match.url_name == 'danger_zone' %}active{% endif %}">
                         <i data-lucide="trash-2" style="color:var(--color-error);"></i> Danger Zone
                     </a>
+                    {% endif %}
                 </nav>
                 
                 <!-- Right Content Area -->
@@ -195,22 +197,6 @@
             });
         }
 
-        // Toggle user dropdown
-        const userBtn = document.getElementById('user-menu-btn');
-        const userDropdown = document.getElementById('user-menu-dropdown');
-        if (userBtn && userDropdown) {
-            userBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('show');
-                userDropdown.classList.toggle('active');
-            });
-            document.addEventListener('click', (e) => {
-                if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                    userDropdown.classList.remove('show');
-                    userDropdown.classList.remove('active');
-                }
-            });
-        }
         
         lucide.createIcons();
     });

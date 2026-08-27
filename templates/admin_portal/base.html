@@ -1,0 +1,115 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        height: 64px;
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 var(--space-6);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .admin-brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        text-decoration: none;
+        color: var(--color-text-primary);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-lg);
+    }
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: var(--font-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+    .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+    }
+    .admin-user-email {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+    .admin-logout-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        color: var(--color-text-secondary);
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+        background: transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+    .admin-logout-btn:hover {
+        color: var(--color-error);
+        border-color: rgba(225, 29, 72, 0.3);
+        background: rgba(225, 29, 72, 0.08);
+    }
+    .admin-container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: var(--space-8) var(--space-6);
+    }
+</style>
+{% block admin_css %}{% endblock %}
+{% endblock %}
+
+{% block layout %}
+{% if request.user.is_authenticated and request.user.is_staff or request.user.is_superuser %}
+<header class="admin-header">
+    <a href="{% url 'admin_portal:dashboard' %}" class="admin-brand">
+        {% include "common/logo.html" with style="width: 24px; height: 24px; color: var(--color-brand-saffron, #FF7A00);" %}
+        <span>{{ APP_NAME }}</span>
+        <span class="admin-badge"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> Admin Portal</span>
+    </a>
+
+    <div class="admin-user-info">
+        <span class="admin-user-email">{{ request.user.email }}</span>
+        <form method="post" action="{% url 'admin_portal:logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="admin-logout-btn">
+                <i data-lucide="log-out" style="width:14px;height:14px;"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+{% endif %}
+
+<main class="admin-container">
+    {% block admin_content %}{% endblock %}
+</main>
+
+{% include "base/flash_messages.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% block admin_js %}{% endblock %}
+{% endblock %}

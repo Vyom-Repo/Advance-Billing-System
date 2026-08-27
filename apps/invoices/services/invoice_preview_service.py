@@ -248,6 +248,9 @@ class InvoicePreviewService:
             "customer":     bill_data.get("customer", {}),
             "items":        bill_data.get("items", []),
             "company":      bill_data.get("company", {}),
+            # Watermark: True for FREE accounts, False for PAID.
+            # Decision is purely server-side — org.plan read from DB.
+            "show_watermark": (org is not None and getattr(org, "plan", "free") == "free"),
         }
 
         # Preserve user's selected template choice regardless of whether letterhead is enabled.
@@ -382,6 +385,8 @@ class InvoicePreviewService:
             # --- Legacy keys (used by old/partial templates) ---
             "invoice":      invoice,
             "prefs":        config,
+            # Watermark: True for FREE accounts, False for PAID.
+            "show_watermark": (org_obj is not None and getattr(org_obj, "plan", "free") == "free"),
         }
         return context
 

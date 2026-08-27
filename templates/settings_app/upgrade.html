@@ -1,0 +1,286 @@
+{% extends "settings_app/settings_base.html" %}
+{% load static %}
+
+{% block settings_title %}Upgrade Account{% endblock %}
+
+{% block settings_css %}
+<style>
+    .upgrade-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        max-width: 560px;
+    }
+
+    .upgrade-icon-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-lg);
+        background: rgba(217, 119, 6, 0.10);
+        margin-bottom: var(--space-5);
+    }
+    .upgrade-icon-wrap svg {
+        width: 26px;
+        height: 26px;
+        color: #d97706;
+    }
+
+    .upgrade-title {
+        font-size: var(--text-xl);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2);
+    }
+    .upgrade-desc {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        line-height: 1.65;
+        margin-bottom: var(--space-5);
+    }
+
+    .upgrade-detail-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 var(--space-6) 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+    .upgrade-detail-list li {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+    .upgrade-detail-list li svg {
+        width: 16px;
+        height: 16px;
+        color: #16a34a;
+        flex-shrink: 0;
+    }
+
+    .upgrade-divider {
+        height: 1px;
+        background: var(--color-border);
+        margin: var(--space-6) 0;
+    }
+
+    .upgrade-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-6);
+        background: #d97706;
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        cursor: pointer;
+        transition: background var(--transition-fast);
+        text-decoration: none;
+    }
+    .upgrade-btn:hover {
+        background: #b45309;
+        color: #fff;
+    }
+    .upgrade-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .upgrade-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Already submitted state */
+    .upgrade-submitted-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-5);
+        border-radius: var(--radius-md);
+        background: rgba(22, 163, 74, 0.08);
+        border: 1px solid rgba(22, 163, 74, 0.2);
+        color: #16a34a;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+    }
+    .upgrade-submitted-badge svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Paid state */
+    .upgrade-paid-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-5);
+        border-radius: var(--radius-md);
+        background: rgba(22, 163, 74, 0.08);
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        color: #15803d;
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+    }
+    .upgrade-paid-badge svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .upgrade-note {
+        margin-top: var(--space-3);
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+    }
+
+    /* ── Watermark preview ───────────────────────────────────────────
+       Renders the exact watermark spec so the user sees precisely
+       what will appear on their invoice.
+       Font: Lora 400 italic  |  Size: 8px  |  Color: #000000
+    ───────────────────────────────────────────────────────────────── */
+    .watermark-preview-wrap {
+        margin-bottom: var(--space-5);
+    }
+    .watermark-preview-label {
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: var(--font-medium);
+        margin-bottom: var(--space-2);
+    }
+    .watermark-preview {
+        display: inline-flex;
+        align-items: center;
+        font-family: 'Lora', Georgia, 'Times New Roman', serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 8px;
+        color: #000000;
+        /* Simulate the white invoice paper corner the watermark sits on */
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        border-radius: 4px;
+        padding: 6px 10px;
+        /* Keep the emoji as dark/black as the browser allows */
+        -webkit-font-smoothing: antialiased;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block settings_content %}
+<div class="settings-card">
+    <div class="settings-card-header">
+        <div class="settings-card-title">Account Plan</div>
+        <div class="settings-card-description">Manage your Advance Billing plan.</div>
+    </div>
+
+    <div class="upgrade-card" style="border: none; padding: 0; background: transparent; max-width: 100%;">
+
+        {% if is_paid or org.plan == 'paid' or latest_request and latest_request.status == 'approved' %}
+        <!-- ═══════════════════════ PAID STATE ═══════════════════════ -->
+        <div class="upgrade-icon-wrap" style="background: rgba(22,163,74,0.10);">
+            <i data-lucide="check-circle-2" style="width:26px;height:26px;color:#16a34a;"></i>
+        </div>
+        <div class="upgrade-title">Account Upgraded</div>
+        <div class="upgrade-desc">
+            Your Advance Billing watermark has been removed from all invoices.
+            Thank you for your support!
+        </div>
+        <div class="upgrade-paid-badge">
+            <i data-lucide="sparkles"></i>
+            Plan: ✨ Advance Billing Pro — Watermark removed
+        </div>
+
+        {% else %}
+        <!-- ═══════════════════════ FREE STATE ════════════════════════ -->
+        <div class="upgrade-icon-wrap">
+            <i data-lucide="sparkles"></i>
+        </div>
+        <div class="upgrade-title">Remove the Advance Billing Watermark</div>
+        <div class="upgrade-desc">
+            Upgrade your account to generate invoices without the Advance Billing watermark.
+            Your invoices will look completely clean and professional — no branding from us.
+        </div>
+
+        <!-- Watermark preview -->
+        <div class="watermark-preview-wrap">
+            <div class="watermark-preview-label">Current watermark on your invoices</div>
+            <span class="watermark-preview">Made with ❤️ in Advance Billing by Vyom</span>
+        </div>
+
+        <ul class="upgrade-detail-list">
+            <li>
+                <i data-lucide="check"></i>
+                No watermark on any invoice PDF
+            </li>
+            <li>
+                <i data-lucide="check"></i>
+                Applies to all invoice templates
+            </li>
+            <li>
+                <i data-lucide="check"></i>
+                Applies to previews, downloads, and emailed invoices
+            </li>
+            <li>
+                <i data-lucide="check"></i>
+                No change to any other functionality
+            </li>
+        </ul>
+
+        <div class="upgrade-divider"></div>
+
+        {% if has_pending_request %}
+        <!-- Request already submitted -->
+        <div class="upgrade-submitted-badge">
+            <i data-lucide="clock"></i>
+            Upgrade request submitted — we'll contact you shortly.
+        </div>
+        <p class="upgrade-note">
+            Need help? Email us at
+            <a href="mailto:advancebillingbyvyom@gmail.com" style="color: var(--color-text-secondary);">advancebillingbyvyom@gmail.com</a>
+        </p>
+
+        {% else %}
+        <!-- Request form -->
+        <form method="post" action="{% url 'settings_app:upgrade' %}" id="upgrade-request-form">
+            {% csrf_token %}
+            <button type="submit" class="upgrade-btn" id="upgrade-submit-btn">
+                <i data-lucide="send"></i>
+                Request Upgrade
+            </button>
+        </form>
+        <p class="upgrade-note">
+            This sends a request to the Advance Billing team. There is no automatic payment — we'll contact you
+            at <strong>{{ request.user.email }}</strong> to discuss next steps.
+        </p>
+        {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block settings_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('upgrade-request-form');
+    var btn = document.getElementById('upgrade-submit-btn');
+    if (form && btn) {
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i> Sending…';
+            lucide.createIcons();
+        });
+    }
+});
+</script>
+{% endblock %}

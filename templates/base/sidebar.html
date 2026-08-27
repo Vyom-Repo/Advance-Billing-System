@@ -28,7 +28,7 @@
         <div class="nav-section">Inventory</div>
         <a href="{% url 'products:index' %}" class="nav-item {% active_link request 'products:index' %}">
             <i data-lucide="package"></i>
-            <span>Products & Services</span>
+            <span>Products &amp; Services</span>
         </a>
 
         <div class="nav-section">Configuration</div>
@@ -40,6 +40,23 @@
             <i data-lucide="settings"></i>
             <span>Settings</span>
         </a>
+
+        <!-- Plan / Upgrade — shown only when user has an organization -->
+        {% if user_org %}
+            {% if user_org.plan == 'free' %}
+            <div class="nav-section">Account</div>
+            <a href="{% url 'settings_app:upgrade' %}" class="nav-item nav-item--upgrade {% active_link request 'settings_app:upgrade' %}">
+                <i data-lucide="sparkles"></i>
+                <span>Upgrade / Remove Watermark</span>
+            </a>
+            {% elif user_org.plan == 'paid' %}
+            <div class="nav-section">Account</div>
+            <div class="nav-item nav-item--paid" title="Your account is on Advance Billing Pro — no watermark on invoices.">
+                <i data-lucide="sparkles" style="color: #d97706;"></i>
+                <span>Plan: ✨ Advance Billing Pro</span>
+            </div>
+            {% endif %}
+        {% endif %}
     </nav>
 </aside>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>

@@ -18,6 +18,7 @@
         <div class="nav-links">
             <a href="#features" class="nav-link">Features</a>
             <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="{% url 'demo:entry' %}" class="btn btn-ghost" style="color: #d97706;"><i data-lucide="play-circle" style="width:14px;height:14px;display:inline;margin-right:4px;"></i> Try Live Demo</a>
             <a href="{% url 'auth:login' %}" class="btn btn-ghost">Log in</a>
             <a href="{% url 'auth:signup' %}" class="btn btn-primary" style="padding: var(--space-2) var(--space-5); border-radius: var(--radius-full);">Start Free</a>
         </div>
@@ -49,9 +50,12 @@
             Generate compliant GST <span style="color: #ffffff; font-weight: 500;">Invoices</span>, manage clients, and trigger instant <span style="color: #ffffff; font-weight: 500;">Automation</span> without the weight of legacy ERP software.
         </p>
         
-        <div class="hero-actions animate-on-scroll delay-300">
-            <a href="{% url 'auth:signup' %}" class="btn btn-primary btn-xl" style="border-radius: var(--radius-full); font-size: var(--text-md); padding: var(--space-4) var(--space-10);">
+        <div class="hero-actions animate-on-scroll delay-300" style="display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; align-items: center;">
+            <a href="{% url 'auth:signup' %}" class="btn btn-primary btn-xl" style="border-radius: var(--radius-full); font-size: var(--text-md); padding: var(--space-4) var(--space-8);">
                 Start Billing Free <i data-lucide="arrow-right" style="width: 20px; height: 20px;"></i>
+            </a>
+            <a href="{% url 'demo:entry' %}" class="btn btn-secondary btn-xl" style="border-radius: var(--radius-full); font-size: var(--text-md); padding: var(--space-4) var(--space-8); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,157,46,0.3); color: #ffffff;">
+                <i data-lucide="play-circle" style="width: 20px; height: 20px; color: #d97706;"></i> Try Live Demo
             </a>
         </div>
         

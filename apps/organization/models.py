@@ -12,6 +12,11 @@ class SignatureMode(models.TextChoices):
     AUTHORIZED_SIGNATORY = "authorized_signatory", "Authorized Signatory"
 
 
+class PlanTier(models.TextChoices):
+    FREE = "free", "Free"
+    PAID = "paid", "Advance Billing Pro"
+
+
 class Organization(TimeStampedModel):
     """
     Represents the business entity using the Advance Billing platform.
@@ -70,8 +75,29 @@ class Organization(TimeStampedModel):
         help_text="Show disclaimer stating invoice is computer-generated and does not require signature."
     )
 
+    # Plan / Billing Status
+    plan = models.CharField(
+        max_length=10,
+        choices=PlanTier.choices,
+        default=PlanTier.FREE,
+        help_text="Account plan: Free or Paid. Paid accounts do not receive the Advance Billing watermark on invoices."
+    )
+
     # Terms & Conditions
     terms_and_conditions = models.TextField(blank=True, default="", help_text="Default Terms & Conditions for invoices.")
+
+    # Demo tracking
+    is_demo = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True if this is a temporary disposable demo organization."
+    )
+    demo_session_id = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="Unique session ID owning this temporary demo organization."
+    )
 
     def __str__(self) -> str:
         return self.business_name
@@ -136,4 +162,51 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
         instance.signature.delete(save=False)
     if instance.qr_code:
         instance.qr_code.delete(save=False)
+
+
+class RequestStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    APPROVED = "approved", "Approved"
+    REJECTED = "rejected", "Rejected"
+
+
+class UpgradeRequest(TimeStampedModel):
+    """
+    Tracks customer upgrade requests to remove the watermark.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="upgrade_requests"
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="upgrade_requests"
+    )
+    requester_name = models.CharField(max_length=255)
+    requester_email = models.EmailField()
+    status = models.CharField(
+        max_length=20,
+        choices=RequestStatus.choices,
+        default=RequestStatus.PENDING,
+        db_index=True
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_upgrades"
+    )
+    admin_note = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Upgrade Request"
+        verbose_name_plural = "Upgrade Requests"
+
+    def __str__(self) -> str:
+        return f"{self.organization.business_name} ({self.get_status_display()})"
 

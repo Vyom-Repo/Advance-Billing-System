@@ -247,3 +247,67 @@ class EmailService:
         except Exception as e:
             logger.error("Failed to send OTP email to %s: %s", recipient_email, str(e), exc_info=True)
             return False
+
+    @classmethod
+    def send_upgrade_request_email(cls, user, org) -> bool:
+        """
+        Sends an upgrade request notification to the Advance Billing administrator.
+
+        Parameters
+        ----------
+        user : User instance requesting the upgrade
+        org  : Organization instance
+
+        Returns
+        -------
+        bool — True if sent successfully, False otherwise
+        """
+        from django.utils import timezone as tz
+
+        admin_email = getattr(settings, "SUPPORT_EMAIL", None)
+        if not admin_email:
+            # Fall back to parsing DEFAULT_FROM_EMAIL or SERVER_EMAIL
+            from email.utils import parseaddr
+            raw = getattr(settings, "DEFAULT_FROM_EMAIL", "") or getattr(settings, "SERVER_EMAIL", "")
+            _, admin_email = parseaddr(str(raw))
+        if not admin_email:
+            admin_email = "advancebillingbyvyom@gmail.com"
+
+        user_name = user.get_full_name().strip() or (user.first_name or "").strip() or user.email.split("@")[0]
+        org_name = org.business_name if org else "—"
+        user_email = user.email or "—"
+        timestamp = tz.localtime(tz.now()).strftime("%d %b %Y, %I:%M %p %Z")
+
+        subject = f"[Advance Billing] Upgrade Request — {org_name}"
+        body = (
+            f"An upgrade request has been submitted.\n\n"
+            f"User Name     : {user_name}\n"
+            f"User Email    : {user_email}\n"
+            f"Organisation  : {org_name}\n"
+            f"Current Plan  : Free\n"
+            f"Request       : Upgrade to Paid (Remove Watermark)\n"
+            f"Submitted At  : {timestamp}\n\n"
+            f"---\n"
+            f"To upgrade this account, set Organization.plan = 'paid' via the Django admin.\n"
+        )
+
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[admin_email],
+                fail_silently=False,
+            )
+            logger.info(
+                "Upgrade request email sent to admin %s for user %s (org: %s)",
+                admin_email, user_email, org_name
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                "Failed to send upgrade request email for user %s: %s",
+                user_email, str(e), exc_info=True
+            )
+            return False

@@ -33,24 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. User Dropdown Menu
-    const userMenuBtn = document.getElementById('user-menu-btn');
-    const userMenuDropdown = document.getElementById('user-menu-dropdown');
-    
-    if (userMenuBtn && userMenuDropdown) {
-        userMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userMenuDropdown.classList.toggle('show');
-        });
-        
-        // Close when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-                userMenuDropdown.classList.remove('show');
-            }
-        });
-    }
-
     // 3. Initialize Chart.js (if canvas exists)
     const chartCanvas = document.getElementById('revenueChart');
     if (chartCanvas && typeof Chart !== 'undefined') {

@@ -145,6 +145,8 @@ LOCAL_APPS = [
     "apps.billing",
     "apps.organization",
     "apps.settings_app",
+    "apps.admin_portal",
+    "apps.demo",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -191,6 +193,7 @@ TEMPLATES = [
                 "apps.common.context_processors.theme_context",
                 "apps.common.context_processors.app_context",
                 "apps.organization.context_processors.organization_context",
+                "apps.demo.context_processors.demo_context",
             ],
         },
     },

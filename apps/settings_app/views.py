@@ -626,6 +626,10 @@ class SettingsDataManagementView(BillingLoginRequiredMixin, PageTitleMixin, View
         return org
 
     def get(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Data Management is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
+
         org = self.get_organization(request)
         if not org:
             messages.error(request, "Organization not found for current user.")
@@ -701,6 +705,10 @@ class SettingsDataExportView(BillingLoginRequiredMixin, View):
     """
 
     def get(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Data Export is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
+
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.models import OrganizationBackupLog, BackupTrigger, BackupStatus, DataManagementAction  # noqa: PLC0415
         from apps.settings_app.services.backup_service import OrganizationBackupService, ExportDatasetTooLargeError  # noqa: PLC0415
@@ -770,6 +778,12 @@ class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
         from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
 
         is_json_request = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
+
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            if is_json_request:
+                return JsonResponse({"success": False, "message": "Data Backup Mail is disabled in Demo Mode."}, status=403)
+            messages.info(request, "Data Backup Mail is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
 
         if getattr(request, "limited", False):
             return build_ratelimit_429_response(
@@ -871,6 +885,10 @@ class SettingsExcelExportView(BillingLoginRequiredMixin, View):
     """
 
     def get(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Excel Data Export is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
+
         if getattr(request, "limited", False):
             from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
             return build_ratelimit_429_response(
@@ -931,6 +949,9 @@ class SettingsExcelImportValidateView(BillingLoginRequiredMixin, View):
     MAX_BACKUP_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024  # 25 MB
 
     def post(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            return JsonResponse({"success": False, "message": "Data Import is disabled in Demo Mode."}, status=403)
+
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.services.excel_restore_service import ExcelRestoreService  # noqa: PLC0415
 
@@ -967,6 +988,9 @@ class SettingsExcelImportRestoreView(BillingLoginRequiredMixin, View):
     MAX_BACKUP_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024  # 25 MB
 
     def post(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            return JsonResponse({"success": False, "message": "Data Restore operations are disabled in Demo Mode."}, status=403)
+
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.services.excel_restore_service import ExcelRestoreService  # noqa: PLC0415
         from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
@@ -1024,6 +1048,10 @@ class SettingsDangerZoneView(BillingLoginRequiredMixin, View):
         return org
 
     def get(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Danger Zone is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
+
         org = self.get_organization(request)
         if not org:
             messages.error(request, "Organization not found for current user.")
@@ -1056,6 +1084,10 @@ class SettingsDeleteAccountView(BillingLoginRequiredMixin, View):
         return redirect("settings_app:danger_zone")
 
     def post(self, request, *args, **kwargs):
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Account deletion is disabled in Demo Mode.")
+            return redirect("settings_app:profile")
+
         from django.contrib.auth import logout
         from django.db import transaction
         from apps.organization.models import Organization  # noqa: PLC0415
@@ -1124,25 +1156,31 @@ class SettingsDeleteAccountView(BillingLoginRequiredMixin, View):
                     },
                 )
 
+                from apps.organization.models import UpgradeRequest, BankAccount  # noqa: PLC0415
+
                 # Delete dependent records in dependency order
                 InvoiceLine.objects.filter(invoice__organization=org).delete()
                 Invoice.objects.filter(organization=org).delete()
                 Customer.objects.filter(organization=org).delete()
                 Product.objects.filter(organization=org).delete()
-                Notification.objects.filter(organization=org).delete()
+                Notification.objects.filter(user=user).delete()
                 OrganizationBackupSetting.objects.filter(organization=org).delete()
                 OrganizationBackupLog.objects.filter(organization=org).delete()
+                DataManagementAuditLog.objects.filter(organization=org).delete()
+                UpgradeRequest.objects.filter(organization=org).delete()
+                BankAccount.objects.filter(organization=org).delete()
                 UserBillPreference.objects.filter(user=user).delete()
 
-                # Delete Organization
-                org.delete()
-
-                # Logout user session cleanly
+                # 1. Logout user session cleanly FIRST
                 logout(request)
+
+                # 2. Delete Organization and User records inside transaction
+                org.delete()
+                user.delete()
 
             messages.success(
                 request,
-                f"Your organization '{business_name}' and all associated data have been permanently deleted."
+                f"Your account '{business_name}' and all associated data have been permanently deleted."
             )
             return redirect("auth:login")
 
@@ -1154,3 +1192,91 @@ class SettingsDeleteAccountView(BillingLoginRequiredMixin, View):
             return redirect("settings_app:data_management")
 
 
+# ---------------------------------------------------------------------------
+# Phase 1 & Phase 2 — Upgrade / Remove Watermark
+# ---------------------------------------------------------------------------
+
+class SettingsUpgradeView(BillingLoginRequiredMixin, PageTitleMixin, View):
+    """
+    GET  — Renders the upgrade request page.
+           Reads DB UpgradeRequest state to show pending or approved/upgraded status.
+    POST — Creates a persistent UpgradeRequest record in the DB and notifies admin.
+           Prevents duplicate requests if a pending request already exists.
+    """
+    page_title = "Upgrade Account — Advance Billing"
+
+    def get(self, request, *args, **kwargs):
+        from apps.organization.models import UpgradeRequest, RequestStatus, PlanTier  # noqa: PLC0415
+
+        org = getattr(request.user, "organization", None)
+        latest_request = None
+        has_pending_request = False
+        is_paid = False
+
+        if org:
+            has_pending_request = UpgradeRequest.objects.filter(
+                organization=org, status=RequestStatus.PENDING
+            ).exists()
+            latest_request = UpgradeRequest.objects.filter(organization=org).order_by("-created_at").first()
+            
+            if getattr(org, "plan", "free") == PlanTier.PAID or (latest_request and latest_request.status == RequestStatus.APPROVED):
+                is_paid = True
+                if getattr(org, "plan", "free") != PlanTier.PAID:
+                    org.plan = PlanTier.PAID
+                    org.save(update_fields=["plan"])
+
+        context = {
+            "page_title": self.page_title,
+            "org": org,
+            "has_pending_request": has_pending_request,
+            "latest_request": latest_request,
+            "is_paid": is_paid,
+        }
+        return render(request, "settings_app/upgrade.html", context)
+
+    def post(self, request, *args, **kwargs):
+        from apps.common.services.email_service import EmailService  # noqa: PLC0415
+        from apps.organization.models import UpgradeRequest, RequestStatus  # noqa: PLC0415
+
+        if request.session.get("is_demo_mode") or request.user.username == "demo_user":
+            messages.info(request, "Plan upgrading is disabled in Demo Mode. Create a free account to request plan upgrades.")
+            return redirect("settings_app:upgrade")
+
+        org = getattr(request.user, "organization", None)
+        if not org:
+            messages.error(request, "Please set up your Organization profile before requesting an upgrade.")
+            return redirect("organization:index")
+
+        # If account is already PAID, notify user
+        if getattr(org, "plan", "free") == "paid":
+            messages.info(request, "Your account is already on the Paid plan. Watermark is disabled.")
+            return redirect("settings_app:upgrade")
+
+        # Prevent duplicate pending requests in DB
+        existing_pending = UpgradeRequest.objects.filter(
+            organization=org, status=RequestStatus.PENDING
+        ).first()
+
+        if existing_pending:
+            messages.info(request, "Your upgrade request has already been submitted and is currently pending review.")
+            return redirect("settings_app:upgrade")
+
+        # Create persistent UpgradeRequest record
+        requester_name = request.user.get_full_name().strip() or (request.user.first_name or "").strip() or request.user.email.split("@")[0]
+        UpgradeRequest.objects.create(
+            user=request.user,
+            organization=org,
+            requester_name=requester_name,
+            requester_email=request.user.email,
+            status=RequestStatus.PENDING,
+        )
+
+        # Notify admin via email
+        EmailService.send_upgrade_request_email(user=request.user, org=org)
+
+        messages.success(
+            request,
+            "Your upgrade request has been submitted. We'll contact you shortly."
+        )
+
+        return redirect("settings_app:upgrade")

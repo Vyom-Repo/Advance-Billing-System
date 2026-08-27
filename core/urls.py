@@ -41,9 +41,9 @@ handler500 = "apps.common.views.error_500"
 
 urlpatterns = [
     # =========================================================================
-    # Admin
-    # =========================================================================
     path("admin/", admin.site.urls),
+    path("admin-portal/", include("apps.admin_portal.urls", namespace="admin_portal")),
+    path("demo/", include("apps.demo.urls", namespace="demo")),
 
     # =========================================================================
     # Public Landing Pages

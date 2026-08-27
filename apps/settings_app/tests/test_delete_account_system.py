@@ -181,13 +181,15 @@ class DeleteAccountSystemTests(TestCase):
         res = self.client_owner1.post(self.url, {"password": "Password123!", "confirmation_phrase": "DELETE"})
         self.assertRedirects(res, reverse("auth:login"))
 
-        # Verify Organization and dependent records are deleted
+        # Verify Organization, User, and dependent records are deleted
         self.assertFalse(Organization.objects.filter(id=self.org1.id).exists())
+        self.assertFalse(User.objects.filter(id=self.owner1.id).exists())
         self.assertFalse(Customer.objects.filter(id=self.customer1.id).exists())
         self.assertFalse(Product.objects.filter(id=self.product1.id).exists())
         self.assertFalse(Invoice.objects.filter(id=self.invoice1.id).exists())
         self.assertFalse(InvoiceLine.objects.filter(id=self.line1.id).exists())
         self.assertFalse(OrganizationBackupSetting.objects.filter(organization_id=self.org1.id).exists())
 
-        # Verify Org 2 remains completely untouched
+        # Verify Org 2 and Owner 2 remain completely untouched
         self.assertTrue(Organization.objects.filter(id=self.org2.id).exists())
+        self.assertTrue(User.objects.filter(id=self.owner2.id).exists())

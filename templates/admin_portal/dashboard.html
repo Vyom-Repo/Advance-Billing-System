@@ -1,0 +1,575 @@
+{% extends "admin_portal/base.html" %}
+
+{% block admin_css %}
+<style>
+    .dashboard-page-header {
+        margin-bottom: var(--space-6);
+    }
+    .dashboard-title {
+        font-size: var(--text-2xl);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-1);
+    }
+    .dashboard-subtitle {
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-4);
+        margin-bottom: var(--space-8);
+    }
+    .stat-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+    }
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .stat-icon--amber {
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+    }
+    .stat-icon--green {
+        background: rgba(22, 163, 74, 0.12);
+        color: #16a34a;
+    }
+    .stat-icon--blue {
+        background: rgba(37, 99, 235, 0.12);
+        color: #2563eb;
+    }
+    .stat-value {
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--color-text-primary);
+        line-height: 1;
+    }
+    .stat-label {
+        font-size: var(--text-xs);
+        color: var(--color-text-secondary);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-bottom: var(--space-4);
+        flex-wrap: wrap;
+    }
+    .filter-tabs {
+        display: flex;
+        gap: var(--space-2);
+    }
+    .filter-tab {
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-md);
+        font-size: var(--text-xs);
+        font-weight: var(--font-medium);
+        color: var(--color-text-secondary);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+    .filter-tab:hover {
+        color: var(--color-text-primary);
+        border-color: var(--color-border-hover);
+    }
+    .filter-tab.active {
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+        border-color: rgba(217, 119, 6, 0.3);
+        font-weight: var(--font-semibold);
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 260px;
+    }
+    .search-input {
+        width: 100%;
+        padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--text-xs);
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #d97706;
+    }
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        color: var(--color-text-muted);
+    }
+
+    /* Requests Table */
+    .table-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+    }
+    .requests-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    .requests-table th {
+        background: rgba(255, 255, 255, 0.02);
+        padding: var(--space-3) var(--space-4);
+        font-size: 11px;
+        font-weight: var(--font-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .requests-table td {
+        padding: var(--space-4);
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+        border-bottom: 1px solid var(--color-border);
+        vertical-align: middle;
+    }
+    .requests-table tr:last-child td {
+        border-bottom: none;
+    }
+    .requests-table tr:hover td {
+        background: rgba(255, 255, 255, 0.015);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: var(--font-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .status-badge--pending {
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+        border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+    .status-badge--approved {
+        background: rgba(22, 163, 74, 0.12);
+        color: #16a34a;
+        border: 1px solid rgba(22, 163, 74, 0.25);
+    }
+    .status-badge--rejected {
+        background: rgba(225, 29, 72, 0.12);
+        color: #e11d48;
+        border: 1px solid rgba(225, 29, 72, 0.25);
+    }
+
+    .btn-review {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: #d97706;
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        cursor: pointer;
+        transition: background var(--transition-fast);
+    }
+    .btn-review:hover {
+        background: #b45309;
+    }
+
+    .btn-view-only {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: transparent;
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-xs);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+    }
+
+    /* Modal Overlay & Styling */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-4);
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        max-width: 520px;
+        width: 100%;
+        box-shadow: var(--shadow-xl);
+    }
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .modal-title {
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--color-text-primary);
+    }
+    .modal-close-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: var(--space-2) var(--space-4);
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-5);
+    }
+    .detail-label {
+        color: var(--color-text-muted);
+        font-weight: var(--font-medium);
+    }
+    .detail-val {
+        color: var(--color-text-primary);
+    }
+
+    .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--space-3);
+        margin-top: var(--space-5);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border);
+    }
+    .btn-approve {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-5);
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+        font-weight: var(--font-semibold);
+        cursor: pointer;
+    }
+    .btn-approve:hover {
+        background: #15803d;
+    }
+    .btn-cancel {
+        padding: var(--space-3) var(--space-4);
+        background: transparent;
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+        cursor: pointer;
+    }
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="dashboard-page-header">
+    <h1 class="dashboard-title">Upgrade Requests & Watermark Management</h1>
+    <p class="dashboard-subtitle">Review customer upgrade requests and approve watermark removal for paid accounts.</p>
+</div>
+
+<!-- KPI Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon stat-icon--amber">
+            <i data-lucide="clock" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-label">Pending Requests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon--green">
+            <i data-lucide="check-circle-2" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ approved_count }}</div>
+            <div class="stat-label">Approved / Paid Accounts</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon--blue">
+            <i data-lucide="inbox" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_count }}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter & Search Bar -->
+<div class="filter-bar">
+    <div class="filter-tabs">
+        <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All Requests</a>
+        <a href="?status=pending{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab {% if status_filter == 'pending' %}active{% endif %}">Pending ({{ pending_count }})</a>
+        <a href="?status=approved{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+        <a href="?status=rejected{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-tab {% if status_filter == 'rejected' %}active{% endif %}">Rejected</a>
+    </div>
+
+    <form method="get" action="." class="search-box">
+        {% if status_filter != 'all' %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" name="q" value="{{ search_query }}" class="search-input" placeholder="Search by name, email, org…">
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="table-card">
+    <table class="requests-table">
+        <thead>
+            <tr>
+                <th>Organization</th>
+                <th>Requester</th>
+                <th>Requested At</th>
+                <th>Current Plan</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in upgrade_requests %}
+            <tr>
+                <td>
+                    <strong style="color: var(--color-text-primary);">{{ req.organization.business_name }}</strong>
+                </td>
+                <td>
+                    <div>{{ req.requester_name }}</div>
+                    <div style="font-size: 11px; color: var(--color-text-muted);">{{ req.requester_email }}</div>
+                </td>
+                <td>{{ req.created_at|date:"d M Y, h:i A" }}</td>
+                <td>
+                    {% if req.organization.plan == 'paid' %}
+                    <span style="color: #16a34a; font-weight: 600;">✨ Advance Billing Pro</span>
+                    {% else %}
+                    <span style="color: #d97706; font-weight: 500;">Free</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if req.status == 'pending' %}
+                    <span class="status-badge status-badge--pending"><i data-lucide="clock" style="width:10px;height:10px;"></i> Pending</span>
+                    {% elif req.status == 'approved' %}
+                    <span class="status-badge status-badge--approved"><i data-lucide="check" style="width:10px;height:10px;"></i> Approved</span>
+                    {% else %}
+                    <span class="status-badge status-badge--rejected"><i data-lucide="x" style="width:10px;height:10px;"></i> Rejected</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">
+                    {% if req.status == 'pending' %}
+                    <button class="btn-review" onclick="openReviewModal('{{ req.id }}', '{{ req.organization.business_name|escapejs }}', '{{ req.requester_name|escapejs }}', '{{ req.requester_email|escapejs }}', '{{ req.created_at|date:"d M Y, h:i A"|escapejs }}')">
+                        <i data-lucide="edit-3" style="width:12px;height:12px;"></i> Review
+                    </button>
+                    {% else %}
+                    <button class="btn-view-only" onclick="openViewModal('{{ req.id }}', '{{ req.organization.business_name|escapejs }}', '{{ req.requester_name|escapejs }}', '{{ req.requester_email|escapejs }}', '{{ req.get_status_display|escapejs }}', '{{ req.approved_at|date:"d M Y, h:i A"|default:"—"|escapejs }}', '{{ req.approved_by.email|default:"—"|escapejs }}', '{{ req.admin_note|escapejs }}')">
+                        <i data-lucide="eye" style="width:12px;height:12px;"></i> Details
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: var(--space-8); color: var(--color-text-muted);">
+                    No upgrade requests found matching your filter criteria.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Review & Approve Modal -->
+<div class="modal-overlay" id="reviewModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">Review Upgrade Request</div>
+            <button class="modal-close-btn" onclick="closeReviewModal()">&times;</button>
+        </div>
+
+        <form method="post" id="approveForm" action="">
+            {% csrf_token %}
+            <div class="detail-grid">
+                <div class="detail-label">Organization:</div>
+                <div class="detail-val" id="modalOrgName"></div>
+
+                <div class="detail-label">Requester:</div>
+                <div class="detail-val" id="modalRequesterName"></div>
+
+                <div class="detail-label">Email:</div>
+                <div class="detail-val" id="modalRequesterEmail"></div>
+
+                <div class="detail-label">Requested At:</div>
+                <div class="detail-val" id="modalRequestedAt"></div>
+
+                <div class="detail-label">Watermark:</div>
+                <div class="detail-val" style="color:#d97706; font-weight:600;">Currently Active (Free Tier)</div>
+            </div>
+
+            <div style="background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.2); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-4);">
+                <div style="font-size: var(--text-xs); color: #16a34a; font-weight: var(--font-semibold); margin-bottom: 2px;">
+                    <i data-lucide="info" style="width:12px;height:12px;display:inline;"></i> Confirmation Prompt
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--color-text-secondary); line-height: 1.5;">
+                    Approving this request will set the organization's plan to <strong>PAID</strong>. Future invoice PDFs generated by this account will no longer contain the Advance Billing watermark.
+                </div>
+            </div>
+
+            <div class="admin-form-group" style="margin-bottom: 0;">
+                <label for="admin_note" style="font-size:11px;">Admin Note (Optional)</label>
+                <input type="text" name="admin_note" id="admin_note" class="search-input" placeholder="e.g. Payment verified via UPI / Bank transfer" style="padding-left:12px;">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeReviewModal()">Cancel</button>
+                <button type="submit" class="btn-approve">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;"></i> Approve &amp; Remove Watermark
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Details Modal (for Approved/Rejected) -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">Upgrade Request Details</div>
+            <button class="modal-close-btn" onclick="closeViewModal()">&times;</button>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-label">Organization:</div>
+            <div class="detail-val" id="viewOrgName"></div>
+
+            <div class="detail-label">Requester:</div>
+            <div class="detail-val" id="viewRequesterName"></div>
+
+            <div class="detail-label">Email:</div>
+            <div class="detail-val" id="viewRequesterEmail"></div>
+
+            <div class="detail-label">Status:</div>
+            <div class="detail-val" id="viewStatus"></div>
+
+            <div class="detail-label">Actioned At:</div>
+            <div class="detail-val" id="viewApprovedAt"></div>
+
+            <div class="detail-label">Actioned By:</div>
+            <div class="detail-val" id="viewApprovedBy"></div>
+
+            <div class="detail-label">Admin Note:</div>
+            <div class="detail-val" id="viewAdminNote"></div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeViewModal()">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+function openReviewModal(id, orgName, name, email, requestedAt) {
+    document.getElementById('modalOrgName').innerText = orgName;
+    document.getElementById('modalRequesterName').innerText = name;
+    document.getElementById('modalRequesterEmail').innerText = email;
+    document.getElementById('modalRequestedAt').innerText = requestedAt;
+    
+    var form = document.getElementById('approveForm');
+    form.action = "/admin-portal/requests/" + id + "/approve/";
+    
+    document.getElementById('reviewModal').classList.add('active');
+    lucide.createIcons();
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').classList.remove('active');
+}
+
+function openViewModal(id, orgName, name, email, status, approvedAt, approvedBy, note) {
+    document.getElementById('viewOrgName').innerText = orgName;
+    document.getElementById('viewRequesterName').innerText = name;
+    document.getElementById('viewRequesterEmail').innerText = email;
+    document.getElementById('viewStatus').innerText = status;
+    document.getElementById('viewApprovedAt').innerText = approvedAt;
+    document.getElementById('viewApprovedBy').innerText = approvedBy;
+    document.getElementById('viewAdminNote').innerText = note || "—";
+    
+    document.getElementById('viewModal').classList.add('active');
+    lucide.createIcons();
+}
+
+function closeViewModal() {
+    document.getElementById('viewModal').classList.remove('active');
+}
+</script>
+{% endblock %}

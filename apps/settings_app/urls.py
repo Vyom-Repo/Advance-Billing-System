@@ -30,4 +30,6 @@ urlpatterns = [
     path("data-management/excel-import-restore/", views.SettingsExcelImportRestoreView.as_view(), name="excel_import_restore"),
     path("danger-zone/", views.SettingsDangerZoneView.as_view(), name="danger_zone"),
     path("danger-zone/delete-account/", views.SettingsDeleteAccountView.as_view(), name="delete_account"),
+    # Phase 1: Free tier upgrade request
+    path("upgrade/", views.SettingsUpgradeView.as_view(), name="upgrade"),
 ]

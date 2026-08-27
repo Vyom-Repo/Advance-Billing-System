@@ -100,6 +100,32 @@
   border-top: 1px solid var(--color-sidebar-border);
 }
 
+/* Upgrade / Remove Watermark — subtle amber accent */
+.nav-item--upgrade {
+  color: #d97706;
+  font-weight: var(--font-medium, 500);
+}
+.nav-item--upgrade:hover {
+  background: rgba(217, 119, 6, 0.08);
+  color: #b45309;
+}
+.nav-item--upgrade.active {
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+}
+
+/* Paid plan indicator — muted success, non-interactive */
+.nav-item--paid {
+  color: #16a34a;
+  cursor: default;
+  font-weight: var(--font-medium, 500);
+  opacity: 0.85;
+}
+.nav-item--paid:hover {
+  background: transparent;
+  color: #16a34a;
+}
+
 /* ============================================================
    MAIN CONTENT AREA
    ============================================================ */

@@ -24,6 +24,8 @@ class RequireOrganizationMiddleware:
             re.compile(r"^/organization/setup/"),
             re.compile(r"^/settings/"),
             re.compile(r"^/admin/"),
+            re.compile(r"^/admin-portal/"),
+            re.compile(r"^/demo/"),
             re.compile(r"^/static/"),
             re.compile(r"^/media/"),
             re.compile(r"^/health/"),

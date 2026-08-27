@@ -1,0 +1,119 @@
+{% if is_demo_mode %}
+<div class="demo-top-banner">
+    <div class="demo-banner-content">
+        <span class="demo-badge">
+            <i data-lucide="zap" style="width:12px;height:12px;display:inline;vertical-align:-1px;"></i> DEMO MODE
+        </span>
+        <span class="demo-text">
+            You are exploring the <strong>Advance Billing Live Demo</strong>. All changes are temporary and safely isolated.
+        </span>
+    </div>
+    <div class="demo-banner-actions">
+        <a href="{% url 'demo:reset' %}" class="demo-btn demo-btn--reset" title="Reset sample data back to clean state">
+            <i data-lucide="rotate-ccw" style="width:12px;height:12px;"></i> Reset Demo
+        </a>
+        <a href="{% url 'auth:signup' %}" class="demo-btn demo-btn--cta">
+            <i data-lucide="user-plus" style="width:12px;height:12px;"></i> Create Free Account
+        </a>
+        <a href="{% url 'demo:exit' %}" class="demo-btn demo-btn--exit" title="Exit demo mode and return to home">
+            <i data-lucide="x" style="width:12px;height:12px;"></i> Exit
+        </a>
+    </div>
+</div>
+
+<style>
+    .demo-top-banner {
+        background: linear-gradient(90deg, #1e1b4b 0%, #31103f 50%, #451a03 100%);
+        border-bottom: 1px solid rgba(255, 157, 46, 0.3);
+        color: #ffffff;
+        padding: 6px 16px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 99999;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .demo-banner-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .demo-badge {
+        background: #d97706;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+    }
+    .demo-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+    }
+    .demo-banner-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .demo-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+    .demo-btn--reset {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .demo-btn--reset:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+    .demo-btn--cta {
+        background: #ff7a00;
+        color: #ffffff;
+        border: none;
+    }
+    .demo-btn--cta:hover {
+        background: #e06900;
+        color: #ffffff;
+    }
+    .demo-btn--exit {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .demo-btn--exit:hover {
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .demo-top-banner {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 12px;
+        }
+        .demo-banner-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endif %}
