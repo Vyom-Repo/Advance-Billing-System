@@ -49,6 +49,13 @@ class OrganizationSetupForm(forms.ModelForm):
             
         return cleaned_data
 
+    def clean_logo(self):
+        logo = self.cleaned_data.get("logo")
+        if logo and hasattr(logo, "file"):
+            from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
+            validate_image_dimensions_and_format(logo)
+        return logo
+
 
 class OrganizationUpdateForm(OrganizationSetupForm):
     """
@@ -95,6 +102,27 @@ class OrganizationUpdateForm(OrganizationSetupForm):
                 )
 
         return cleaned_data
+
+    def clean_letterhead(self):
+        letterhead = self.cleaned_data.get("letterhead")
+        if letterhead and hasattr(letterhead, "file"):
+            from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
+            validate_image_dimensions_and_format(letterhead)
+        return letterhead
+
+    def clean_signature(self):
+        signature = self.cleaned_data.get("signature")
+        if signature and hasattr(signature, "file"):
+            from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
+            validate_image_dimensions_and_format(signature)
+        return signature
+
+    def clean_qr_code(self):
+        qr_code = self.cleaned_data.get("qr_code")
+        if qr_code and hasattr(qr_code, "file"):
+            from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
+            validate_image_dimensions_and_format(qr_code)
+        return qr_code
 
     def save(self, commit=True):
         instance = super().save(commit=False)

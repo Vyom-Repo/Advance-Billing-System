@@ -4,6 +4,7 @@ apps/organization/models.py — Organization Models
 from django.conf import settings
 from django.db import models
 from apps.common.models import TimeStampedModel
+from apps.common.validators import validate_image_dimensions_and_format
 
 class SignatureMode(models.TextChoices):
     NONE = "none", "None"
@@ -44,12 +45,12 @@ class Organization(TimeStampedModel):
     country = models.CharField(max_length=100, default="India")
     
     # Branding
-    logo = models.ImageField(upload_to="organization_logos/", blank=True, null=True)
-    letterhead = models.ImageField(upload_to="organization_letterheads/", blank=True, null=True, help_text="Full A4 page background for invoices.")
+    logo = models.ImageField(upload_to="organization_logos/", blank=True, null=True, validators=[validate_image_dimensions_and_format])
+    letterhead = models.ImageField(upload_to="organization_letterheads/", blank=True, null=True, help_text="Full A4 page background for invoices.", validators=[validate_image_dimensions_and_format])
     letterhead_header_offset = models.IntegerField(default=30, help_text="Header safe area offset in mm")
     letterhead_footer_offset = models.IntegerField(default=25, help_text="Footer safe area offset in mm")
-    signature = models.ImageField(upload_to="organization_signatures/", blank=True, null=True, help_text="Authorized signatory image.")
-    qr_code = models.ImageField(upload_to="organization_qr_codes/", blank=True, null=True, help_text="QR Code image displayed on invoices.")
+    signature = models.ImageField(upload_to="organization_signatures/", blank=True, null=True, help_text="Authorized signatory image.", validators=[validate_image_dimensions_and_format])
+    qr_code = models.ImageField(upload_to="organization_qr_codes/", blank=True, null=True, help_text="QR Code image displayed on invoices.", validators=[validate_image_dimensions_and_format])
 
     # Signature / Authorization & Disclaimer Settings
     signature_mode = models.CharField(

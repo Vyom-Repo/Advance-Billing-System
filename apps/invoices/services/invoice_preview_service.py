@@ -235,6 +235,7 @@ class InvoicePreviewService:
         bytes — raw PDF binary
         """
         from django.template.loader import render_to_string
+        from apps.billing.services.pdf_resource_guard import PDFResourceGuard, PDFCapacityExceededError
 
         context = {
             **bill_data,        # bill, company, customer, items, gst_summary
@@ -252,58 +253,63 @@ class InvoicePreviewService:
         # Preserve user's selected template choice regardless of whether letterhead is enabled.
         primary_path = template_file_path
 
-        try:
-            html_string = render_to_string(primary_path, context)
-            pdf_bytes = weasyprint.HTML(
-                string=html_string,
-                base_url="file://",
-            ).write_pdf()
+        with PDFResourceGuard.protect():
+            try:
+                html_string = render_to_string(primary_path, context)
+                pdf_bytes = weasyprint.HTML(
+                    string=html_string,
+                    base_url="file://",
+                ).write_pdf()
 
-            if isinstance(pdf_bytes, bytes) and pdf_bytes.startswith(b"%PDF") and len(pdf_bytes) > 500:
-                return pdf_bytes
-            else:
+                if isinstance(pdf_bytes, bytes) and pdf_bytes.startswith(b"%PDF") and len(pdf_bytes) > 500:
+                    return pdf_bytes
+                else:
+                    logger.warning(
+                        "Primary template '%s' produced empty or invalid PDF bytes. Retrying with fallback.",
+                        primary_path,
+                    )
+            except PDFCapacityExceededError:
+                raise
+            except Exception as e:
                 logger.warning(
-                    "Primary template '%s' produced empty or invalid PDF bytes. Retrying with fallback.",
+                    "Primary template '%s' rendering failed (%s). Automatically falling back.",
                     primary_path,
+                    str(e),
+                    exc_info=True,
                 )
-        except Exception as e:
-            logger.warning(
-                "Primary template '%s' rendering failed (%s). Automatically falling back.",
-                primary_path,
-                str(e),
-                exc_info=True,
-            )
 
-        # Fallback render hierarchy: simple_invoice.html if primary template rendering fails
-        fallback_template = "pdf/simple_invoice.html"
-        try:
-            fallback_html = render_to_string(fallback_template, context)
-            fallback_pdf = weasyprint.HTML(
-                string=fallback_html,
-                base_url="file://",
-            ).write_pdf()
-            return fallback_pdf
-        except Exception as fallback_err:
-            logger.error(
-                "Fallback template pdf/simple_invoice.html failed to render: %s",
-                str(fallback_err),
-                exc_info=True,
-            )
+            # Fallback render hierarchy: simple_invoice.html if primary template rendering fails
+            fallback_template = "pdf/simple_invoice.html"
+            try:
+                fallback_html = render_to_string(fallback_template, context)
+                fallback_pdf = weasyprint.HTML(
+                    string=fallback_html,
+                    base_url="file://",
+                ).write_pdf()
+                return fallback_pdf
+            except PDFCapacityExceededError:
+                raise
+            except Exception as fallback_err:
+                logger.error(
+                    "Fallback template pdf/simple_invoice.html failed to render: %s",
+                    str(fallback_err),
+                    exc_info=True,
+                )
 
-            # Emergency inline fallback (guarantees a valid PDF response)
-            emergency_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head><meta charset="utf-8"><title>Invoice Emergency PDF</title></head>
-            <body style="font-family: sans-serif; padding: 30px;">
-                <h2>TAX INVOICE - {bill_data.get('bill', {}).get('number', 'INV-001')}</h2>
-                <p><strong>Company:</strong> {bill_data.get('company', {}).get('name', '')}</p>
-                <p><strong>Billed To:</strong> {bill_data.get('customer', {}).get('name', '')}</p>
-                <p><strong>Grand Total:</strong> {bill_data.get('bill', {}).get('grand_total', '0.00')}</p>
-            </body>
-            </html>
-            """
-            return weasyprint.HTML(string=emergency_html).write_pdf()
+                # Emergency inline fallback (guarantees a valid PDF response)
+                emergency_html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"><title>Invoice Emergency PDF</title></head>
+                <body style="font-family: sans-serif; padding: 30px;">
+                    <h2>TAX INVOICE - {bill_data.get('bill', {}).get('number', 'INV-001')}</h2>
+                    <p><strong>Company:</strong> {bill_data.get('company', {}).get('name', '')}</p>
+                    <p><strong>Billed To:</strong> {bill_data.get('customer', {}).get('name', '')}</p>
+                    <p><strong>Grand Total:</strong> {bill_data.get('bill', {}).get('grand_total', '0.00')}</p>
+                </body>
+                </html>
+                """
+                return weasyprint.HTML(string=emergency_html).write_pdf()
 
 
     # ------------------------------------------------------------------

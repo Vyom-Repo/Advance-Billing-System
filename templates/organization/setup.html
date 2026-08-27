@@ -669,8 +669,9 @@
                     <label class="form-label">Company Logo (Optional)</label>
                     <div class="upload-box" data-theme="cyan">
                         <i data-lucide="image" style="width: 32px; height: 32px; color: var(--color-text-muted); margin-bottom: var(--space-4);"></i>
-                        <input type="file" name="logo" class="form-control" accept="image/*" style="border: none; background: transparent; padding: 0;">
-                        <p style="color: var(--color-text-muted); margin-top: var(--space-2); font-size: var(--text-sm);">JPEG, PNG up to 2MB</p>
+                        <input type="file" name="logo" id="setup-logo-input" class="form-control" accept="image/png, image/jpeg, image/webp" style="border: none; background: transparent; padding: 0;">
+                        <p style="color: var(--color-text-muted); margin-top: var(--space-2); font-size: var(--text-sm);">PNG, JPG, WebP up to 5MB (Max: 5000×5000 px)</p>
+                        <div id="setup-logo-error" style="color: var(--color-error); font-size: var(--text-xs); margin-top: var(--space-2); display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -890,6 +891,41 @@
             }
         });
         
+        // Setup Logo Client-Side Pre-Validation
+        const setupLogoInput = document.getElementById('setup-logo-input');
+        const setupLogoError = document.getElementById('setup-logo-error');
+        if (setupLogoInput && setupLogoError) {
+            setupLogoInput.addEventListener('change', function() {
+                setupLogoError.style.display = 'none';
+                setupLogoError.textContent = '';
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    if (file.size > 5 * 1024 * 1024) {
+                        setupLogoError.textContent = 'Logo file size exceeds the maximum allowed limit of 5 MB.';
+                        setupLogoError.style.display = 'block';
+                        this.value = '';
+                        return;
+                    }
+                    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                    if (!validTypes.includes(file.type.toLowerCase())) {
+                        setupLogoError.textContent = 'Unsupported file format. Please select a PNG, JPEG, or WebP image.';
+                        setupLogoError.style.display = 'block';
+                        this.value = '';
+                        return;
+                    }
+                    const img = new Image();
+                    img.onload = function() {
+                        if (img.width > 5000 || img.height > 5000) {
+                            setupLogoError.textContent = `Image dimensions (${img.width}×${img.height} px) exceed maximum allowed limit of 5000×5000 px.`;
+                            setupLogoError.style.display = 'block';
+                            setupLogoInput.value = '';
+                        }
+                    };
+                    img.src = URL.createObjectURL(file);
+                }
+            });
+        }
+
         updateUI();
     });
 </script>

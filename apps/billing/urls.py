@@ -17,6 +17,7 @@ urlpatterns = [
     path("<uuid:uuid>/mail/", views.InvoiceMailView.as_view(), name="mail"),
     # Preview (Phase 10 entry point)
     path("<uuid:uuid>/preview/", views.InvoicePreviewView.as_view(), name="preview"),
+    path("<uuid:uuid>/pdf/", views.InvoicePreviewView.as_view(), name="pdf"),
     # Draft calculation preview (AJAX — display only, not persisted)
     path("preview-form-calc/", views.InvoicePreviewFormCalculationView.as_view(), name="preview_form_calc"),
     path("<uuid:uuid>/preview-calc/", views.InvoicePreviewCalculationView.as_view(), name="preview_calc"),

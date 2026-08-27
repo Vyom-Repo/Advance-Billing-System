@@ -243,8 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function startTimer() {
-        countdown = 60;
+    function startTimer(customSeconds) {
+        countdown = customSeconds || 60;
         resendBtn.disabled = true;
         if (resendIcon) resendIcon.classList.remove('spin-icon');
         if (timerId) clearInterval(timerId);
@@ -265,8 +265,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 
-    // Start 60s countdown on page load
-    startTimer();
+    // Start initial 60s countdown on page load
+    startTimer(60);
 
     // AJAX Form Submission
     if (resendForm) {
@@ -283,17 +283,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                showToast(data.message || 'Verification email sent successfully.');
-                startTimer();
+            .then(function(res) {
+                var retryAfterHeader = res.headers.get('Retry-After');
+                return res.json().then(function(data) {
+                    return { status: res.status, data: data, retryAfter: retryAfterHeader };
+                });
+            })
+            .then(function(result) {
+                if (result.status === 429) {
+                    var secs = parseInt(result.retryAfter || (result.data && result.data.retry_after) || 60, 10);
+                    showToast(result.data.message || ('Please wait ' + secs + ' seconds before requesting another email.'));
+                    startTimer(secs);
+                } else {
+                    showToast(result.data.message || 'Verification email sent successfully.');
+                    startTimer(60);
+                }
             })
             .catch(function(err) {
-                showToast('Verification email sent successfully.');
-                startTimer();
+                showToast('Failed to send verification email. Please try again.');
+                startTimer(60);
             });
         });
     }

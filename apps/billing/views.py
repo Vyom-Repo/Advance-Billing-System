@@ -7,11 +7,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import ListView
-
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from apps.billing.forms import InvoiceForm, make_invoice_line_formset
 from apps.billing.models import Invoice, InvoiceLine, InvoiceStatus
 from apps.billing.services.calculation_engine import (
@@ -528,6 +529,7 @@ class InvoiceCancelView(InvoiceOrganizationMixin, View):
 # Invoice Mail (On-demand email delivery to Organization Owner)
 # ---------------------------------------------------------------------------
 
+@method_decorator(ratelimit(key="user_or_ip", rate="10/m", block=False), name="post")
 class InvoiceMailView(InvoiceOrganizationMixin, View):
     """
     POST-only. On-demand email delivery of invoice copy to the Organization Owner.
@@ -535,6 +537,16 @@ class InvoiceMailView(InvoiceOrganizationMixin, View):
     """
 
     def post(self, request, uuid):
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="user_or_ip",
+                rate="10/m",
+                custom_message="Rate limit exceeded. Please wait before making more email requests.",
+            )
+
         invoice = self.get_org_invoice(uuid)
         
         from apps.billing.services.invoice_email_service import InvoiceEmailService, EmailTrigger
@@ -562,6 +574,11 @@ class InvoiceMailView(InvoiceOrganizationMixin, View):
 # Invoice Preview (Phase 10 entry point stub)
 # ---------------------------------------------------------------------------
 
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+from apps.billing.services.pdf_resource_guard import PDFCapacityExceededError
+
+@method_decorator(ratelimit(key="user_or_ip", rate="15/m", block=False), name="get")
 class InvoicePreviewView(InvoiceOrganizationMixin, View):
     """
     Entry point for Phase 10 PDF/letterhead integration.
@@ -574,6 +591,16 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
         from apps.invoices.services.bill_serializer import serialize_bill_for_render
         from apps.invoices.services.invoice_preview_service import InvoicePreviewService
         from apps.common.services.layout_engine import PrintableFrameBuilder
+
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.get,
+                key="user_or_ip",
+                rate="15/m",
+                custom_message="Rate limit exceeded. Please wait before making more PDF requests.",
+            )
 
         invoice = self.get_org_invoice(uuid)
         
@@ -601,13 +628,20 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
         template_file_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
         
         # 6. Render PDF bytes
-        pdf_bytes = InvoicePreviewService.render_bill_pdf(
-            bill_data=bill_data,
-            config=config,
-            template_file_path=template_file_path,
-            layout_frame=layout_frame,
-            org=invoice.organization
-        )
+        try:
+            pdf_bytes = InvoicePreviewService.render_bill_pdf(
+                bill_data=bill_data,
+                config=config,
+                template_file_path=template_file_path,
+                layout_frame=layout_frame,
+                org=invoice.organization
+            )
+        except PDFCapacityExceededError:
+            return HttpResponse(
+                "PDF rendering capacity is temporarily busy. Please try again in a moment.",
+                status=503,
+                content_type="text/plain",
+            )
         
         if not pdf_bytes:
             raise Http404("Could not generate PDF.")

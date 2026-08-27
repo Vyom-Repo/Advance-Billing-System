@@ -669,6 +669,7 @@
                 <div style="margin-bottom:var(--space-4);">
                     <label style="display:block; font-size:var(--text-sm); font-weight:var(--font-semibold); margin-bottom:6px;">Select Backup Workbook (.xlsx)</label>
                     <input type="file" id="excel-backup-input" name="backup_file" accept=".xlsx" required class="form-control" style="width:100%;">
+                    <p style="font-size:var(--text-xs); color:var(--color-text-muted); margin-top:4px;">Supported format: Excel (.xlsx) up to 25 MB.</p>
                 </div>
 
                 <div id="excel-validate-error" style="display:none; padding:12px; border-radius:var(--radius-md); background:var(--color-error-bg); border:1px solid var(--color-error-border); color:var(--color-error); font-size:var(--text-sm); margin-bottom:var(--space-4);"></div>
@@ -755,6 +756,13 @@
             return;
         }
 
+        const file = input.files[0];
+        if (file.size > 25 * 1024 * 1024) {
+            errDiv.innerText = `Uploaded backup file size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the maximum allowed limit of 25 MB.`;
+            errDiv.style.display = 'block';
+            return;
+        }
+
         errDiv.style.display = 'none';
         btn.disabled = true;
         btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;display:inline-block;"></i> Validating...`;
@@ -837,15 +845,166 @@
         }
     }
 
-    document.getElementById('form-instant-mail')?.addEventListener('submit', function(e) {
-        const btn = document.getElementById('btn-instant-mail');
-        if (!btn || btn.disabled) {
+    // Rate Limiting Cooldown Timer Handler
+    function startRateLimitCooldown(btn, seconds, originalContent) {
+        if (!btn) return;
+        const storageKey = 'rl_cd_' + (btn.id || 'btn');
+        const endTimestamp = Date.now() + seconds * 1000;
+        localStorage.setItem(storageKey, endTimestamp.toString());
+
+        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.6';
+
+        function updateTimer() {
+            const savedEnd = parseInt(localStorage.getItem(storageKey) || '0', 10);
+            const remaining = Math.ceil((savedEnd - Date.now()) / 1000);
+            if (remaining > 0) {
+                btn.innerHTML = `<i data-lucide="clock" style="width:14px;height:14px;display:inline-block;"></i> Please wait ${remaining}s...`;
+                if (window.lucide) lucide.createIcons();
+            } else {
+                localStorage.removeItem(storageKey);
+                btn.disabled = false;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+                btn.innerHTML = originalContent;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        updateTimer();
+        const interval = setInterval(() => {
+            const savedEnd = parseInt(localStorage.getItem(storageKey) || '0', 10);
+            const remaining = Math.ceil((savedEnd - Date.now()) / 1000);
+            if (remaining <= 0) {
+                clearInterval(interval);
+            }
+            updateTimer();
+        }, 1000);
+    }
+
+    // Restore active cooldown timers on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const excelBtn = document.getElementById('btn-excel-export');
+        if (excelBtn) {
+            const end = parseInt(localStorage.getItem('rl_cd_btn-excel-export') || '0', 10);
+            const rem = Math.ceil((end - Date.now()) / 1000);
+            if (rem > 0) {
+                const orig = `<i data-lucide="file-spreadsheet" style="width:16px;height:16px;"></i> Export Excel Backup (.xlsx)`;
+                startRateLimitCooldown(excelBtn, rem, orig);
+            }
+        }
+        const mailBtn = document.getElementById('btn-instant-mail');
+        if (mailBtn) {
+            const end = parseInt(localStorage.getItem('rl_cd_btn-instant-mail') || '0', 10);
+            const rem = Math.ceil((end - Date.now()) / 1000);
+            if (rem > 0) {
+                const orig = `<i data-lucide="send" style="width:14px;height:14px;"></i> Send Backup Now`;
+                startRateLimitCooldown(mailBtn, rem, orig);
+            }
+        }
+    });
+
+    // Excel Export Rate Limit Fetch Interceptor
+    document.getElementById('btn-excel-export')?.addEventListener('click', async function(e) {
+        const btn = this;
+        const storageKey = 'rl_cd_' + btn.id;
+        const savedEnd = parseInt(localStorage.getItem(storageKey) || '0', 10);
+        if (savedEnd > Date.now()) {
             e.preventDefault();
             return;
         }
+
+        e.preventDefault();
+        const originalContent = `<i data-lucide="file-spreadsheet" style="width:16px;height:16px;"></i> Export Excel Backup (.xlsx)`;
+        btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;display:inline-block;"></i> Preparing Excel...`;
+        if (window.lucide) lucide.createIcons();
+
+        try {
+            const resp = await fetch(btn.href);
+            if (resp.status === 429) {
+                const retryAfterHeader = resp.headers.get('Retry-After');
+                let data = {};
+                try { data = await resp.json(); } catch(_) {}
+                const seconds = parseInt(retryAfterHeader || data.retry_after || 3600, 10);
+                startRateLimitCooldown(btn, seconds, originalContent);
+                alert(data.message || `Rate limit exceeded. Please wait ${seconds} seconds before trying again.`);
+                return;
+            }
+            if (resp.ok) {
+                const blob = await resp.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const contentDisposition = resp.headers.get('Content-Disposition');
+                let filename = 'excel_backup.xlsx';
+                if (contentDisposition && contentDisposition.includes('filename=')) {
+                    filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+                }
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                btn.innerHTML = originalContent;
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert('Failed to download Excel backup.');
+                btn.innerHTML = originalContent;
+                if (window.lucide) lucide.createIcons();
+            }
+        } catch(err) {
+            btn.innerHTML = originalContent;
+            if (window.lucide) lucide.createIcons();
+        }
+    });
+
+    // Instant Backup Email Handler
+    document.getElementById('form-instant-mail')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = this;
+        const btn = document.getElementById('btn-instant-mail');
+        if (!btn || btn.disabled) return;
+
+        const originalContent = `<i data-lucide="send" style="width:14px;height:14px;"></i> Send Backup Now`;
         btn.disabled = true;
         btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;display:inline-block;"></i> Sending...`;
         if (window.lucide) lucide.createIcons();
+
+        try {
+            const formData = new FormData(form);
+            const resp = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await resp.json();
+            if (resp.status === 429) {
+                const retryAfterHeader = resp.headers.get('Retry-After');
+                const seconds = parseInt(retryAfterHeader || data.retry_after || 3600, 10);
+                startRateLimitCooldown(btn, seconds, originalContent);
+                alert(data.message || `Rate limit exceeded. Please wait ${seconds} seconds before trying again.`);
+                return;
+            }
+            if (data.success) {
+                alert(data.message || 'Backup emailed successfully.');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert(data.message || 'Failed to send backup email.');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                if (window.lucide) lucide.createIcons();
+            }
+        } catch(err) {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+            if (window.lucide) lucide.createIcons();
+        }
     });
 
     // Danger Zone Delete Account Eligibility Handler

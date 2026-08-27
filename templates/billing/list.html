@@ -546,10 +546,47 @@
     function handleMailSubmit(form) {
         const btn = form.querySelector('button[type="submit"]');
         if (!btn || btn.disabled) return false;
+
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
-        return true;
+
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(async res => {
+            if (res.status === 429) {
+                const retryAfterHeader = res.headers.get('Retry-After');
+                let data = {};
+                try { data = await res.json(); } catch(_) {}
+                const seconds = parseInt(retryAfterHeader || data.retry_after || 60, 10);
+                let left = seconds;
+                btn.title = `Please wait ${left}s`;
+                const interval = setInterval(() => {
+                    left--;
+                    if (left <= 0) {
+                        clearInterval(interval);
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                        btn.title = 'Mail Copy to Organization Owner';
+                    } else {
+                        btn.title = `Please wait ${left}s`;
+                    }
+                }, 1000);
+                alert(data.message || `Rate limit exceeded. Please wait ${seconds} seconds before trying again.`);
+            } else {
+                window.location.reload();
+            }
+        }).catch(() => {
+            window.location.reload();
+        });
+
+        return false;
     }
 
     document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); });

@@ -10,7 +10,7 @@ services:
     env: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn core.wsgi:application"
+    startCommand: "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --max-requests 50 --max-requests-jitter 10 --timeout 60"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -32,3 +32,6 @@ services:
         sync: false
       - key: BREVO_SENDER_NAME
         sync: false
+      - key: REDIS_URL
+        sync: false
+

@@ -25,6 +25,123 @@ from apps.common.services.email_service import EmailBranding
 logger = logging.getLogger(__name__)
 
 
+class _BoundedInvoiceEmailExecutor:
+    """
+    Process-local bounded worker executor for background invoice email delivery.
+    Enforces a maximum of MAX_WORKERS (2) concurrent daemon threads per application process
+    and a bounded queue capacity of MAX_QUEUE_SIZE (100).
+    """
+    MAX_WORKERS = 2
+    MAX_QUEUE_SIZE = 100
+
+    _instance = None
+    _instance_lock = threading.Lock()
+
+    @classmethod
+    def get_instance(cls):
+        """Thread-safe singleton getter."""
+        if cls._instance is None:
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        import queue
+        self._queue = queue.Queue(maxsize=self.MAX_QUEUE_SIZE)
+        self._pending_ids = set()
+        self._lock = threading.Lock()
+        self._workers = []
+        self._started = False
+
+    def _start_workers_if_needed(self):
+        """Thread-safe initialization of worker daemon threads (max 2 per process)."""
+        if not self._started:
+            with self._lock:
+                if not self._started:
+                    for i in range(self.MAX_WORKERS):
+                        worker_thread = threading.Thread(
+                            target=self._worker_loop,
+                            daemon=True,
+                            name=f"InvoiceEmailWorker-{i+1}"
+                        )
+                        worker_thread.start()
+                        self._workers.append(worker_thread)
+                    self._started = True
+
+    def _worker_loop(self):
+        """Worker thread processing loop with DB connection cleanup and error isolation."""
+        from django.db.utils import OperationalError
+        import time
+
+        while True:
+            try:
+                invoice_id, trigger = self._queue.get()
+            except Exception:
+                break
+
+            logger.info("Invoice email job started for invoice ID %s", invoice_id)
+            close_old_connections()
+            try:
+                invoice = None
+                for attempt in range(5):
+                    try:
+                        invoice = Invoice.objects.select_related(
+                            "organization", "organization__owner", "customer"
+                        ).get(id=invoice_id)
+                        break
+                    except OperationalError as oe:
+                        if "locked" in str(oe).lower() and attempt < 4:
+                            time.sleep(0.05)
+                            continue
+                        raise
+
+                if invoice is not None:
+                    org_id = invoice.organization_id if invoice.organization else None
+                    success, msg = InvoiceEmailService.send_invoice_email(invoice, trigger=trigger)
+                    if success:
+                        logger.info("Invoice email job completed for invoice ID %s (org ID %s)", invoice_id, org_id)
+                    else:
+                        logger.error("Invoice email job failed for invoice ID %s (org ID %s): %s", invoice_id, org_id, msg)
+            except Exception as e:
+                logger.error("Invoice email job failed with exception for invoice ID %s: %s", invoice_id, str(e), exc_info=True)
+            finally:
+                with self._lock:
+                    self._pending_ids.discard(invoice_id)
+                close_old_connections()
+                self._queue.task_done()
+
+    def submit(self, invoice_id: int, trigger: str = EmailTrigger.AUTOMATIC) -> bool:
+        """
+        Enqueues an invoice email job if not already pending/executing and queue has capacity.
+        Returns True if queued, False if duplicate or queue full.
+        """
+        self._start_workers_if_needed()
+
+        with self._lock:
+            if invoice_id in self._pending_ids:
+                logger.info("Invoice email job for invoice ID %s is already pending or executing. Duplicate job ignored.", invoice_id)
+                return False
+
+            if self._queue.full():
+                logger.warning(
+                    "Invoice email queue full (%s items). Rejected job for invoice ID %s.",
+                    self.MAX_QUEUE_SIZE,
+                    invoice_id,
+                )
+                return False
+
+            self._pending_ids.add(invoice_id)
+            self._queue.put_nowait((invoice_id, trigger))
+            logger.info("Invoice email job for invoice ID %s queued successfully.", invoice_id)
+            return True
+
+
+    def flush(self):
+        """Waits for all currently enqueued items in the queue to be processed by worker threads."""
+        self._queue.join()
+
+
 class InvoiceEmailService:
     """
     Handles PDF generation, email composition, sending, audit logging,
@@ -221,30 +338,20 @@ class InvoiceEmailService:
             return False, "Failed to send invoice email to the organization owner. Please try again."
 
     @classmethod
-    def send_invoice_email_async(cls, invoice_id: int, trigger: str = EmailTrigger.AUTOMATIC):
+    def send_invoice_email_async(cls, invoice_id: int, trigger: str = EmailTrigger.AUTOMATIC) -> bool:
         """
-        Asynchronously triggers invoice email delivery to the organization owner in a background worker thread.
-        Receives invoice database ID to avoid using stale in-memory model instances.
+        Submits invoice email delivery for background execution using the process-level bounded executor.
+        In Django test runner mode, executes synchronously to support SQLite single-thread savepoint locks.
         """
         import sys
         if getattr(settings, "TESTING", False) or "test" in sys.argv:
             try:
                 invoice = Invoice.objects.select_related("organization", "organization__owner", "customer").get(id=invoice_id)
                 cls.send_invoice_email(invoice, trigger=trigger)
+                return True
             except Exception as e:
                 logger.error("Background invoice email delivery error for invoice id %s: %s", invoice_id, str(e), exc_info=True)
-            return None
+                return False
 
-        def worker():
-            close_old_connections()
-            try:
-                invoice = Invoice.objects.select_related("organization", "organization__owner", "customer").get(id=invoice_id)
-                cls.send_invoice_email(invoice, trigger=trigger)
-            except Exception as e:
-                logger.error("Background invoice email delivery error for invoice id %s: %s", invoice_id, str(e), exc_info=True)
-            finally:
-                close_old_connections()
-
-        thread = threading.Thread(target=worker, daemon=True)
-        thread.start()
-        return thread
+        executor = _BoundedInvoiceEmailExecutor.get_instance()
+        return executor.submit(invoice_id, trigger=trigger)

@@ -193,7 +193,11 @@ class BankAccountDefaultView(BillingLoginRequiredMixin, View):
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+from apps.billing.services.pdf_resource_guard import PDFCapacityExceededError
 
+@method_decorator(ratelimit(key="user_or_ip", rate="20/m", block=False), name="get")
 class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
     """
     Returns an inline PDF for the letterhead safe area preview.
@@ -201,6 +205,13 @@ class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
     Uses the unified InvoicePreviewService rendering pipeline with automatic fallback.
     """
     def get(self, request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            return HttpResponse(
+                "Rate limit exceeded. Please wait before making more PDF requests.",
+                status=429,
+                content_type="text/plain",
+            )
+
         from apps.invoices.services.invoice_preview_service import InvoicePreviewService
         from apps.invoices.services.bill_serializer import serialize_bill_for_render
         from apps.common.services.sample_data_service import SampleDataService
@@ -250,13 +261,20 @@ class OrganizationLetterheadPreviewView(BillingLoginRequiredMixin, View):
 
         template_path = config.get("template_file_path") or InvoicePreviewService.resolve_template_path(config.get("template_name"))
 
-        pdf_bytes = InvoicePreviewService.render_bill_pdf(
-            bill_data=bill_data,
-            config=config,
-            template_file_path=template_path,
-            layout_frame=layout_frame,
-            org=org_obj,
-        )
+        try:
+            pdf_bytes = InvoicePreviewService.render_bill_pdf(
+                bill_data=bill_data,
+                config=config,
+                template_file_path=template_path,
+                layout_frame=layout_frame,
+                org=org_obj,
+            )
+        except PDFCapacityExceededError:
+            return HttpResponse(
+                "PDF rendering capacity is temporarily busy. Please try again in a moment.",
+                status=503,
+                content_type="text/plain",
+            )
 
         return HttpResponse(pdf_bytes, content_type='application/pdf')
 

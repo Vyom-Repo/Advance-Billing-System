@@ -90,19 +90,15 @@ _cloudinary_cloud = env("CLOUDINARY_CLOUD_NAME")
 _cloudinary_key = env("CLOUDINARY_API_KEY")
 _cloudinary_secret = env("CLOUDINARY_API_SECRET")
 
-if not all([_cloudinary_cloud, _cloudinary_key, _cloudinary_secret]):
-    raise ImproperlyConfigured(
-        "Cloudinary credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, "
-        "CLOUDINARY_API_SECRET) must all be set in production."
-    )
-
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": _cloudinary_cloud,
-    "API_KEY": _cloudinary_key,
-    "API_SECRET": _cloudinary_secret,
-}
-
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+if all([_cloudinary_cloud, _cloudinary_key, _cloudinary_secret]):
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": _cloudinary_cloud,
+        "API_KEY": _cloudinary_key,
+        "API_SECRET": _cloudinary_secret,
+    }
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # =============================================================================
 # STATIC FILES (WhiteNoise in production)
@@ -112,17 +108,26 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # No additional CDN required for Render deployments.
 
 # =============================================================================
-# CACHE
+# CACHE (Redis required in production for shared multi-worker rate limiting)
 # =============================================================================
-# Use local-memory cache in production (suitable for single-worker deployments).
-# Upgrade to Redis when scaling to multiple workers.
+
+_redis_url = env("REDIS_URL")
+if not _redis_url:
+    raise ImproperlyConfigured(
+        "REDIS_URL environment variable must be set in production. "
+        "Example: REDIS_URL=redis://user:password@host:6379/0 or rediss://..."
+    )
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "advance-billing-cache",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _redis_url,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
     }
 }
+
 
 # =============================================================================
 # LOGGING (production: info level, no debug noise)

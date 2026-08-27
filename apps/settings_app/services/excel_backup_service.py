@@ -73,6 +73,20 @@ class ExcelBackupService:
 
     @classmethod
     def generate_backup_workbook(cls, organization: Organization) -> Tuple[bytes, str, Dict[str, Any]]:
+        from apps.settings_app.services.backup_service import (  # noqa: PLC0415
+            OrganizationBackupService,
+            MAX_EXPORT_RECORDS,
+            ExportDatasetTooLargeError,
+        )
+
+        total_records = OrganizationBackupService.count_organization_records(organization)
+        if total_records > MAX_EXPORT_RECORDS:
+            err_msg = (
+                f"Organization dataset ({total_records} records) exceeds maximum allowed Excel export limit "
+                f"of {MAX_EXPORT_RECORDS} records."
+            )
+            raise ExportDatasetTooLargeError(err_msg)
+
         wb = Workbook()
         default_ws = wb.active
 

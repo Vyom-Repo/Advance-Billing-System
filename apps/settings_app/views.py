@@ -408,6 +408,11 @@ class SettingsInvoiceDesignView(BillingLoginRequiredMixin, PageTitleMixin, Updat
         messages.success(self.request, "Invoice design preferences saved successfully.")
         return super().form_valid(form)
 
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
+from apps.billing.services.pdf_resource_guard import PDFCapacityExceededError
+
+@method_decorator(ratelimit(key="user_or_ip", rate="30/m", block=False), name="post")
 class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
     """
     Renders a PDF preview using the unified render_bill_pdf pipeline.
@@ -417,6 +422,12 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
     request_overrides — they are NOT saved to the database.
     """
     def post(self, request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            return JsonResponse(
+                {"error": "Rate limit exceeded. Please wait before making more preview requests."},
+                status=429,
+            )
+
         try:
             from apps.invoices.services.invoice_preview_service import InvoicePreviewService
             from apps.invoices.services.bill_serializer import serialize_bill_for_render
@@ -481,6 +492,11 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
             )
             return HttpResponse(pdf_bytes, content_type="application/pdf")
 
+        except PDFCapacityExceededError:
+            return JsonResponse(
+                {"error": "PDF preview capacity is temporarily busy. Please retry in a moment."},
+                status=503,
+            )
         except Exception as e:
             import traceback
             return HttpResponse(
@@ -488,6 +504,7 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
                 status=400,
             )
 
+@method_decorator(ratelimit(key="user_or_ip", rate="15/m", block=False), name="get")
 class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
     """
     Generates a PDF download using the user's saved DocumentPreference settings.
@@ -495,6 +512,13 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
     Uses the unified render_bill_pdf pipeline with automatic fallback.
     """
     def get(self, request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            return HttpResponse(
+                "Rate limit exceeded. Please wait before making more PDF requests.",
+                status=429,
+                content_type="text/plain",
+            )
+
         if not HTML:
             return HttpResponse("WeasyPrint is not installed or configured correctly.", status=500)
 
@@ -559,13 +583,20 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
         bill_data    = serialize_bill_for_render(invoice, customer, items, company, org_obj)
         layout_frame = PrintableFrameBuilder.build_frame(org_obj, config)
 
-        pdf_bytes = InvoicePreviewService.render_bill_pdf(
-            bill_data=bill_data,
-            config=config,
-            template_file_path=template_path,
-            layout_frame=layout_frame,
-            org=org_obj,
-        )
+        try:
+            pdf_bytes = InvoicePreviewService.render_bill_pdf(
+                bill_data=bill_data,
+                config=config,
+                template_file_path=template_path,
+                layout_frame=layout_frame,
+                org=org_obj,
+            )
+        except PDFCapacityExceededError:
+            return HttpResponse(
+                "PDF rendering capacity is temporarily busy. Please try again in a moment.",
+                status=503,
+                content_type="text/plain",
+            )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         filename = f"Invoice_{bill_data.get('bill', {}).get('number', 'Document')}.pdf"
@@ -666,12 +697,14 @@ class SettingsDataExportView(BillingLoginRequiredMixin, View):
     """
     Manual Export Download View.
     Generates and streams advance-billing-export-YYYY-MM-DD.zip to the user.
+    Unconstrained for legitimate data downloads, protected by dataset boundary and concurrency guard.
     """
 
     def get(self, request, *args, **kwargs):
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.models import OrganizationBackupLog, BackupTrigger, BackupStatus, DataManagementAction  # noqa: PLC0415
-        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import OrganizationBackupService, ExportDatasetTooLargeError  # noqa: PLC0415
+        from apps.settings_app.services.export_resource_guard import ExportResourceGuard, ExportCapacityExceededError  # noqa: PLC0415
         from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
 
         org = getattr(request.user, "organization", None)
@@ -683,7 +716,8 @@ class SettingsDataExportView(BillingLoginRequiredMixin, View):
             return redirect("settings_app:data_management")
 
         try:
-            zip_bytes, filename, manifest = OrganizationBackupService.generate_backup_zip(org)
+            with ExportResourceGuard.protect():
+                zip_bytes, filename, manifest = OrganizationBackupService.generate_backup_zip(org)
 
             # Record Log Entry & Audit Log
             OrganizationBackupLog.objects.create(
@@ -709,11 +743,17 @@ class SettingsDataExportView(BillingLoginRequiredMixin, View):
             response = HttpResponse(zip_bytes, content_type="application/zip")
             response["Content-Disposition"] = f'attachment; filename="{filename}"'
             return response
+        except ExportDatasetTooLargeError as e:
+            messages.error(request, str(e))
+            return redirect("settings_app:data_management")
+        except ExportCapacityExceededError as e:
+            return HttpResponse(str(e), status=503, content_type="text/plain")
         except Exception as e:
             messages.error(request, f"Failed to generate data export: {str(e)}")
             return redirect("settings_app:data_management")
 
 
+@method_decorator(ratelimit(key="user_or_ip", rate="2/h", block=False), name="post")
 class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
     """
     Dedicated Instant Backup Mail View.
@@ -724,14 +764,26 @@ class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
         from django.http import JsonResponse  # noqa: PLC0415
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.models import BackupTrigger, DataManagementAction  # noqa: PLC0415
-        from apps.settings_app.services.backup_service import OrganizationBackupService  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import OrganizationBackupService, ExportDatasetTooLargeError  # noqa: PLC0415
+        from apps.settings_app.services.export_resource_guard import ExportResourceGuard, ExportCapacityExceededError  # noqa: PLC0415
         from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
+        from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+
+        is_json_request = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
+
+        if getattr(request, "limited", False):
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="user_or_ip",
+                rate="2/h",
+                is_json=is_json_request,
+                custom_message="Rate limit exceeded. Maximum 2 backup email requests allowed per hour.",
+            )
 
         org = getattr(request.user, "organization", None)
         if not org:
             org = Organization.objects.filter(owner=request.user).first()
-
-        is_json_request = request.headers.get("X-Requested-With") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", "")
 
         # 1. Organization permission check
         if not org or (org.owner != request.user and not request.user.is_superuser):
@@ -741,27 +793,27 @@ class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
             messages.error(request, msg)
             return redirect("settings_app:data_management")
 
+        if not org:
+            if is_json_request:
+                return JsonResponse({"success": False, "message": "Organization not found."}, status=400)
+            messages.error(request, "Organization not found.")
+            return redirect("settings_app:data_management")
+
         # 2. Owner validation & email check
         owner = getattr(org, "owner", None)
-        if not owner:
-            msg = "Unable to send the backup because the organization owner could not be found."
+        if not owner or not owner.email:
+            msg = "Organization owner email address is not configured."
             if is_json_request:
                 return JsonResponse({"success": False, "message": msg}, status=400)
             messages.error(request, msg)
             return redirect("settings_app:data_management")
 
-        if not owner.email:
-            msg = "The organization owner does not have a valid email address."
-            if is_json_request:
-                return JsonResponse({"success": False, "message": msg}, status=400)
-            messages.error(request, msg)
-            return redirect("settings_app:data_management")
-
-        # 3. Generate fresh backup & send email
+        # 3. Generate fresh backup & send email with resource guard
         try:
-            success, result_msg = OrganizationBackupService.send_weekly_backup_email(
-                org, force=True, trigger=BackupTrigger.MANUAL
-            )
+            with ExportResourceGuard.protect():
+                success, result_msg = OrganizationBackupService.send_weekly_backup_email(
+                    org, force=True, trigger=BackupTrigger.MANUAL
+                )
 
             if success:
                 user_msg = f"Backup emailed successfully to the organization owner ({owner.email})."
@@ -792,6 +844,16 @@ class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
                     return JsonResponse({"success": False, "message": user_msg}, status=500)
                 messages.error(request, user_msg)
 
+        except ExportDatasetTooLargeError as e:
+            user_msg = str(e)
+            if is_json_request:
+                return JsonResponse({"success": False, "message": user_msg}, status=400)
+            messages.error(request, user_msg)
+        except ExportCapacityExceededError as e:
+            user_msg = str(e)
+            if is_json_request:
+                return JsonResponse({"success": False, "message": user_msg}, status=503)
+            return HttpResponse(user_msg, status=503, content_type="text/plain")
         except Exception as e:
             logger.exception("Instant backup mail failed")
             user_msg = "We couldn't generate the backup. Please try again."
@@ -802,17 +864,28 @@ class SettingsDataBackupMailView(BillingLoginRequiredMixin, View):
         return redirect("settings_app:data_management")
 
 
-
-
-
+@method_decorator(ratelimit(key="user_or_ip", rate="5/h", block=False), name="get")
 class SettingsExcelExportView(BillingLoginRequiredMixin, View):
     """
     Generates and downloads the official versioned Advance Billing Excel Backup (.xlsx).
     """
 
     def get(self, request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.get,
+                key="user_or_ip",
+                rate="5/h",
+                is_json=False,
+                custom_message="Rate limit exceeded. Maximum 5 Excel export downloads allowed per hour.",
+            )
+
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.services.excel_backup_service import ExcelBackupService  # noqa: PLC0415
+        from apps.settings_app.services.backup_service import ExportDatasetTooLargeError  # noqa: PLC0415
+        from apps.settings_app.services.export_resource_guard import ExportResourceGuard, ExportCapacityExceededError  # noqa: PLC0415
         from apps.settings_app.services.audit_service import DataManagementAuditService  # noqa: PLC0415
         from apps.settings_app.models import DataManagementAction  # noqa: PLC0415
 
@@ -824,7 +897,14 @@ class SettingsExcelExportView(BillingLoginRequiredMixin, View):
             messages.error(request, "Organization not found.")
             return redirect("settings_app:data_management")
 
-        excel_bytes, filename, manifest = ExcelBackupService.generate_backup_workbook(org)
+        try:
+            with ExportResourceGuard.protect():
+                excel_bytes, filename, manifest = ExcelBackupService.generate_backup_workbook(org)
+        except ExportDatasetTooLargeError as e:
+            messages.error(request, str(e))
+            return redirect("settings_app:data_management")
+        except ExportCapacityExceededError as e:
+            return HttpResponse(str(e), status=503, content_type="text/plain")
 
         DataManagementAuditService.log_action(
             organization=org,
@@ -848,6 +928,8 @@ class SettingsExcelImportValidateView(BillingLoginRequiredMixin, View):
     PHASE 1: Read-only validation & dry-run preview for Excel Backups.
     """
 
+    MAX_BACKUP_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024  # 25 MB
+
     def post(self, request, *args, **kwargs):
         from apps.organization.models import Organization  # noqa: PLC0415
         from apps.settings_app.services.excel_restore_service import ExcelRestoreService  # noqa: PLC0415
@@ -863,6 +945,12 @@ class SettingsExcelImportValidateView(BillingLoginRequiredMixin, View):
             return JsonResponse({"success": False, "message": "Please select an Excel backup (.xlsx) file to validate."}, status=400)
 
         f = request.FILES["backup_file"]
+        if f.size > self.MAX_BACKUP_UPLOAD_SIZE_BYTES:
+            return JsonResponse(
+                {"success": False, "message": f"Uploaded backup file ({f.size / (1024*1024):.1f} MB) exceeds maximum allowed limit of 25 MB."},
+                status=400,
+            )
+
         is_valid, msg, preview = ExcelRestoreService.validate_and_preview(f.read(), f.name, org)
 
         if is_valid:
@@ -875,6 +963,8 @@ class SettingsExcelImportRestoreView(BillingLoginRequiredMixin, View):
     """
     PHASE 2: Atomic transactional restoration from verified Excel Backup.
     """
+
+    MAX_BACKUP_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024  # 25 MB
 
     def post(self, request, *args, **kwargs):
         from apps.organization.models import Organization  # noqa: PLC0415
@@ -893,6 +983,12 @@ class SettingsExcelImportRestoreView(BillingLoginRequiredMixin, View):
             return JsonResponse({"success": False, "message": "Please select an Excel backup (.xlsx) file to restore."}, status=400)
 
         f = request.FILES["backup_file"]
+        if f.size > self.MAX_BACKUP_UPLOAD_SIZE_BYTES:
+            return JsonResponse(
+                {"success": False, "message": f"Uploaded backup file ({f.size / (1024*1024):.1f} MB) exceeds maximum allowed limit of 25 MB."},
+                status=400,
+            )
+
         success, msg, preview = ExcelRestoreService.execute_restore(f.read(), f.name, org)
 
         if success:

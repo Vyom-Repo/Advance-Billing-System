@@ -34,7 +34,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views import View
 from django.views.generic import TemplateView
-
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from apps.common.services.email_service import EmailService
 
 from apps.common.mixins import PageTitleMixin
@@ -52,6 +53,7 @@ logger = logging.getLogger(__name__)
 # SIGNUP
 # =============================================================================
 
+@method_decorator(ratelimit(key="ip", rate="5/m", block=False), name="post")
 class SignupView(PageTitleMixin, View):
     """
     Handles user registration.
@@ -73,6 +75,16 @@ class SignupView(PageTitleMixin, View):
         })
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="ip",
+                rate="5/m",
+                custom_message="Rate limit exceeded. Please wait before making more signup attempts.",
+            )
+
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
@@ -108,6 +120,7 @@ class SignupView(PageTitleMixin, View):
 # LOGIN
 # =============================================================================
 
+@method_decorator(ratelimit(key="ip", rate="10/m", block=False), name="post")
 class LoginView(PageTitleMixin, View):
     """
     Handles user authentication.
@@ -129,6 +142,16 @@ class LoginView(PageTitleMixin, View):
         })
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="ip",
+                rate="10/m",
+                custom_message="Rate limit exceeded. Please wait before making more login attempts.",
+            )
+
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"]
@@ -178,20 +201,18 @@ class LoginView(PageTitleMixin, View):
 
 class LogoutView(View):
     """
-    Logs out the current user and redirects to the landing page.
-    POST-only to prevent CSRF-based logout attacks.
+    Logs out the user and redirects to login.
     """
 
-    def post(self, request: HttpRequest) -> HttpResponse:
-        if request.user.is_authenticated:
-            logger.info("User logged out: %s", request.user.email)
-            logout(request)
-        messages.info(request, "You have been signed out successfully.")
-        return redirect("landing")
-
     def get(self, request: HttpRequest) -> HttpResponse:
-        # Redirect GET requests to landing (don't logout on GET)
-        return redirect("landing")
+        logout(request)
+        messages.info(request, "You have been signed out.")
+        return redirect("auth:login")
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        logout(request)
+        messages.info(request, "You have been signed out.")
+        return redirect("auth:login")
 
 
 # =============================================================================
@@ -199,9 +220,9 @@ class LogoutView(View):
 # =============================================================================
 
 class VerificationSentView(PageTitleMixin, TemplateView):
-    """Confirmation page shown after signup — tells user to check email."""
+    """Informational page telling the user to check their email."""
     template_name = "authentication/verification_sent.html"
-    page_title = "Verify Your Email — Advance Billing"
+    page_title = "Check Your Email — Advance Billing"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -211,37 +232,54 @@ class VerificationSentView(PageTitleMixin, TemplateView):
 
 class VerifyEmailView(PageTitleMixin, View):
     """
-    Processes email verification token from the link in the verification email.
-    Token-based verification will be fully implemented in the auth phase.
+    Handles the link clicked from the user's email.
+    Token format: django Signer token of str(user.pk).
     """
+
     template_name = "authentication/verify_email.html"
     page_title = "Email Verification — Advance Billing"
 
-    def get(self, request: HttpRequest, token: str = "") -> HttpResponse:
+    def get(self, request: HttpRequest, token: str) -> HttpResponse:
         signer = Signer()
         try:
             user_id = signer.unsign(token)
             user = User.objects.get(pk=user_id)
-            
             if not user.is_active:
                 user.is_active = True
                 user.save()
-                logger.info("User verified email: %s", user.email)
+                logger.info("User verified email successfully: %s", user.email)
                 messages.success(request, "Your email has been verified! You can now sign in.")
+                return redirect("auth:login")
             else:
-                messages.info(request, "Your email is already verified. Please sign in.")
-                
-            return redirect("auth:login")
+                messages.info(request, "Your account is already verified. Please sign in.")
+                return redirect("auth:login")
         except (BadSignature, User.DoesNotExist):
-            messages.error(request, "The verification link is invalid or has expired.")
-            return redirect("auth:login")
+            logger.warning("Invalid or expired verification token used.")
+            return render(request, self.template_name, {
+                "success": False,
+                "error": "The verification link is invalid or has expired.",
+                "page_title": self.page_title,
+            })
 
 
+@method_decorator(ratelimit(key="ip", rate="5/m", block=False), name="post")
 class ResendVerificationEmailView(View):
     """Handles resending the verification email."""
     
     def post(self, request: HttpRequest) -> HttpResponse:
         is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.headers.get("accept") == "application/json"
+
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="ip",
+                rate="5/m",
+                is_json=is_ajax,
+                custom_message="Rate limit exceeded. Please wait before requesting another verification email.",
+            )
+
         email = request.session.get("verification_email")
         
         if not email:
@@ -286,10 +324,7 @@ class ResendVerificationEmailView(View):
 # FORGOT PASSWORD
 # =============================================================================
 
-# =============================================================================
-# FORGOT PASSWORD
-# =============================================================================
-
+@method_decorator(ratelimit(key="ip", rate="5/m", block=False), name="post")
 class ForgotPasswordView(PageTitleMixin, View):
     """
     Step 1 of password reset: user enters their email address.
@@ -307,6 +342,16 @@ class ForgotPasswordView(PageTitleMixin, View):
         })
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        if getattr(request, "limited", False):
+            from apps.common.services.rate_limit import build_ratelimit_429_response  # noqa: PLC0415
+            return build_ratelimit_429_response(
+                request,
+                fn=self.post,
+                key="ip",
+                rate="5/m",
+                custom_message="Rate limit exceeded. Please wait before requesting another password reset.",
+            )
+
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"].lower().strip()

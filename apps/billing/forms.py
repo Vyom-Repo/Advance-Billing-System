@@ -213,6 +213,7 @@ def make_invoice_line_formset(organization, extra=1):
     Factory that creates an InvoiceLine inline formset with organization scoping.
     JavaScript may dynamically add/remove formset rows;
     Django remains responsible for validation and persistence.
+    Enforces a strict server-side boundary of MAX_LINE_ITEMS = 100.
     """
     BaseFormSet = inlineformset_factory(
         Invoice,
@@ -223,6 +224,8 @@ def make_invoice_line_formset(organization, extra=1):
         can_delete=True,
         min_num=0,
         validate_min=False,
+        max_num=100,
+        validate_max=True,
     )
 
     class OrganizationScopedLineFormSet(BaseFormSet):
@@ -230,5 +233,22 @@ def make_invoice_line_formset(organization, extra=1):
             kwargs = super().get_form_kwargs(index)
             kwargs["organization"] = organization
             return kwargs
+
+        def clean(self):
+            super().clean()
+            active_count = 0
+            for form in self.forms:
+                if self.can_delete and self._should_delete_form(form):
+                    continue
+                # Count form if it has cleaned_data or posted data for fields
+                if getattr(form, "cleaned_data", None):
+                    if not form.cleaned_data.get("DELETE", False):
+                        # Form has valid cleaned_data and is not marked for deletion
+                        active_count += 1
+                elif any(form.data.get(f"{form.prefix}-{field}") for field in form.fields):
+                    active_count += 1
+
+            if active_count > 100:
+                raise forms.ValidationError("Invoices cannot have more than 100 line items.")
 
     return OrganizationScopedLineFormSet

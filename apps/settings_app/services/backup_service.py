@@ -32,11 +32,31 @@ from apps.settings_app.models import (
 logger = logging.getLogger(__name__)
 
 MAX_ATTACHMENT_SIZE_BYTES = 15 * 1024 * 1024  # 15 MB
+MAX_EXPORT_RECORDS = 50_000  # Conservative server-side dataset boundary
 SIGNATURE = "ADVANCE_BILLING_BACKUP"
 SCHEMA_VERSION = "1.0"
 
 
+class ExportDatasetTooLargeError(Exception):
+    """Raised when an organization dataset exceeds the maximum allowed export limit."""
+
+    pass
+
+
 class OrganizationBackupService:
+    @classmethod
+    def count_organization_records(cls, organization: Organization) -> int:
+        """
+        Calculates total record count strictly scoped to the organization across
+        customers, customer addresses, products, invoices, and invoice line items.
+        Does NOT count unrelated organizations.
+        """
+        cust_count = Customer.objects.filter(organization=organization).count()
+        prod_count = Product.objects.filter(organization=organization).count()
+        inv_count = Invoice.objects.filter(organization=organization).count()
+        item_count = InvoiceLine.objects.filter(invoice__organization=organization).count()
+        return 1 + (cust_count * 2) + prod_count + inv_count + item_count
+
     @classmethod
     def get_or_create_backup_setting(cls, organization: Organization) -> OrganizationBackupSetting:
         setting, _ = OrganizationBackupSetting.objects.get_or_create(
@@ -66,6 +86,16 @@ class OrganizationBackupService:
         Returns: (json_bytes, json_filename, excel_bytes, excel_filename, record_counts, total_records)
         """
         from apps.settings_app.services.excel_backup_service import ExcelBackupService  # noqa: PLC0415
+
+        # Enforce server-side dataset safety boundary BEFORE loading full datasets
+        total_records = cls.count_organization_records(organization)
+        if total_records > MAX_EXPORT_RECORDS:
+            err_msg = (
+                f"Organization export dataset ({total_records} records) exceeds maximum allowed limit "
+                f"of {MAX_EXPORT_RECORDS} records."
+            )
+            logger.warning(err_msg)
+            raise ExportDatasetTooLargeError(err_msg)
 
         now = timezone.now()
         org_slug = (organization.business_name or "org").lower().replace(" ", "-")
@@ -297,21 +327,23 @@ class OrganizationBackupService:
             "total_records": total_records,
         }
 
-        j_data = json.loads(j_bytes.decode("utf-8"))
+        # Parse once cleanly to populate individual json files in zip
+        j_data = json.loads(j_bytes)
         datasets = {
-            "organization.json": [j_data["organization"]],
-            "customers.json": j_data["customers"],
-            "customer_addresses.json": j_data["customer_addresses"],
-            "products.json": j_data["products"],
-            "invoices.json": j_data["invoices"],
-            "invoice_items.json": j_data["invoice_items"],
+            "organization.json": json.dumps([j_data["organization"]], indent=2).encode("utf-8"),
+            "customers.json": json.dumps(j_data["customers"], indent=2).encode("utf-8"),
+            "customer_addresses.json": json.dumps(j_data["customer_addresses"], indent=2).encode("utf-8"),
+            "products.json": json.dumps(j_data["products"], indent=2).encode("utf-8"),
+            "invoices.json": json.dumps(j_data["invoices"], indent=2).encode("utf-8"),
+            "invoice_items.json": json.dumps(j_data["invoice_items"], indent=2).encode("utf-8"),
         }
+        del j_data
 
         zip_buf = io.BytesIO()
         with zipfile.ZipFile(zip_buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("manifest.json", json.dumps(manifest, indent=2))
-            for fn, content in datasets.items():
-                zf.writestr(fn, json.dumps(content, indent=2))
+            for fn, content_bytes in datasets.items():
+                zf.writestr(fn, content_bytes)
             zf.writestr(j_name, j_bytes)
             zf.writestr(x_name, x_bytes)
 
@@ -403,6 +435,16 @@ class OrganizationBackupService:
                 msg = f"Weekly backup already sent for {organization.business_name} on {setting.last_backup_at.strftime('%Y-%m-%d')}."
                 logger.info(msg)
                 return True, msg
+
+        # Check dataset limit before generation
+        total_records = cls.count_organization_records(organization)
+        if total_records > MAX_EXPORT_RECORDS:
+            err_msg = (
+                f"Organization dataset ({total_records} records) exceeds maximum allowed limit "
+                f"of {MAX_EXPORT_RECORDS} records."
+            )
+            logger.warning(err_msg)
+            raise ExportDatasetTooLargeError(err_msg)
 
         setting.last_status = BackupStatus.GENERATING
         setting.save(update_fields=["last_status", "updated_at"])

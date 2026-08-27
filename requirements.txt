@@ -45,6 +45,9 @@ django-cloudinary-storage==0.3.0  # Django storage backend for Cloudinary
 # Authentication Utilities
 # =============================================================================
 django-ratelimit==4.1.0         # Rate limiting for login/signup endpoints
+redis==5.2.1                    # Redis Python client
+django-redis==5.4.0             # Shared Redis cache backend for Django & django-ratelimit
+
 
 # =============================================================================
 # Security

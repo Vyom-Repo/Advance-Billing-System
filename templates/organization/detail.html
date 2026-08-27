@@ -645,13 +645,13 @@
                                 {% endif %}
                             </div>
                             <div class="logo-actions">
-                                <input type="file" name="logo" id="logo-input" accept="image/png, image/jpeg, image/svg+xml" style="display: none;">
+                                <input type="file" name="logo" id="logo-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
                                 <input type="hidden" name="remove_logo" id="remove-logo-flag" value="False">
                                 <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
                                     <button type="button" class="btn-outline" onclick="document.getElementById('logo-input').click()">Replace Logo</button>
                                     <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-logo">Remove</button>
                                 </div>
-                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended size: 500x500px. Supported formats: PNG, JPG, SVG.</p>
+                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">PNG, JPG, WebP up to 5MB (Max: 5000×5000 px).</p>
                             </div>
                         </div>
                     </div>
@@ -707,7 +707,7 @@
                                 </div>
                             </div>
 
-                            <input type="file" name="letterhead" id="letterhead-input" accept="image/png, image/jpeg, application/pdf" style="display: none;">
+                            <input type="file" name="letterhead" id="letterhead-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
                             <input type="hidden" name="remove_letterhead" id="remove-letterhead-flag" value="False">
                             
                             <!-- Validation Status -->
@@ -832,13 +832,13 @@
                                     {% endif %}
                                 </div>
                                 <div class="logo-actions">
-                                    <input type="file" name="signature" id="signature-input" accept="image/png, image/jpeg" style="display: none;">
+                                    <input type="file" name="signature" id="signature-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
                                     <input type="hidden" name="remove_signature" id="remove-signature-flag" value="False">
                                     <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-2);">
                                         <button type="button" class="btn-outline" onclick="document.getElementById('signature-input').click()">Replace Signature</button>
                                         <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-signature">Remove</button>
                                     </div>
-                                    <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended format: Transparent PNG.</p>
+                                    <p style="font-size: var(--text-xs); color: var(--color-text-muted);">PNG, JPG, WebP up to 5MB (Max: 5000×5000 px).</p>
                                 </div>
                             </div>
                         </div>
@@ -885,13 +885,13 @@
                                 {% endif %}
                             </div>
                             <div class="logo-actions">
-                                <input type="file" name="qr_code" id="qr-input" accept="image/png, image/jpeg, image/svg+xml" style="display: none;">
+                                <input type="file" name="qr_code" id="qr-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
                                 <input type="hidden" name="remove_qr_code" id="remove-qr-flag" value="False">
                                 <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-2);">
                                     <button type="button" class="btn-outline" onclick="document.getElementById('qr-input').click()">Replace QR Code</button>
                                     <button type="button" class="btn-outline" style="border-color: transparent; color: var(--color-error);" id="btn-remove-qr">Remove</button>
                                 </div>
-                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">Recommended size: 500x500px. Supported formats: PNG, JPG, SVG.</p>
+                                <p style="font-size: var(--text-xs); color: var(--color-text-muted);">PNG, JPG, WebP up to 5MB (Max: 5000×5000 px).</p>
                             </div>
                         </div>
                     </div>
@@ -1251,45 +1251,71 @@
             input.addEventListener('change', function(e) {
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imgPreview.src = e.target.result;
-                        imgPreview.style.display = 'block';
-                        if (placeholder) placeholder.style.display = 'none';
-                        hiddenFlag.value = 'False'; // Reset removal flag if new image uploaded
-                        
-                        // Hide success text if they upload a new one
-                        if(inputId === 'letterhead-input') {
-                            const successMsg = document.getElementById('letterhead-success-msg');
-                            const metaMsg = document.getElementById('letterhead-meta');
-                            if(successMsg) successMsg.style.display = 'none';
-                            if(metaMsg) metaMsg.style.display = 'none';
+
+                    // Client-Side Pre-Validation: File Size (5 MB limit)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`Selected file size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the maximum allowed limit of 5 MB.`);
+                        this.value = '';
+                        return;
+                    }
+
+                    // Client-Side Pre-Validation: Format Check
+                    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                    if (!validTypes.includes(file.type.toLowerCase())) {
+                        alert('Unsupported file format. Please upload a valid PNG, JPEG, or WebP image.');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Client-Side Pre-Validation: Dimension Check (5000x5000 limit)
+                    const imgObj = new Image();
+                    imgObj.onload = function() {
+                        if (imgObj.width > 5000 || imgObj.height > 5000) {
+                            alert(`Image dimensions (${imgObj.width}×${imgObj.height} px) exceed the maximum allowed limit of 5000×5000 px.`);
+                            input.value = '';
+                            return;
+                        }
+
+                        // Load preview if dimensions valid
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imgPreview.src = e.target.result;
+                            imgPreview.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                            hiddenFlag.value = 'False'; // Reset removal flag if new image uploaded
                             
-                            // Image Validation
-                            const img = new Image();
-                            img.onload = function() {
-                                const aspect = img.width / img.height;
+                            // Hide success text if they upload a new one
+                            if(inputId === 'letterhead-input') {
+                                const successMsg = document.getElementById('letterhead-success-msg');
+                                const metaMsg = document.getElementById('letterhead-meta');
+                                if(successMsg) successMsg.style.display = 'none';
+                                if(metaMsg) metaMsg.style.display = 'none';
+                                
+                                // Image Validation
+                                const aspect = imgObj.width / imgObj.height;
                                 const isA4 = Math.abs(aspect - (210/297)) < 0.05;
                                 const validationMsg = document.getElementById('letterhead-validation-msg');
-                                validationMsg.style.display = 'flex';
-                                
-                                if (isA4 && img.width >= 1200) {
-                                    validationMsg.style.color = 'var(--color-success)';
-                                    validationMsg.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i> Perfect A4 format & high resolution.';
-                                } else if (!isA4) {
-                                    validationMsg.style.color = 'var(--color-warning)';
-                                    validationMsg.innerHTML = '<i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Not A4 aspect ratio. May be stretched.';
-                                } else if (img.width < 1200) {
-                                    validationMsg.style.color = 'var(--color-warning)';
-                                    validationMsg.innerHTML = '<i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Low resolution. Print may be blurry.';
+                                if (validationMsg) {
+                                    validationMsg.style.display = 'flex';
+                                    
+                                    if (isA4 && imgObj.width >= 1200) {
+                                        validationMsg.style.color = 'var(--color-success)';
+                                        validationMsg.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i> Perfect A4 format & high resolution.';
+                                    } else if (!isA4) {
+                                        validationMsg.style.color = 'var(--color-warning)';
+                                        validationMsg.innerHTML = '<i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Not A4 aspect ratio. May be stretched.';
+                                    } else if (imgObj.width < 1200) {
+                                        validationMsg.style.color = 'var(--color-warning)';
+                                        validationMsg.innerHTML = '<i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Low resolution. Print may be blurry.';
+                                    }
+                                    lucide.createIcons();
                                 }
-                                lucide.createIcons();
-                            };
-                            img.src = e.target.result;
+                            }
                         }
-                    }
-                    reader.readAsDataURL(file);
-                    stickyBar.classList.add('visible');
+                        reader.readAsDataURL(file);
+                        stickyBar.classList.add('visible');
+                    };
+                    imgObj.src = URL.createObjectURL(file);
                 }
             });
 

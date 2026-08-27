@@ -37,8 +37,10 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
 
-    # Database
+    # Database & Cache
     DATABASE_URL=(str, ""),
+    REDIS_URL=(str, ""),
+
 
     # Timezone
     TIME_ZONE=(str, "Asia/Kolkata"),
