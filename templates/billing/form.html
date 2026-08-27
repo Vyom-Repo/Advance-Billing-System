@@ -884,9 +884,19 @@
                                         <div class="product-cell">
                                             {{ line_form.product }}
                                         </div>
+                                        <div class="line-description-wrapper" style="margin-top: 6px;">
+                                            {{ line_form.description }}
+                                        </div>
                                         {% if line_form.product.errors %}
                                         <ul class="errorlist">
                                             {% for e in line_form.product.errors %}
+                                            <li>{{ e }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                        {% if line_form.description.errors %}
+                                        <ul class="errorlist">
+                                            {% for e in line_form.description.errors %}
                                             <li>{{ e }}</li>
                                             {% endfor %}
                                         </ul>
@@ -954,6 +964,9 @@
                                     <span class="mobile-label">Product / Service</span>
                                     <div class="product-cell">
                                         {{ formset.empty_form.product }}
+                                    </div>
+                                    <div class="line-description-wrapper" style="margin-top: 6px;">
+                                        <textarea name="lines-__prefix__-description" class="form-control line-description" rows="2" placeholder="Description (optional)"></textarea>
                                     </div>
                                 </td>
                                 <td class="col-qty">
@@ -1195,35 +1208,35 @@
             }
         }
 
-        // --- Product selection → populate rate field ---
-        function fetchProductRate(productSelect) {
+        // --- Product selection → populate rate & description fields ---
+        function fetchProductDetails(productSelect) {
             const productId = productSelect.value;
             const row = productSelect.closest('tr');
             if (!row) return;
             const rateField = row.querySelector('.line-rate-input') || row.querySelector('.line-rate');
-            if (rateField) {
-                if (productId) {
-                    fetch(`{% url 'billing:api_products' %}`.replace('api/products/', `api/products/${productId}/`), {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            const descField = row.querySelector('.line-description');
+            if (productId) {
+                fetch(`{% url 'billing:api_products' %}`.replace('api/products/', `api/products/${productId}/`), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.json())
+                    .then(product => {
+                        if (rateField) rateField.value = product.unit_price;
+                        if (descField) {
+                            // Populate product description automatically if present
+                            descField.value = product.description || '';
+                        }
                     })
-                        .then(r => r.json())
-                        .then(product => {
-                            rateField.value = product.unit_price;
-                        })
-                        .catch(e => console.error(e));
-                } else {
-                    rateField.value = '0.00';
-                }
+                    .catch(e => console.error(e));
+            } else {
+                if (rateField) rateField.value = '0.00';
+                if (descField) descField.value = '';
             }
         }
 
         document.addEventListener('change', (e) => {
             if (!e.target.classList.contains('line-product-select')) return;
-            fetchProductRate(e.target);
-        });
-
-        document.querySelectorAll('.line-product-select').forEach(select => {
-            if (select.value) fetchProductRate(select);
+            fetchProductDetails(e.target);
         });
 
         // --- Discount UI interactions ---

@@ -362,7 +362,7 @@
                                 <td class="text-center">{{ item.index }}</td>
                                 <td>
                                     <strong>{{ item.name }}</strong>
-                                    {% if item.description %}<br><span style="font-size: 8px; color: #555555;">{{ item.description }}</span>{% endif %}
+                                    {% if item.description %}<br><span style="font-size: 8px; color: #555555; white-space: pre-line;">{{ item.description|linebreaksbr }}</span>{% endif %}
                                 </td>
                                 {% if config.show_hsn_sac %}<td class="text-center">{{ item.hsn|default:"-" }}</td>{% endif %}
                                 <td class="text-center">{{ item.quantity }} {{ item.unit }}</td>

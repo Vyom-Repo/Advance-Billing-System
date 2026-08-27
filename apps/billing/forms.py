@@ -133,12 +133,19 @@ class InvoiceLineForm(forms.ModelForm):
     """
     Form for a single InvoiceLine within an Invoice.
     Enforces organization-scoped product lookup.
-    Handles product, quantity, unit_price, discount_type, discount_value.
+    Handles product, description, quantity, unit_price, discount_type, discount_value.
     """
 
     class Meta:
         model = InvoiceLine
-        fields = ["product", "quantity", "unit_price", "discount_type", "discount_value"]
+        fields = ["product", "description", "quantity", "unit_price", "discount_type", "discount_value"]
+        widgets = {
+            "description": forms.Textarea(attrs={
+                "class": "form-control line-description",
+                "rows": "2",
+                "placeholder": "Description (optional)",
+            })
+        }
 
     def __init__(self, *args, **kwargs):
         self.organization = kwargs.pop("organization", None)
@@ -150,18 +157,21 @@ class InvoiceLineForm(forms.ModelForm):
             organization=self.organization
         ).order_by("name")
         self.fields["product"].widget.attrs.update({"class": "form-control line-product-select"})
+        self.fields["description"].required = False
         self.fields["quantity"].widget.attrs.update({"class": "form-control line-qty", "step": "0.001", "min": "0.001"})
         self.fields["unit_price"].widget.attrs.update({"class": "form-control line-rate", "step": "0.01", "min": "0"})
         self.fields["discount_type"].widget.attrs.update({"class": "form-control line-discount-type"})
         self.fields["discount_value"].widget.attrs.update({"class": "form-control line-discount-value", "step": "0.01", "min": "0"})
 
-        # Use Product price as the initial default for unit_price
+        # Use Product price and description as initial defaults
         if "initial" in kwargs and kwargs["initial"].get("product"):
             product_id = kwargs["initial"]["product"]
             try:
                 product = Product.objects.get(id=product_id, organization=self.organization)
                 if "unit_price" not in kwargs.get("initial", {}):
                     self.fields["unit_price"].initial = product.unit_price
+                if "description" not in kwargs.get("initial", {}):
+                    self.fields["description"].initial = product.description
             except Product.DoesNotExist:
                 pass
 
@@ -185,6 +195,12 @@ class InvoiceLineForm(forms.ModelForm):
         if discount_type == "none":
             cleaned_data["discount_value"] = 0
 
+        desc = cleaned_data.get("description")
+        if desc:
+            cleaned_data["description"] = desc.strip()
+        else:
+            cleaned_data["description"] = ""
+
         return cleaned_data
 
 
@@ -202,7 +218,7 @@ def make_invoice_line_formset(organization, extra=1):
         Invoice,
         InvoiceLine,
         form=InvoiceLineForm,
-        fields=["product", "quantity", "unit_price", "discount_type", "discount_value"],
+        fields=["product", "description", "quantity", "unit_price", "discount_type", "discount_value"],
         extra=extra,
         can_delete=True,
         min_num=0,

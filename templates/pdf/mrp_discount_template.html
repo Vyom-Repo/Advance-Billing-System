@@ -193,7 +193,7 @@
                 <tr>
                     <td class="center">{{ item.index }}</td>
                     <td><b>{{ item.name }}</b>{% if item.hsn and config.show_hsn_sac %}<br>HSN: {{ item.hsn }}{% endif %}
-                        {% if item.description %}<br><span class="discount-note">{{ item.description }}</span>{% endif %}</td>
+                        {% if item.description %}<br><span class="discount-note" style="white-space: pre-line;">{{ item.description|linebreaksbr }}</span>{% endif %}</td>
                     <td class="right">{% if item.mrp %}{{ bill.currency_symbol }}{{ item.mrp }}{% else %}{{ bill.currency_symbol }}{{ item.rate }}{% endif %}</td>
                     <td class="center">{{ item.quantity }} {{ item.unit }}</td>
                     <td class="right">{% if item.selling_price %}{{ bill.currency_symbol }}{{ item.selling_price }}{% else %}{{ bill.currency_symbol }}{{ item.rate }}{% endif %}</td>

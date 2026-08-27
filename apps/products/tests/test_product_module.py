@@ -546,3 +546,27 @@ class ProductCRUDTests(TestCase):
     def test_classification_code_property_service(self):
         product = Product(product_type=ProductType.SERVICE, hsn_code="", sac_code="998313")
         self.assertEqual(product.classification_code, "998313")
+
+    def test_product_description_optional_and_preserved(self):
+        multiline_desc = "Line 1: Premium grade steel.\nLine 2: 10mm diameter.\nLine 3: ISO certified."
+        data = _goods_data(description=multiline_desc)
+        form = ProductForm(data=data, organization=self.org)
+        self.assertTrue(form.is_valid(), form.errors)
+        product = form.save(commit=False)
+        product.organization = self.org
+        product.save()
+        self.assertEqual(product.description, multiline_desc)
+
+        # Snapshot includes description
+        snap = product.as_invoice_snapshot()
+        self.assertEqual(snap["description"], multiline_desc)
+
+        # Product without description
+        data_no_desc = _goods_data(description="")
+        form_no_desc = ProductForm(data=data_no_desc, organization=self.org)
+        self.assertTrue(form_no_desc.is_valid(), form_no_desc.errors)
+        p_no_desc = form_no_desc.save(commit=False)
+        p_no_desc.organization = self.org
+        p_no_desc.save()
+        self.assertEqual(p_no_desc.description, "")
+        self.assertEqual(p_no_desc.as_invoice_snapshot()["description"], "")

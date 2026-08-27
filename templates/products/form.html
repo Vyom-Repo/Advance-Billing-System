@@ -432,6 +432,18 @@
                         {% endif %}
                     </div>
 
+                    <!-- Product Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.description.id_for_label }}">
+                            Product Description <span style="color: var(--color-text-muted); font-weight: var(--font-normal);">(Optional)</span>
+                        </label>
+                        {{ form.description }}
+                        <div class="field-note">Optional multi-line description. This will automatically populate into invoice items when this product is selected.</div>
+                        {% if form.description.errors %}
+                            <div class="field-error">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
                     <!-- Product Type -->
                     <div class="form-group">
                         <label class="form-label">Product Type <span class="required">*</span></label>

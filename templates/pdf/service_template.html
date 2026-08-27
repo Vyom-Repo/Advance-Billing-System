@@ -202,7 +202,7 @@
                 <tr>
                     <td class="center">{{ item.index }}</td>
                     <td><span class="item-name">{{ item.name }}</span>
-                        {% if item.description %}<br><span class="sub">{{ item.description }}</span>{% endif %}</td>
+                        {% if item.description %}<br><span class="sub" style="white-space: pre-line;">{{ item.description|linebreaksbr }}</span>{% endif %}</td>
                     <td class="center">{% if config.show_hsn_sac %}{{ item.hsn }}{% endif %}</td>
                     <td class="right">{{ bill.currency_symbol }}{{ item.amount }}</td>
                 </tr>

@@ -710,6 +710,7 @@ class InvoicePreviewFormCalculationView(InvoiceOrganizationMixin, View):
                 invoice=invoice,
                 product=product,
                 position=position,
+                description=form_state.get(f"lines-{i}-description", ""),
                 discount_type=form_state.get(f"lines-{i}-discount_type", "none")
             )
             
@@ -921,6 +922,7 @@ class ProductSearchAPIView(InvoiceOrganizationMixin, View):
             {
                 "id": str(p.id),
                 "name": p.name,
+                "description": getattr(p, "description", "") or "",
                 "unit_price": str(p.unit_price),
                 "gst_rate": str(p.gst_rate),
                 "taxability_type": p.taxability_type,
@@ -944,6 +946,7 @@ class ProductDetailAPIView(InvoiceOrganizationMixin, View):
         return JsonResponse({
             "id": str(product.id),
             "name": product.name,
+            "description": getattr(product, "description", "") or "",
             "unit_price": str(product.unit_price),
             "gst_rate": str(product.gst_rate),
             "taxability_type": product.taxability_type,

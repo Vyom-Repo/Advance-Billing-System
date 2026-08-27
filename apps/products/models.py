@@ -191,6 +191,10 @@ class Product(TimeStampedModel):
             "See price_basis to determine whether GST is included."
         ),
     )
+    description = models.TextField(
+        blank=True,
+        help_text="Optional multi-line description of the product or service.",
+    )
     price_basis = models.CharField(
         max_length=10,
         choices=PriceBasis.choices,
@@ -266,6 +270,7 @@ class Product(TimeStampedModel):
             "product_id":              str(self.pk),
             "product_uuid":            str(self.uuid),
             "product_name":            self.name,
+            "description":             self.description or "",
             "product_type":            self.product_type,
             "hsn_code":                self.hsn_code,
             "sac_code":                self.sac_code,

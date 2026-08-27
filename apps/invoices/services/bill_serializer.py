@@ -48,6 +48,9 @@ def serialize_bill_for_render(
     company_serialized = _serialize_company(comp_dict, org)
     bill_serialized = _serialize_invoice(inv_dict, company_serialized, org)
 
+    tax_info = _compute_tax_breakdown(items_list, bill_serialized["tax_total"], inv_dict)
+    bill_serialized.update(tax_info)
+
     return {
         "bill":        bill_serialized,
         "company":     company_serialized,
@@ -55,6 +58,7 @@ def serialize_bill_for_render(
         "items":       [_serialize_item(i, idx) for idx, i in enumerate(items_list, start=1)],
         "gst_summary": _build_gst_summary(items_list),
     }
+
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +340,7 @@ def _serialize_item(item: dict, index: int) -> dict:
         "quantity":       quantity,
         "unit":           item.get("unit", ""),
         "rate":           rate,
+        "pretax_amount":  _to_float(item.get("taxable_value") or (rate * quantity if rate else amount)),
 
         # MRP/discount columns (compact/mrp_discount templates)
         "mrp":            _to_float_or_none(item.get("mrp")),
@@ -461,3 +466,92 @@ def _file_url(field) -> "str | None":
 
 def _currency_symbol(code: str) -> str:
     return {"INR": "₹", "USD": "$", "EUR": "€", "GBP": "£"}.get(code, code)
+
+
+def _compute_tax_breakdown(items_list: list[dict], tax_total: float, inv_dict: dict) -> dict:
+    """
+    Computes CGST and SGST totals and rates from invoice data or line items.
+    Guarantees cgst_total + sgst_total == tax_total.
+    """
+    raw_cgst = _to_float(inv_dict.get("cgst_total"))
+    raw_sgst = _to_float(inv_dict.get("sgst_total"))
+
+    if (raw_cgst > 0 or raw_sgst > 0) and abs((raw_cgst + raw_sgst) - tax_total) < 0.02:
+        cgst_total = round(raw_cgst, 2)
+        sgst_total = round(raw_sgst, 2)
+    else:
+        half = round(tax_total / 2.0, 2)
+        cgst_total = half
+        sgst_total = round(tax_total - half, 2)
+
+    distinct_rates = []
+    if items_list:
+        for it in items_list:
+            tp = _to_float(it.get("tax_pct", 0))
+            if tp > 0 and tp not in distinct_rates:
+                distinct_rates.append(tp)
+
+    if len(distinct_rates) == 1:
+        single_rate = distinct_rates[0]
+        cgst_rate = round(single_rate / 2.0, 2)
+        sgst_rate = round(single_rate / 2.0, 2)
+        breakdown = [{
+            "tax_pct": single_rate,
+            "cgst_rate": cgst_rate,
+            "sgst_rate": sgst_rate,
+            "cgst_amount": cgst_total,
+            "sgst_amount": sgst_total,
+        }]
+    elif len(distinct_rates) > 1:
+        by_rate = {}
+        for it in items_list:
+            tp = _to_float(it.get("tax_pct", 0))
+            amt = _to_float(it.get("amount", 0))
+            base = amt / (1 + tp / 100.0) if tp else amt
+            tax_amt = amt - base
+            by_rate[tp] = by_rate.get(tp, 0.0) + tax_amt
+
+        breakdown = []
+        accum_cgst = 0.0
+        accum_sgst = 0.0
+        sorted_rates = sorted(by_rate.keys())
+        for idx, tp in enumerate(sorted_rates):
+            t_amt = by_rate[tp]
+            if idx == len(sorted_rates) - 1:
+                c_amt = round(cgst_total - accum_cgst, 2)
+                s_amt = round(sgst_total - accum_sgst, 2)
+            else:
+                c_amt = round(t_amt / 2.0, 2)
+                s_amt = round(t_amt - c_amt, 2)
+                accum_cgst += c_amt
+                accum_sgst += s_amt
+            half_r = round(tp / 2.0, 2)
+            breakdown.append({
+                "tax_pct": tp,
+                "cgst_rate": half_r,
+                "sgst_rate": half_r,
+                "cgst_amount": c_amt,
+                "sgst_amount": s_amt,
+            })
+        cgst_rate = round(sorted_rates[0] / 2.0, 2)
+        sgst_rate = round(sorted_rates[0] / 2.0, 2)
+    else:
+        tax_pct_hint = _to_float(inv_dict.get("tax_pct", 0))
+        cgst_rate = round(tax_pct_hint / 2.0, 2)
+        sgst_rate = round(tax_pct_hint / 2.0, 2)
+        breakdown = [{
+            "tax_pct": tax_pct_hint,
+            "cgst_rate": cgst_rate,
+            "sgst_rate": sgst_rate,
+            "cgst_amount": cgst_total,
+            "sgst_amount": sgst_total,
+        }]
+
+    return {
+        "cgst_total": cgst_total,
+        "sgst_total": sgst_total,
+        "cgst_rate": cgst_rate,
+        "sgst_rate": sgst_rate,
+        "tax_breakdown": breakdown,
+    }
+

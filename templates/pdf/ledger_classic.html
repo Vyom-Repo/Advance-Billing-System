@@ -403,7 +403,7 @@
                     <td class="text-center tabular-nums">{{ item.index }}</td>
                     <td>
                         <b>{{ item.name }}</b>
-                        {% if item.description %}<div style="font-size: 7px; color: #444;">{{ item.description }}</div>{% endif %}
+                        {% if item.description %}<div style="font-size: 7px; color: #444; white-space: pre-line;">{{ item.description|linebreaksbr }}</div>{% endif %}
                     </td>
                     {% if config.show_hsn_sac %}<td class="text-center tabular-nums">{{ item.hsn }}</td>{% endif %}
                     <td class="text-center tabular-nums">{{ item.quantity }} {{ item.unit }}</td>

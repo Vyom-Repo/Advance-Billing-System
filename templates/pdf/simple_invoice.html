@@ -469,7 +469,7 @@
                                 <td>{{ item.index|default:forloop.counter }}</td>
                                 <td>
                                     <strong>{{ item.name }}</strong>
-                                    {% if item.description %}<br><span style="font-size: 9px; color: #666666;">{{ item.description }}</span>{% endif %}
+                                    {% if item.description %}<br><span style="font-size: 9px; color: #666666; white-space: pre-line;">{{ item.description|linebreaksbr }}</span>{% endif %}
                                 </td>
                                 {% if config.show_hsn_sac %}
                                 <td>{{ item.hsn|default:"-" }}</td>

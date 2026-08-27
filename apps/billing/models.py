@@ -154,6 +154,7 @@ class InvoiceLine(TimeStampedModel):
 
     # Product Snapshots
     product_name_snapshot = models.CharField(max_length=255)
+    description = models.TextField(blank=True, help_text="Optional line-item description. Populated from product but editable per invoice line.")
     product_type_snapshot = models.CharField(max_length=10)
     hsn_sac_snapshot = models.CharField(max_length=8, blank=True)
     taxability_type_snapshot = models.CharField(max_length=12)

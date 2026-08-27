@@ -55,6 +55,7 @@ def invoice_to_pdf_dicts(invoice: Invoice):
     for line in invoice.lines.all().order_by('position'):
         items_list.append({
             "name": line.product_name_snapshot,
+            "description": getattr(line, "description", "") or "",
             "hsn": line.hsn_sac_snapshot,
             "quantity": float(line.quantity),
             "unit": line.uqc_snapshot,

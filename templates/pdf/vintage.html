@@ -924,8 +924,8 @@
                         <td class="text-center">{{ item.index|default:forloop.counter }}</td>
                         <td class="text-left">
                             <div class="item-name">{{ item.name }}</div>
-                            {% if config.has_description_column and item.description %}
-                                <div class="item-desc">{{ item.description }}</div>
+                            {% if item.description %}
+                                <div class="item-desc" style="white-space: pre-line;">{{ item.description|linebreaksbr }}</div>
                             {% endif %}
                         </td>
                         {% if config.show_hsn_sac %}

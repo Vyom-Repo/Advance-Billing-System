@@ -423,7 +423,7 @@
                         <td class="num">{{ item.index }}</td>
                         <td>
                             <div class="desc">{{ item.name }}</div>
-                            {% if item.description %}<div class="desc-sub">{{ item.description }}</div>{% endif %}
+                            {% if item.description %}<div class="desc-sub" style="white-space: pre-line;">{{ item.description|linebreaksbr }}</div>{% endif %}
                         </td>
                         {% if config.show_hsn_sac %}<td class="num">{{ item.hsn }}</td>{% endif %}
                         <td class="money">{{ bill.currency_symbol }}{{ item.rate }}</td>

@@ -388,7 +388,7 @@
                             <td style="color: #94a3b8;">{{ item.index }}</td>
                             <td>
                                 <div class="item-title">{{ item.name }}</div>
-                                {% if item.description %}<div class="item-desc">{{ item.description }}</div>{% endif %}
+                                {% if item.description %}<div class="item-desc" style="white-space: pre-line;">{{ item.description|linebreaksbr }}</div>{% endif %}
                             </td>
                             {% if config.show_hsn_sac %}<td class="num-col" style="color: #64748b;">{{ item.hsn }}</td>{% endif %}
                             <td class="num-col">{{ item.quantity }} {{ item.unit }}</td>

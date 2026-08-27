@@ -360,7 +360,7 @@
         }
 
         /* ------------------------------------------------------------------
-       ITEMS TABLE — ALWAYS PRESERVE 7 COLUMNS
+       ITEMS TABLE — 6 COLUMNS GEOMETRY
        ------------------------------------------------------------------ */
         .items-table {
             width: 100%;
@@ -368,6 +368,7 @@
             margin-top: 19px;
             font-size: 8.5pt;
             page-break-inside: auto;
+            table-layout: fixed;
         }
 
         .items-table thead {
@@ -384,9 +385,9 @@
             color: #ffffff;
             font-weight: 700;
             font-size: 9pt;
-            line-height: 1.1;
-            text-align: left;
-            padding: 9px 12px;
+            line-height: 1.2;
+            padding: 10px 12px;
+            vertical-align: middle;
         }
 
         .items-table thead th:first-child {
@@ -400,10 +401,11 @@
         .items-table tbody td {
             padding: 10px 12px;
             border-bottom: 1px dashed #d7dce4;
-            vertical-align: top;
+            vertical-align: middle;
             color: #1a2233;
             font-size: 8.5pt;
             line-height: 1.35;
+            overflow-wrap: break-word;
         }
 
         .items-table tbody tr:last-child td {
@@ -446,16 +448,17 @@
         }
 
         .col-item {
-            width: 23%;
+            width: 39%;
+            text-align: left;
         }
 
-        .col-details {
-            width: 15%;
+        .col-hsn {
+            width: 14%;
             text-align: center;
         }
 
         .col-qty {
-            width: 12%;
+            width: 14%;
             text-align: center;
         }
 
@@ -464,13 +467,8 @@
             text-align: center;
         }
 
-        .col-tax {
-            width: 14%;
-            text-align: center;
-        }
-
         .col-amount {
-            width: 17%;
+            width: 14%;
             text-align: right;
         }
 
@@ -987,39 +985,34 @@
             </tr>
         </table>
 
-        <!-- ITEMS TABLE — 7 COLUMNS GEOMETRY -->
+        <!-- ITEMS TABLE — 6 COLUMNS GEOMETRY -->
         <table class="items-table">
             <thead>
                 <tr>
                     <th class="col-num">#</th>
                     <th class="col-item">Item Description</th>
-                    <th class="col-details center">Details</th>
-                    <th class="col-qty center">Qty</th>
-                    <th class="col-rate center">Rate</th>
-                    <th class="col-tax center">Tax</th>
-                    <th class="col-amount right">Amount</th>
+                    <th class="col-hsn">HSN/SAC</th>
+                    <th class="col-qty">Qty</th>
+                    <th class="col-rate">Rate</th>
+                    <th class="col-amount">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td class="center">{{ item.index|default:forloop.counter }}</td>
-                    <td>
+                    <td class="col-num">{{ item.index|default:forloop.counter }}</td>
+                    <td class="col-item">
                         <div class="item-name">{{ item.name }}</div>
-                        {% if config.show_hsn_sac and item.hsn %}
-                        <div class="hsn">HSN/SAC: {{ item.hsn }}</div>
+                        {% if item.description %}
+                        <div class="item-description" style="font-size: 7.5pt; color: #556070; margin-top: 2px; line-height: 1.35; white-space: pre-line;">{{ item.description|linebreaksbr }}</div>
                         {% endif %}
                     </td>
-                    <td class="center">{% if item.description %}{{ item.description }}{% else %}-{% endif %}</td>
-                    <td class="center">
+                    <td class="col-hsn">{% if item.hsn %}{{ item.hsn }}{% else %}-{% endif %}</td>
+                    <td class="col-qty">
                         {{ item.quantity|floatformat:1 }}{% if item.unit %} {{ item.unit }}{% endif %}
                     </td>
-                    <td class="center">{{ bill.currency_symbol }}{{ item.rate|floatformat:2|intcomma }}</td>
-                    <td class="center">
-                        {{ bill.currency_symbol }}{{ item.tax_amount|floatformat:2|intcomma }}<br>
-                        <span class="tax-pct">({{ item.tax_pct|floatformat:1 }}%)</span>
-                    </td>
-                    <td class="right amount">{{ bill.currency_symbol }}{{ item.amount|floatformat:2|intcomma }}</td>
+                    <td class="col-rate">{{ bill.currency_symbol }}{{ item.rate|floatformat:2|intcomma }}</td>
+                    <td class="col-amount amount">{{ bill.currency_symbol }}{{ item.pretax_amount|floatformat:2|intcomma }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1066,10 +1059,25 @@
                             <span>Taxable Amount</span>
                             <span>{{ bill.currency_symbol }}{{ bill.subtotal|floatformat:2|intcomma }}</span>
                         </div>
+                        {% for row in bill.tax_breakdown %}
                         <div class="totals-row">
-                            <span>Total Tax</span>
-                            <span>{{ bill.currency_symbol }}{{ bill.tax_total|floatformat:2|intcomma }}</span>
+                            <span>CGST @ {{ row.cgst_rate|floatformat:1 }}%</span>
+                            <span>{{ bill.currency_symbol }}{{ row.cgst_amount|floatformat:2|intcomma }}</span>
                         </div>
+                        <div class="totals-row">
+                            <span>SGST @ {{ row.sgst_rate|floatformat:1 }}%</span>
+                            <span>{{ bill.currency_symbol }}{{ row.sgst_amount|floatformat:2|intcomma }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="totals-row">
+                            <span>CGST @ {{ bill.cgst_rate|floatformat:1 }}%</span>
+                            <span>{{ bill.currency_symbol }}{{ bill.cgst_total|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="totals-row">
+                            <span>SGST @ {{ bill.sgst_rate|floatformat:1 }}%</span>
+                            <span>{{ bill.currency_symbol }}{{ bill.sgst_total|floatformat:2|intcomma }}</span>
+                        </div>
+                        {% endfor %}
                         <div class="grand-total">
                             <span>Grand Total</span>
                             <span>{{ bill.currency_symbol }}{{ bill.grand_total|floatformat:2|intcomma }}</span>
@@ -1091,10 +1099,25 @@
                     <span>Taxable Amount</span>
                     <span>{{ bill.currency_symbol }}{{ bill.subtotal|floatformat:2|intcomma }}</span>
                 </div>
+                {% for row in bill.tax_breakdown %}
                 <div class="totals-row">
-                    <span>Total Tax</span>
-                    <span>{{ bill.currency_symbol }}{{ bill.tax_total|floatformat:2|intcomma }}</span>
+                    <span>CGST @ {{ row.cgst_rate|floatformat:1 }}%</span>
+                    <span>{{ bill.currency_symbol }}{{ row.cgst_amount|floatformat:2|intcomma }}</span>
                 </div>
+                <div class="totals-row">
+                    <span>SGST @ {{ row.sgst_rate|floatformat:1 }}%</span>
+                    <span>{{ bill.currency_symbol }}{{ row.sgst_amount|floatformat:2|intcomma }}</span>
+                </div>
+                {% empty %}
+                <div class="totals-row">
+                    <span>CGST @ {{ bill.cgst_rate|floatformat:1 }}%</span>
+                    <span>{{ bill.currency_symbol }}{{ bill.cgst_total|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="totals-row">
+                    <span>SGST @ {{ bill.sgst_rate|floatformat:1 }}%</span>
+                    <span>{{ bill.currency_symbol }}{{ bill.sgst_total|floatformat:2|intcomma }}</span>
+                </div>
+                {% endfor %}
                 <div class="grand-total">
                     <span>Grand Total</span>
                     <span>{{ bill.currency_symbol }}{{ bill.grand_total|floatformat:2|intcomma }}</span>

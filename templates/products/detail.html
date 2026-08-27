@@ -211,6 +211,12 @@
                             </code>
                         </span>
                     </div>
+                    {% if product.description %}
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <span class="info-label">Description</span>
+                        <span class="info-value" style="white-space: pre-line; line-height: 1.5; color: var(--color-text-secondary);">{{ product.description }}</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

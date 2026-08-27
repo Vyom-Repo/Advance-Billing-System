@@ -56,6 +56,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = [
             "name",
+            "description",
             "product_type",
             "hsn_code",
             "sac_code",
@@ -76,6 +77,12 @@ class ProductForm(forms.ModelForm):
                 "class": "form-control",
                 "placeholder": "e.g. Web Development Services, Steel Rods 10mm",
                 "id": "id_name",
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "form-control",
+                "placeholder": "Optional description of the product or service...",
+                "rows": "3",
+                "id": "id_description",
             }),
             "hsn_code": forms.TextInput(attrs={
                 "class": "form-control",
@@ -121,6 +128,9 @@ class ProductForm(forms.ModelForm):
         self.organization = organization
         super().__init__(*args, **kwargs)
 
+        # Ensure description is optional
+        self.fields["description"].required = False
+
         # Pre-populate choice fields from existing instance
         if self.instance and self.instance.pk:
             rate_str = str(self.instance.gst_rate) if self.instance.gst_rate is not None else GST_RATE_DEFAULT
@@ -145,6 +155,10 @@ class ProductForm(forms.ModelForm):
         if not name:
             raise forms.ValidationError("Product / Service Name is required.")
         return name
+
+    def clean_description(self):
+        desc = self.cleaned_data.get("description", "")
+        return desc.strip() if desc else ""
 
     def clean_hsn_code(self):
         code = self.cleaned_data.get("hsn_code", "").strip()

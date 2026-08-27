@@ -25,6 +25,8 @@ def populate_line_snapshot(line: InvoiceLine) -> None:
         )
     snap = line.product.as_invoice_snapshot()
     line.product_name_snapshot    = snap["product_name"]
+    if not line.description and snap.get("description"):
+        line.description          = snap["description"]
     line.product_type_snapshot    = snap["product_type"]
     line.hsn_sac_snapshot         = snap["classification_code"] or ""
     line.taxability_type_snapshot = snap["taxability_type"]
@@ -111,6 +113,8 @@ def prepare_invoice_snapshots(invoice: Invoice, lines: list = None) -> list:
         
         snap = line.product.as_invoice_snapshot()
         line.product_name_snapshot = snap["product_name"]
+        if not line.description and snap.get("description"):
+            line.description = snap["description"]
         line.product_type_snapshot = snap["product_type"]
         line.hsn_sac_snapshot = snap["classification_code"] or ""
         line.taxability_type_snapshot = snap["taxability_type"]
