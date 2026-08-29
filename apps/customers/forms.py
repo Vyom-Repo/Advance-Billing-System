@@ -86,7 +86,7 @@ class CustomerForm(forms.ModelForm):
         pin = self.cleaned_data.get("billing_pin_code", "").strip()
         country = self.cleaned_data.get("billing_country", "India").strip()
 
-        if country.lower() == "india":
+        if pin and country.lower() == "india":
             if not re.match(r"^\d{6}$", pin):
                 raise forms.ValidationError("PIN code must be exactly 6 numeric digits for India.")
         return pin

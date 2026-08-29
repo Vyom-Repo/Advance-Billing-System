@@ -255,6 +255,12 @@ TIME_ZONE = env("TIME_ZONE")
 USE_I18N = True
 USE_TZ = True
 
+# Standard Date & Datetime Formats (DD/MM/YYYY)
+DATE_FORMAT = "d/m/Y"
+SHORT_DATE_FORMAT = "d/m/Y"
+DATETIME_FORMAT = "d/m/Y H:i"
+SHORT_DATETIME_FORMAT = "d/m/Y H:i"
+
 # =============================================================================
 # STATIC FILES
 # =============================================================================

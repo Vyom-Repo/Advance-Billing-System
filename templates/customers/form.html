@@ -450,7 +450,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Address Line 1 <span class="required">*</span></label>
+                        <label class="form-label">Address Line 1 <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
                         {{ form.billing_address_line_1 }}
                         {% if form.billing_address_line_1.errors %}
                         <div class="field-error">{{ form.billing_address_line_1.errors.0 }}</div>
@@ -465,7 +465,7 @@
 
                     <div class="form-grid-3">
                         <div class="form-group">
-                            <label class="form-label">City <span class="required">*</span></label>
+                            <label class="form-label">City <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
                             {{ form.billing_city }}
                             {% if form.billing_city.errors %}
                             <div class="field-error">{{ form.billing_city.errors.0 }}</div>
@@ -492,7 +492,7 @@
 
                     <div class="form-grid-2">
                         <div class="form-group">
-                            <label class="form-label">PIN Code <span class="required">*</span></label>
+                            <label class="form-label">PIN Code <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
                             {{ form.billing_pin_code }}
                             {% if form.billing_pin_code.errors %}
                             <div class="field-error">{{ form.billing_pin_code.errors.0 }}</div>

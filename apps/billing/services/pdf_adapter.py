@@ -9,6 +9,17 @@ This adapter is entirely side-effect free and performs no calculations.
 
 from apps.billing.models import Invoice
 
+def _format_date(val):
+    if not val:
+        return ""
+    if hasattr(val, "strftime"):
+        return val.strftime("%d/%m/%Y")
+    if isinstance(val, str) and len(val) == 10 and val[4] == "-" and val[7] == "-":
+        parts = val.split("-")
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    return str(val)
+
+
 def invoice_to_pdf_dicts(invoice: Invoice):
     """
     Transforms the given Invoice ORM object into the four dictionary structures
@@ -22,8 +33,8 @@ def invoice_to_pdf_dicts(invoice: Invoice):
     # 1. Invoice Dict
     invoice_dict = {
         "number": invoice.invoice_number,
-        "date": invoice.invoice_date,
-        "due_date": invoice.due_date,
+        "date": _format_date(invoice.invoice_date),
+        "due_date": _format_date(invoice.due_date),
         "place_of_supply": invoice.place_of_supply,
         "currency": invoice.currency,
         "subtotal": float(invoice.subtotal),

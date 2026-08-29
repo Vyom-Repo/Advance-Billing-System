@@ -154,7 +154,7 @@
                                     {{ inv.customer.name|default:"General Customer" }}
                                 </td>
                                 <td data-label="Date" style="padding: var(--space-3) var(--space-4); color: var(--color-text-secondary);">
-                                    {{ inv.invoice_date|date:"d M Y" }}
+                                    {{ inv.invoice_date|date:"d/m/Y" }}
                                 </td>
                                 <td data-label="Status" style="padding: var(--space-3) var(--space-4);">
                                     <span class="badge {% if inv.status == 'ISSUED' %}badge-success{% elif inv.status == 'DRAFT' %}badge-warning{% else %}badge-neutral{% endif %}" style="font-size: var(--text-xs);">

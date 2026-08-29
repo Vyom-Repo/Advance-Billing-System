@@ -247,12 +247,12 @@
                 </div>
 
                 <div class="address-block" style="margin-bottom: var(--space-6);">
-                    <strong>{{ customer.billing_address_line_1 }}</strong><br>
+                    {% if customer.billing_address_line_1 %}<strong>{{ customer.billing_address_line_1 }}</strong><br>{% endif %}
                     {% if customer.billing_address_line_2 %}
                     {{ customer.billing_address_line_2 }}<br>
                     {% endif %}
-                    {{ customer.billing_city }}, {{ customer.billing_state }} - {{ customer.billing_pin_code }}<br>
-                    {{ customer.billing_country }}
+                    {% if customer.billing_city %}{{ customer.billing_city }}, {% endif %}{{ customer.billing_state }}{% if customer.billing_pin_code %} - {{ customer.billing_pin_code }}{% endif %}<br>
+                    {% if customer.billing_country %}{{ customer.billing_country }}{% endif %}
                 </div>
 
                 <div class="info-grid">

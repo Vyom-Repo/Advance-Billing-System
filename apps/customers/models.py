@@ -52,13 +52,13 @@ class Customer(TimeStampedModel):
     )
 
     # Billing Address (Structured)
-    billing_address_line_1 = models.CharField(max_length=255)
+    billing_address_line_1 = models.CharField(max_length=255, blank=True)
     billing_address_line_2 = models.CharField(max_length=255, blank=True)
-    billing_city = models.CharField(max_length=100)
+    billing_city = models.CharField(max_length=100, blank=True)
     billing_state = models.CharField(max_length=100)
     billing_state_code = models.CharField(max_length=2)
-    billing_pin_code = models.CharField(max_length=10)
-    billing_country = models.CharField(max_length=100, default="India")
+    billing_pin_code = models.CharField(max_length=10, blank=True)
+    billing_country = models.CharField(max_length=100, default="India", blank=True)
 
     # Archiving
     is_archived = models.BooleanField(default=False, db_index=True)

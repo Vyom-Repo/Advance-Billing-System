@@ -66,6 +66,17 @@ def serialize_bill_for_render(
 # Private serializers
 # ---------------------------------------------------------------------------
 
+def _format_date(val):
+    if not val:
+        return ""
+    if hasattr(val, "strftime"):
+        return val.strftime("%d/%m/%Y")
+    if isinstance(val, str) and len(val) == 10 and val[4] == "-" and val[7] == "-":
+        parts = val.split("-")
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    return str(val)
+
+
 def _serialize_invoice(inv: dict, company: dict | None = None, org: Any = None) -> dict:
     """
     Canonical invoice-level dict.  All templates read from this shape.
@@ -77,11 +88,14 @@ def _serialize_invoice(inv: dict, company: dict | None = None, org: Any = None) 
     qr_code_url = inv.get("qr_code_url") or _file_url(getattr(org, "qr_code", None)) or comp.get("qr_code_url")
     terms = inv.get("terms") or comp.get("terms_and_conditions") or getattr(org, "terms_and_conditions", "")
 
+    raw_date = inv.get("date") or inv.get("invoice_date") or ""
+    raw_due_date = inv.get("due_date") or ""
+
     return {
         # Identification
         "number":          inv.get("number") or inv.get("invoice_number") or "",
-        "date":            inv.get("date") or inv.get("invoice_date") or "",
-        "due_date":        inv.get("due_date") or "",
+        "date":            _format_date(raw_date),
+        "due_date":        _format_date(raw_due_date),
         "place_of_supply": inv.get("place_of_supply") or "",
 
         # Currency & formatting

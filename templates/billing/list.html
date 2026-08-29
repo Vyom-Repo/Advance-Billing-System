@@ -448,11 +448,11 @@
                             </td>
                             <td>
                                 <span class="mobile-label">Date: </span>
-                                {{ invoice.invoice_date|date:"d M Y" }}
+                                {{ invoice.invoice_date|date:"d/m/Y" }}
                             </td>
                             <td>
                                 <span class="mobile-label">Due: </span>
-                                {{ invoice.due_date|date:"d M Y"|default:"—" }}
+                                {{ invoice.due_date|date:"d/m/Y"|default:"—" }}
                             </td>
                             <td>
                                 <span class="mobile-label">Status: </span>

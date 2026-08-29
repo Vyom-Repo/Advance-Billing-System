@@ -223,14 +223,14 @@ class InvoiceEmailService:
 
         inv_date_val = invoice.invoice_date
         if hasattr(inv_date_val, "strftime"):
-            inv_date_str = inv_date_val.strftime("%b %d, %Y")
+            inv_date_str = inv_date_val.strftime("%d/%m/%Y")
         else:
             inv_date_str = str(inv_date_val) if inv_date_val else ""
 
         due_date_str = None
         if invoice.due_date:
             if hasattr(invoice.due_date, "strftime"):
-                due_date_str = invoice.due_date.strftime("%b %d, %Y")
+                due_date_str = invoice.due_date.strftime("%d/%m/%Y")
             else:
                 due_date_str = str(invoice.due_date)
 
