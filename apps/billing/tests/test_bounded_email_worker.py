@@ -118,7 +118,7 @@ class BoundedEmailWorkerTest(TransactionTestCase):
         max_active_count = 0
         count_lock = threading.Lock()
 
-        def mock_slow_send_email(invoice, trigger=EmailTrigger.AUTOMATIC):
+        def mock_slow_send_email(invoice, trigger=EmailTrigger.AUTOMATIC, *args, **kwargs):
             nonlocal active_count, max_active_count
             with count_lock:
                 active_count += 1
@@ -211,7 +211,7 @@ class BoundedEmailWorkerTest(TransactionTestCase):
         executor = _BoundedInvoiceEmailExecutor.get_instance()
         block_event = threading.Event()
 
-        def blocking_send(invoice, trigger=EmailTrigger.AUTOMATIC):
+        def blocking_send(invoice, trigger=EmailTrigger.AUTOMATIC, *args, **kwargs):
             block_event.wait()
             return True, "Success"
 
@@ -263,7 +263,7 @@ class BoundedEmailWorkerTest(TransactionTestCase):
 
         calls = []
 
-        def side_effect_send(invoice, trigger=EmailTrigger.AUTOMATIC):
+        def side_effect_send(invoice, trigger=EmailTrigger.AUTOMATIC, *args, **kwargs):
             calls.append(invoice.id)
             if invoice.id == self.invoice.id:
                 raise RuntimeError("Simulated failure for first invoice")

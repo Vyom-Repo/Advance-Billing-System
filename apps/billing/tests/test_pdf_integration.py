@@ -204,9 +204,14 @@ class Phase10PDFIntegrationTests(TestCase):
         pref.save()
         
         # Add a dummy letterhead to organization to ensure it renders correctly with letterhead
-        dummy_img = SimpleUploadedFile("dummy.jpg", b"file_content", content_type="image/jpeg")
+        valid_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x02\x00\x01H\xaf\xa4q\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+        dummy_img = SimpleUploadedFile("dummy.png", valid_png, content_type="image/png")
         self.org.letterhead = dummy_img
         self.org.save()
+        self.org.refresh_from_db()
+        self.user.refresh_from_db()
         
         response_on = self.client.get(url)
         self.assertEqual(response_on.status_code, 200)
