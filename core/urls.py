@@ -70,8 +70,9 @@ urlpatterns = [
     path("settings/", include("apps.settings_app.urls", namespace="settings_app")),
 
     # =========================================================================
-    # Common Utilities
+    # Common Utilities & Favicon
     # =========================================================================
+    path("favicon.ico", RedirectView.as_view(url=settings.STATIC_URL + "favicon.svg", permanent=True)),
     path("", include("apps.common.urls")),
 ]
 

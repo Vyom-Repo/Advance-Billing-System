@@ -72,11 +72,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True         # Deprecated but harmless
 
 # =============================================================================
-# EMAIL (Brevo via SMTP)
+# EMAIL (Brevo via SMTP in production)
 # =============================================================================
 
-# EMAIL_BACKEND and SMTP settings are loaded from base.py via environ.
-# In production, we must ensure the required credentials are provided.
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 
 if not all([env("EMAIL_HOST"), env("EMAIL_HOST_USER"), env("EMAIL_HOST_PASSWORD")]):
     raise ImproperlyConfigured(

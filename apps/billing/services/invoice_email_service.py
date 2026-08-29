@@ -274,6 +274,7 @@ class InvoiceEmailService:
             if getattr(org.owner, "username", "") == "demo_user" or (user and getattr(user, "username", "") == "demo_user"):
                 logger.info("Demo Mode: Simulated email sending for invoice %s", inv_num)
             else:
+                logger.info("Dispatching invoice %s email to owner %s using EMAIL_BACKEND: %s", inv_num, recipient_email, getattr(settings, "EMAIL_BACKEND", ""))
                 email.send(fail_silently=False)
 
             # 5. Audit Success Update
