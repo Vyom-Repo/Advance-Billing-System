@@ -1292,7 +1292,11 @@ class WeeklyBackupCronView(View):
     Production-safe external-cron trigger endpoint for automated weekly data backups.
     Target: POST /internal/cron/weekly-backup/
     Protected via HTTP Header: X-Cron-Secret
-    Reuses OrganizationBackupService with strict 6-day idempotency protection.
+
+    TEMPORARY TEST MODE:
+    Supports optional header 'X-Cron-Test: true' to trigger an immediate real backup email send
+    bypassing the 6-day idempotency check, while preserving and restoring the scheduling state
+    (last_backup_at / last_status) so normal production scheduling is unaffected.
     """
 
     def post(self, request, *args, **kwargs):
@@ -1303,6 +1307,10 @@ class WeeklyBackupCronView(View):
         provided_secret = request.headers.get("X-Cron-Secret", "")
         if not provided_secret or not hmac.compare_digest(provided_secret, configured_secret):
             return JsonResponse({"error": "Forbidden"}, status=403)
+
+        # Check for temporary test mode header
+        test_mode_header = request.headers.get("X-Cron-Test", "").strip().lower()
+        is_test_mode = test_mode_header in ("true", "1")
 
         from apps.organization.models import Organization
         from apps.settings_app.models import OrganizationBackupSetting
@@ -1318,16 +1326,36 @@ class WeeklyBackupCronView(View):
 
         for org in orgs:
             processed += 1
-            success, _ = OrganizationBackupService.send_weekly_backup_email(org, force=False)
+            if is_test_mode:
+                setting = OrganizationBackupSetting.objects.filter(organization=org).first()
+                previous_last_backup_at = setting.last_backup_at if setting else None
+                previous_last_status = setting.last_status if setting else None
+
+                try:
+                    success, _ = OrganizationBackupService.send_weekly_backup_email(
+                        org, force=True, trigger="test_mode"
+                    )
+                finally:
+                    # Restore previous scheduling state so test run does not modify production cron schedule
+                    if setting:
+                        setting.refresh_from_db()
+                        setting.last_backup_at = previous_last_backup_at
+                        setting.last_status = previous_last_status
+                        setting.save(update_fields=["last_backup_at", "last_status", "updated_at"])
+            else:
+                success, _ = OrganizationBackupService.send_weekly_backup_email(org, force=False)
+
             if success:
                 successful += 1
             else:
                 failed += 1
 
         return JsonResponse({
-            "status": "success",
+            "status": "test_success" if is_test_mode else "success",
+            "test_mode": is_test_mode,
             "processed": processed,
             "successful": successful,
             "failed": failed,
         })
+
 
