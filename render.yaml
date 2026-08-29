@@ -40,4 +40,6 @@ services:
         sync: false
       - key: DJANGO_SETTINGS_MODULE
         value: "core.settings.production"
+      - key: PYTHON_VERSION
+        value: "3.12.8"
 
