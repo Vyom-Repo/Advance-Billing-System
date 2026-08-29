@@ -335,10 +335,10 @@
                                         <td style="padding: 1px 0; border: none; font-weight: bold;">Due Date:</td>
                                         <td style="padding: 1px 0; border: none;">{{ bill.due_date }}</td>
                                     </tr>
-                                    {% if bill.place_of_supply %}
+                                    {% if config.show_place_of_supply and bill.place_of_supply %}
                                     <tr>
-                                        <td style="padding: 1px 0; border: none; font-weight: bold;">Place of Supply:</td>
-                                        <td style="padding: 1px 0; border: none;">{{ bill.place_of_supply }}</td>
+                                        <td style="padding: 1px 0; border: none; font-weight: bold;">{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %}</td>
+                                        <td style="padding: 1px 0; border: none;">{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</td>
                                     </tr>
                                     {% endif %}
                                 </table>

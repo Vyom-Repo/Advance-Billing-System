@@ -67,7 +67,7 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = [
-            "customer", "invoice_date", "due_date",
+            "customer", "invoice_date", "due_date", "destination",
             "shipping_same_as_billing", "shipping_address_line_1",
             "shipping_city", "shipping_state", "shipping_pincode",
             "notes", "terms",
@@ -76,6 +76,7 @@ class InvoiceForm(forms.ModelForm):
             "customer": forms.Select(attrs={"class": "form-control", "id": "id_customer"}),
             "invoice_date": forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_invoice_date"}),
             "due_date": forms.DateInput(attrs={"class": "form-control", "type": "date", "id": "id_due_date"}),
+            "destination": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Mumbai, Surat, Warehouse A (Optional)", "id": "id_destination"}),
             "shipping_same_as_billing": forms.CheckboxInput(attrs={"id": "id_shipping_same_as_billing", "class": "checkbox-input"}),
             "shipping_address_line_1": forms.TextInput(attrs={"class": "form-control", "placeholder": "Street address, building, suite", "id": "id_shipping_address_line_1"}),
             "shipping_city": forms.TextInput(attrs={"class": "form-control", "placeholder": "City or town", "id": "id_shipping_city"}),
@@ -97,6 +98,7 @@ class InvoiceForm(forms.ModelForm):
 
         self.fields["customer"].required = False
         self.fields["due_date"].required = False
+        self.fields["destination"].required = False
         self.fields["notes"].required = False
         self.fields["terms"].required = False
 

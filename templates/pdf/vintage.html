@@ -781,16 +781,18 @@
                         <span class="meta-value">{{ bill.date }}</span>
                     </td>
                 </tr>
+                {% if config.show_place_of_supply %}
                 <tr>
                     <td>
-                        <span class="meta-label">Place of Supply:</span>
-                        <span class="meta-value">{{ bill.place_of_supply|default:"-" }}</span>
+                        <span class="meta-label">{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %}</span>
+                        <span class="meta-value">{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply|default:"-" }}{% endif %}</span>
                     </td>
                     <td>
                         <span class="meta-label">Due Date:</span>
                         <span class="meta-value">{{ bill.due_date|default:"-" }}</span>
                     </td>
                 </tr>
+                {% endif %}
             </table>
             {% else %}
             <!-- Header Table: Company & Invoice Info (Letterhead OFF) -->
@@ -850,16 +852,18 @@
                                     <span class="meta-value">{{ bill.date }}</span>
                                 </td>
                             </tr>
+                            {% if config.show_place_of_supply %}
                             <tr>
                                 <td>
-                                    <span class="meta-label">Place of Supply:</span>
-                                    <span class="meta-value">{{ bill.place_of_supply|default:"-" }}</span>
+                                    <span class="meta-label">{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %}</span>
+                                    <span class="meta-value">{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply|default:"-" }}{% endif %}</span>
                                 </td>
                                 <td>
                                     <span class="meta-label">Due Date:</span>
                                     <span class="meta-value">{{ bill.due_date|default:"-" }}</span>
                                 </td>
                             </tr>
+                            {% endif %}
                         </table>
                     </td>
                 </tr>

@@ -161,7 +161,7 @@
                 <b>Invoice #: {{ bill.number }}</b>
                 <p>Invoice Date: &nbsp; {{ bill.date }}</p>
                 <p>Due Date: &nbsp;&nbsp;&nbsp;&nbsp; {{ bill.due_date }}</p>
-                {% if bill.place_of_supply %}<p>Place of Supply: &nbsp; {{ bill.place_of_supply }}</p>{% endif %}
+                {% if config.show_place_of_supply and bill.place_of_supply %}<p>{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %} &nbsp; {% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</p>{% endif %}
             </div>
         </header>
 
@@ -183,9 +183,9 @@
                 <div>{{ bill.date }}</div>
                 <div><b>Due Date:</b></div>
                 <div>{{ bill.due_date }}</div>
-                {% if bill.place_of_supply %}
-                <div><b>Place of Supply:</b></div>
-                <div>{{ bill.place_of_supply }}</div>
+                {% if config.show_place_of_supply and bill.place_of_supply %}
+                <div><b>{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %}</b></div>
+                <div>{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</div>
                 {% endif %}
             </div>
         </section>

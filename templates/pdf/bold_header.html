@@ -373,10 +373,12 @@
                 <div class="label">Due Date</div>
                 <div class="value">{{ bill.due_date }}</div>
             </div>
+            {% if config.show_place_of_supply %}
             <div class="hero-meta-cell">
-                <div class="label">Place of Supply</div>
-                <div class="value">{{ bill.place_of_supply|default:"—" }}</div>
+                <div class="label">{% if bill.destination %}Destination{% else %}Place of Supply{% endif %}</div>
+                <div class="value">{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply|default:"—" }}{% endif %}</div>
             </div>
+            {% endif %}
         </div>
     </div>
 

@@ -337,7 +337,7 @@
                         <div>Invoice No: <span class="num">{{ bill.number }}</span></div>
                         <div>Date: <span>{{ bill.date }}</span></div>
                         <div>Due: <span>{{ bill.due_date }}</span></div>
-                        {% if bill.place_of_supply %}<div>Place of Supply: <span>{{ bill.place_of_supply }}</span></div>{% endif %}
+                        {% if config.show_place_of_supply and bill.place_of_supply %}<div>{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %} <span>{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</span></div>{% endif %}
                     </div>
                 </div>
             </div>

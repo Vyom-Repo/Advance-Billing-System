@@ -684,10 +684,12 @@
                     <div class="value shipping-value">{{ customer.shipping_full_address }}</div>
                 </div>
                 {% endif %}
+                {% if config.show_place_of_supply %}
                 <div class="row">
-                    <div class="label">State/UT Code:</div>
-                    <div class="value">{% if customer.resolved_state_display %}{{ customer.resolved_state_display }}{% elif company.state and company.state_code %}{{ company.state }} - {{ company.state_code }}{% elif company.state and company.gstin %}{{ company.state }} - {{ company.gstin|slice:":2" }}{% elif bill.place_of_supply %}{{ bill.place_of_supply }}{% elif company.state %}{{ company.state }}{% elif company.state_code %}{{ company.state_code }}{% elif company.gstin %}{{ company.gstin|slice:":2" }}{% endif %}</div>
+                    <div class="label">{% if bill.destination %}Destination:{% else %}State/UT Code:{% endif %}</div>
+                    <div class="value">{% if bill.destination %}{{ bill.destination }}{% elif customer.resolved_state_display %}{{ customer.resolved_state_display }}{% elif company.state and company.state_code %}{{ company.state }} - {{ company.state_code }}{% elif company.state and company.gstin %}{{ company.state }} - {{ company.gstin|slice:":2" }}{% elif bill.place_of_supply %}{{ bill.place_of_supply }}{% elif company.state %}{{ company.state }}{% elif company.state_code %}{{ company.state_code }}{% elif company.gstin %}{{ company.gstin|slice:":2" }}{% endif %}</div>
                 </div>
+                {% endif %}
             </div>
         </div>
 

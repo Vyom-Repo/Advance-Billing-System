@@ -67,6 +67,7 @@ class Invoice(TimeStampedModel):
     invoice_date = models.DateField()
     due_date = models.DateField(null=True, blank=True)
     place_of_supply = models.CharField(max_length=100)
+    destination = models.CharField(max_length=150, blank=True, default="", help_text="Optional custom destination / delivery location.")
 
     # Customer Snapshots
     customer_name_snapshot = models.CharField(max_length=255)

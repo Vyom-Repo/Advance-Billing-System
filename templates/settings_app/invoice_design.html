@@ -772,6 +772,12 @@
                                 </svg></div>
                             <div class="element-label">HSN/SAC</div>
                         </label>
+                        <label class="element-card {% if form.show_place_of_supply.value %}checked{% endif %}">{{ form.show_place_of_supply }}<div class="custom-checkbox"><svg width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg></div>
+                            <div class="element-label">Place of Supply</div>
+                        </label>
                         <label
                             class="element-card {% if form.show_signature.value and has_signature %}checked{% endif %}"
                             {% if not has_signature %}style="opacity: 0.5; pointer-events: none;" {% endif %}>

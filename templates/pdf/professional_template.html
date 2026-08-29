@@ -975,11 +975,11 @@
                         <div class="value">{{ bill.due_date }}</div>
                     </div>
                     {% endif %}
-                    {% if bill.place_of_supply %}
+                    {% if config.show_place_of_supply and bill.place_of_supply %}
                     <div class="row">
-                        <div class="label">Place of Supply</div>
+                        <div class="label">{% if bill.destination %}Destination{% else %}Place of Supply{% endif %}</div>
                         <div class="colon">:</div>
-                        <div class="value">{{ bill.place_of_supply }}</div>
+                        <div class="value">{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</div>
                     </div>
                     {% endif %}
                 </td>

@@ -155,6 +155,7 @@ class DocumentPreference(models.Model):
     show_bank_details = models.BooleanField(default=True)
     show_gst_summary = models.BooleanField(default=True)
     show_hsn_sac = models.BooleanField(default=True)
+    show_place_of_supply = models.BooleanField(default=True)
     show_signature = models.BooleanField(default=True)
     show_terms = models.BooleanField(default=True)
     show_payment_info = models.BooleanField(default=True)

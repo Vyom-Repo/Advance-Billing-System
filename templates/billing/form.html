@@ -751,6 +751,19 @@
                         </ul>
                         {% endif %}
                     </div>
+
+                    <div class="form-group">
+                        <label for="id_destination">Destination <span style="color: var(--color-text-muted); font-weight: normal;">(Optional)</span></label>
+                        {{ form.destination }}
+
+                        {% if form.destination.errors %}
+                        <ul class="errorlist">
+                            {% for e in form.destination.errors %}
+                            <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- 2. Customer / Bill To -->

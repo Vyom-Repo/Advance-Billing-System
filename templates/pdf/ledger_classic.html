@@ -351,10 +351,10 @@
                             <td class="label">DUE DATE</td>
                             <td>{{ bill.due_date }}</td>
                         </tr>
-                        {% if bill.place_of_supply %}
+                        {% if config.show_place_of_supply and bill.place_of_supply %}
                         <tr>
-                            <td class="label">PLACE OF SUPPLY</td>
-                            <td>{{ bill.place_of_supply }}</td>
+                            <td class="label">{% if bill.destination %}DESTINATION{% else %}PLACE OF SUPPLY{% endif %}</td>
+                            <td>{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</td>
                         </tr>
                         {% endif %}
                     </table>

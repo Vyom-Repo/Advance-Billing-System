@@ -36,6 +36,7 @@ def invoice_to_pdf_dicts(invoice: Invoice):
         "date": _format_date(invoice.invoice_date),
         "due_date": _format_date(invoice.due_date),
         "place_of_supply": invoice.place_of_supply,
+        "destination": getattr(invoice, "destination", ""),
         "currency": invoice.currency,
         "subtotal": float(invoice.subtotal),
         "tax_total": float(invoice.cgst_total + invoice.sgst_total + invoice.igst_total + invoice.cess_total),

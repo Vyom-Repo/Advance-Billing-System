@@ -345,7 +345,7 @@
                         <div class="meta-row"><span>Invoice Number:</span><b>{{ bill.number }}</b></div>
                         <div class="meta-row"><span>Invoice Date:</span><span>{{ bill.date }}</span></div>
                         <div class="meta-row"><span>Payment Due:</span><span>{{ bill.due_date }}</span></div>
-                        {% if bill.place_of_supply %}<div class="meta-row"><span>Place of Supply:</span><span>{{ bill.place_of_supply }}</span></div>{% endif %}
+                        {% if config.show_place_of_supply and bill.place_of_supply %}<div class="meta-row"><span>{% if bill.destination %}Destination:{% else %}Place of Supply:{% endif %}</span><span>{% if bill.destination %}{{ bill.destination }}{% else %}{{ bill.place_of_supply }}{% endif %}</span></div>{% endif %}
                     </div>
                 </div>
             </div>

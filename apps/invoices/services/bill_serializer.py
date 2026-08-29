@@ -97,6 +97,7 @@ def _serialize_invoice(inv: dict, company: dict | None = None, org: Any = None) 
         "date":            _format_date(raw_date),
         "due_date":        _format_date(raw_due_date),
         "place_of_supply": inv.get("place_of_supply") or "",
+        "destination":     inv.get("destination") or "",
 
         # Currency & formatting
         "currency":        inv.get("currency", "INR"),

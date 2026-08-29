@@ -391,7 +391,7 @@
                         {% if config.show_customer_address != False and customer.address %}{{ customer.address }}<br>{% endif %}
                         {% if config.show_customer_city != False and customer.city %}{{ customer.city }}<br>{% endif %}
                         {% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}<br>
-                        {% if bill.place_of_supply %}Place of Supply: {{ bill.place_of_supply }}{% endif %}
+                        {% if config.show_place_of_supply and bill.place_of_supply %}{% if bill.destination %}Destination: {{ bill.destination }}{% else %}Place of Supply: {{ bill.place_of_supply }}{% endif %}{% endif %}
                     </div>
                 </div>
             </div>
