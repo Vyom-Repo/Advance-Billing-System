@@ -355,7 +355,7 @@ class UQCTests(TestCase):
         _, self.org = _make_org("owner_uqc", "UQC Corp", "uqc@corp.com")
 
     def test_valid_uqc_accepted(self):
-        for uqc in ["NOS", "KGS", "LTR", "MTR", "PCS", "BOX", "OTH"]:
+        for uqc in ["NOS", "NO.", "NUM", "KGS", "LTR", "MTR", "PCS", "BOX", "OTH", "PKT", "PAC", "CTN", "BAG", "BTL", "DOZ", "SET"]:
             data = _goods_data(uqc=uqc)
             form = ProductForm(data=data, organization=self.org)
             self.assertTrue(form.is_valid(), f"UQC {uqc}: {form.errors}")
