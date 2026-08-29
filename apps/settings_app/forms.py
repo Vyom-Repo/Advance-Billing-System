@@ -95,6 +95,8 @@ class DocumentPreferenceForm(forms.ModelForm):
             "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
             "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
             "show_signature", "show_terms",
+            "show_customer_name", "show_customer_address", "show_customer_city", "show_customer_state",
+            "show_customer_pincode", "show_customer_country", "show_customer_gstin",
             "font_size", "table_density",
             "show_page_numbers", "show_print_date", "custom_footer_message"
         ]
@@ -107,6 +109,8 @@ class DocumentPreferenceForm(forms.ModelForm):
             "show_company_logo", "show_company_header", "show_company_footer", "print_on_letterhead",
             "show_qr_code", "show_bank_details", "show_gst_summary", "show_hsn_sac",
             "show_signature", "show_terms",
+            "show_customer_name", "show_customer_address", "show_customer_city", "show_customer_state",
+            "show_customer_pincode", "show_customer_country", "show_customer_gstin",
             "show_page_numbers", "show_print_date"
         ]
         

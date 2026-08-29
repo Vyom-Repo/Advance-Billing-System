@@ -312,10 +312,12 @@
                         <tr>
                             <td style="width: 50%;">
                                 <div class="section-heading">Billed To</div>
-                                <div class="party-name">{{ customer.name }}</div>
-                                {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
-                                {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</div>{% endif %}
-                                {% if customer.gstin %}<div>GSTIN: <strong>{{ customer.gstin }}</strong></div>{% endif %}
+                                {% if config.show_customer_name != False %}<div class="party-name">{{ customer.name }}</div>{% endif %}
+                                {% if config.show_customer_address != False and customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                                <div>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}</div>
+                                {% endif %}
+                                {% if config.show_customer_gstin != False and customer.gstin %}<div>GSTIN: <strong>{{ customer.gstin }}</strong></div>{% endif %}
                                 {% if customer.phone %}<div>Phone: {{ customer.phone }}</div>{% endif %}
                             </td>
                             <td style="width: 50%;">

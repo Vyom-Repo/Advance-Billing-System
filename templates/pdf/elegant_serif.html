@@ -328,11 +328,13 @@
             <div class="invoice-two-col">
                 <div>
                     <div class="col-heading">Client &amp; Consignee Particulars</div>
-                    <div class="client-name">{{ customer.name }}</div>
+                    {% if config.show_customer_name != False %}<div class="client-name">{{ customer.name }}</div>{% endif %}
                     <div class="client-info">
-                        {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
-                        {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
-                        {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                        {% if config.show_customer_gstin != False and customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                        {% if config.show_customer_address != False and customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                        {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                        <div>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}</div>
+                        {% endif %}
                         {% if customer.phone %}<div>Telephone: {{ customer.phone }}</div>{% endif %}
                     </div>
                 </div>

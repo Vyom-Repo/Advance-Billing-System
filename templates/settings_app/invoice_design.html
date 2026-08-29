@@ -822,6 +822,48 @@
             </div>
         </div>
 
+        <!-- Card: Customer Information Display (Accordion) -->
+        <div class="settings-card accordion-item" id="acc-customer" style="margin-bottom: var(--space-6);">
+            <div class="settings-card-header accordion-header" onclick="toggleAccordion('acc-customer')"
+                style="border-bottom: none;">
+                <div>
+                    <h3 class="settings-card-title">Customer Information Display</h3>
+                    <p class="settings-card-description" style="margin-bottom: 0;">Toggle which customer fields appear on printed invoice PDFs.</p>
+                </div>
+                <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </div>
+            <div class="accordion-content">
+                <div style="padding: 0 var(--space-6) var(--space-6);">
+                    <div class="elements-grid">
+                        <label class="element-card {% if form.show_customer_name.value %}checked{% endif %}">{{ form.show_customer_name }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">Customer Name</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_address.value %}checked{% endif %}">{{ form.show_customer_address }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">Street Address</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_city.value %}checked{% endif %}">{{ form.show_customer_city }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">City</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_state.value %}checked{% endif %}">{{ form.show_customer_state }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">State</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_pincode.value %}checked{% endif %}">{{ form.show_customer_pincode }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">PIN Code</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_country.value %}checked{% endif %}">{{ form.show_customer_country }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">Country</div>
+                        </label>
+                        <label class="element-card {% if form.show_customer_gstin.value %}checked{% endif %}">{{ form.show_customer_gstin }}<div class="custom-checkbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg></div>
+                            <div class="element-label">GSTIN</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Card 4: Advanced Printing (Accordion) -->
         <div class="settings-card accordion-item" id="acc-advanced" style="margin-bottom: var(--space-6);">
             <div class="settings-card-header accordion-header" onclick="toggleAccordion('acc-advanced')"

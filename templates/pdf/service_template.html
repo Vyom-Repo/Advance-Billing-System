@@ -168,11 +168,13 @@
         <section class="info">
             <div class="info-left bill">
                 <div class="section-label">Bill To:</div>
-                <p><b>{{ customer.name }}</b></p>
-                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
+                {% if config.show_customer_name != False %}<p><b>{{ customer.name }}</b></p>{% endif %}
+                {% if config.show_customer_gstin != False and customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
                 {% if customer.phone %}<p>Ph: {{ customer.phone }}</p>{% endif %}
-                {% if customer.address %}<p>{{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<p>{{ customer.address }}</p>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                <p>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}</p>
+                {% endif %}
             </div>
             <div class="info-right details">
                 <div><b>Invoice #:</b></div>

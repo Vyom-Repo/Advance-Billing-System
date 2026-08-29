@@ -425,11 +425,11 @@
                         <tr>
                             <td>
                                 <div class="address-title">Billed To</div>
-                                <div class="address-name">{{ customer.name|default:"Valued Customer" }}</div>
+                                {% if config.show_customer_name != False %}<div class="address-name">{{ customer.name|default:"Valued Customer" }}</div>{% endif %}
                                 <div class="address-details">
-                                    {% if customer.address %}{{ customer.address }}<br>{% endif %}
-                                    {% if customer.city %}{{ customer.city }}{% endif %}{% if customer.state %}, {{ customer.state }}{% endif %}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}<br>
-                                    {% if customer.gstin %}<strong>GSTIN:</strong> {{ customer.gstin }}<br>{% endif %}
+                                    {% if config.show_customer_address != False and customer.address %}{{ customer.address }}<br>{% endif %}
+                                    {% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_state != False and customer.state %}, {{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}<br>
+                                    {% if config.show_customer_gstin != False and customer.gstin %}<strong>GSTIN:</strong> {{ customer.gstin }}<br>{% endif %}
                                     {% if customer.phone %}<strong>Phone:</strong> {{ customer.phone }}<br>{% endif %}
                                     {% if customer.email %}<strong>Email:</strong> {{ customer.email }}{% endif %}
                                 </div>
@@ -439,8 +439,8 @@
                                 <div class="address-title">Shipped To</div>
                                 <div class="address-name">{{ customer.shipping_name|default:customer.name }}</div>
                                 <div class="address-details">
-                                    {% if customer.shipping_address %}{{ customer.shipping_address }}<br>{% endif %}
-                                    {% if customer.shipping_city %}{{ customer.shipping_city }}{% endif %}{% if customer.shipping_state %}, {{ customer.shipping_state }}{% endif %}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}
+                                    {% if config.show_customer_address != False and customer.shipping_address %}{{ customer.shipping_address }}<br>{% endif %}
+                                    {% if config.show_customer_city != False and customer.shipping_city %}{{ customer.shipping_city }}{% endif %}{% if config.show_customer_state != False and customer.shipping_state %}, {{ customer.shipping_state }}{% endif %}{% if config.show_customer_pincode != False and customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}
                                 </div>
                             </td>
                             {% endif %}

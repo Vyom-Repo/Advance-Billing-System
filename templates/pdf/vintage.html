@@ -872,13 +872,13 @@
                     <td class="details-box">
                         <div class="details-box-inner">
                             <div class="section-heading">Customer Details:</div>
-                            <div class="customer-name">{{ customer.name }}</div>
+                            {% if config.show_customer_name != False %}<div class="customer-name">{{ customer.name }}</div>{% endif %}
                             <div class="details-line">
                                 <strong>Billing address:</strong><br>
-                                {% if customer.address %}{{ customer.address }}<br>{% endif %}
-                                {% if customer.city %}{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}<br>{% endif %}
+                                {% if config.show_customer_address != False and customer.address %}{{ customer.address }}<br>{% endif %}
+                                {% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_state != False and customer.state %}, {{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}<br>
                                 {% if customer.phone %}Ph: {{ customer.phone }}<br>{% endif %}
-                                {% if customer.gstin %}GSTIN: {{ customer.gstin }}{% endif %}
+                                {% if config.show_customer_gstin != False and customer.gstin %}GSTIN: {{ customer.gstin }}{% endif %}
                             </div>
                         </div>
                     </td>
@@ -888,12 +888,12 @@
                             <div class="details-line">
                                 {% if customer.has_different_shipping_address %}
                                     {% if customer.shipping_name %}<strong>{{ customer.shipping_name }}</strong><br>{% endif %}
-                                    {% if customer.shipping_address %}{{ customer.shipping_address }}<br>{% endif %}
-                                    {% if customer.shipping_city %}{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}{% endif %}
+                                    {% if config.show_customer_address != False and customer.shipping_address %}{{ customer.shipping_address }}<br>{% endif %}
+                                    {% if config.show_customer_city != False and customer.shipping_city %}{{ customer.shipping_city }}{% endif %}{% if config.show_customer_state != False and customer.shipping_state %}, {{ customer.shipping_state }}{% endif %}{% if config.show_customer_pincode != False and customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}
                                 {% else %}
-                                    {{ customer.name }}<br>
-                                    {% if customer.address %}{{ customer.address }}<br>{% endif %}
-                                    {% if customer.city %}{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}{% endif %}
+                                    {% if config.show_customer_name != False %}{{ customer.name }}<br>{% endif %}
+                                    {% if config.show_customer_address != False and customer.address %}{{ customer.address }}<br>{% endif %}
+                                    {% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_state != False and customer.state %}, {{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}
                                 {% endif %}
                             </div>
                         </div>

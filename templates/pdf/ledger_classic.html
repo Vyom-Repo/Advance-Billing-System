@@ -366,22 +366,26 @@
         <div class="party-section">
             <div class="party-box">
                 <div class="party-title">BILLED TO (BUYER)</div>
-                <div><b>{{ customer.name }}</b></div>
-                {% if customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
-                {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
-                {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                {% if config.show_customer_name != False %}<div><b>{{ customer.name }}</b></div>{% endif %}
+                {% if config.show_customer_gstin != False and customer.gstin %}<div>GSTIN: {{ customer.gstin }}</div>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                <div>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}</div>
+                {% endif %}
                 {% if customer.phone %}<div>TEL: {{ customer.phone }}</div>{% endif %}
             </div>
 
             <div class="party-box">
                 <div class="party-title">SHIPPED TO (CONSIGNEE)</div>
-                {% if customer.shipping_name %}<div><b>{{ customer.shipping_name }}</b></div>{% else %}<div><b>{{ customer.name }}</b></div>{% endif %}
+                {% if customer.shipping_name %}<div><b>{{ customer.shipping_name }}</b></div>{% else %}{% if config.show_customer_name != False %}<div><b>{{ customer.name }}</b></div>{% endif %}{% endif %}
                 {% if customer.shipping_address %}
-                <div>{{ customer.shipping_address }}</div>
-                {% if customer.shipping_city %}<div>{{ customer.shipping_city }}, {{ customer.shipping_state }}{% if customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}</div>{% endif %}
+                {% if config.show_customer_address != False %}<div>{{ customer.shipping_address }}</div>{% endif %}
+                {% if customer.shipping_city %}<div>{% if config.show_customer_city != False %}{{ customer.shipping_city }}{% endif %}{% if config.show_customer_city != False and config.show_customer_state != False and customer.shipping_state %}, {% endif %}{% if config.show_customer_state != False %}{{ customer.shipping_state }}{% endif %}{% if config.show_customer_pincode != False and customer.shipping_pincode %} - {{ customer.shipping_pincode }}{% endif %}</div>{% endif %}
                 {% else %}
-                {% if customer.address %}<div>{{ customer.address }}</div>{% endif %}
-                {% if customer.city %}<div>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %} - {{ customer.pincode }}{% endif %}</div>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<div>{{ customer.address }}</div>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                <div>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %} - {{ customer.pincode }}{% endif %}</div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>

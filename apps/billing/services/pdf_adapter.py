@@ -36,10 +36,30 @@ def invoice_to_pdf_dicts(invoice: Invoice):
     }
 
     # 2. Customer Dict
+    cust_obj = getattr(invoice, "customer", None)
+    if cust_obj:
+        street = cust_obj.billing_address_line_1
+        if cust_obj.billing_address_line_2:
+            street = f"{street}, {cust_obj.billing_address_line_2}"
+        b_city = cust_obj.billing_city
+        b_state = cust_obj.billing_state
+        b_pin = cust_obj.billing_pin_code
+        b_country = cust_obj.billing_country
+    else:
+        street = invoice.customer_billing_address_snapshot
+        b_city = ""
+        b_state = ""
+        b_pin = ""
+        b_country = ""
+
     customer_dict = {
         "name": invoice.customer_name_snapshot,
         "gstin": invoice.customer_gstin_snapshot,
-        "address": invoice.customer_billing_address_snapshot,
+        "address": street,
+        "city": b_city,
+        "state": b_state,
+        "pincode": b_pin,
+        "country": b_country,
         "state_code": invoice.customer_state_code_snapshot,
 
         "shipping_name": invoice.customer_name_snapshot,

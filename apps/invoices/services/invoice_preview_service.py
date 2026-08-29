@@ -48,6 +48,13 @@ _GLOBAL_DEFAULTS: dict = {
     "show_terms":           True,
     "show_page_numbers":    True,
     "show_print_date":      True,
+    "show_customer_name":   True,
+    "show_customer_address":True,
+    "show_customer_city":   True,
+    "show_customer_state":  True,
+    "show_customer_pincode":True,
+    "show_customer_country":True,
+    "show_customer_gstin":  True,
     "custom_footer_message":"Thank you for your business.",
     # Template-specific capability flags (False = not supported; overridden per template)
     "has_qr":               True,
@@ -453,6 +460,13 @@ def _merge_doc_prefs(config: dict, doc_pref) -> None:
         "show_terms":            "show_terms",
         "show_page_numbers":     "show_page_numbers",
         "show_print_date":       "show_print_date",
+        "show_customer_name":    "show_customer_name",
+        "show_customer_address": "show_customer_address",
+        "show_customer_city":    "show_customer_city",
+        "show_customer_state":   "show_customer_state",
+        "show_customer_pincode": "show_customer_pincode",
+        "show_customer_country": "show_customer_country",
+        "show_customer_gstin":   "show_customer_gstin",
         "custom_footer_message": "custom_footer_message",
     }
     for config_key, pref_attr in field_map.items():

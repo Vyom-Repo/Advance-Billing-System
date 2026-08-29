@@ -159,6 +159,14 @@ class DocumentPreference(models.Model):
     show_terms = models.BooleanField(default=True)
     show_payment_info = models.BooleanField(default=True)
     
+    show_customer_name = models.BooleanField(default=True)
+    show_customer_address = models.BooleanField(default=True)
+    show_customer_city = models.BooleanField(default=True)
+    show_customer_state = models.BooleanField(default=True)
+    show_customer_pincode = models.BooleanField(default=True)
+    show_customer_country = models.BooleanField(default=True)
+    show_customer_gstin = models.BooleanField(default=True)
+    
     FONT_SIZE_CHOICES = (
         ('Small', 'Small'),
         ('Medium', 'Medium'),

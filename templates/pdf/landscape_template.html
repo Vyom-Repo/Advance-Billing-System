@@ -170,20 +170,24 @@
         <div class="address">
             <div class="address-box">
                 <div class="heading">Customer Details:</div>
-                <p>{{ customer.name }}</p>
-                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
+                {% if config.show_customer_name != False %}<p>{{ customer.name }}</p>{% endif %}
+                {% if config.show_customer_gstin != False and customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
                 {% if customer.phone %}<p>Phone: {{ customer.phone }}</p>{% endif %}
-                {% if customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                <p>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}</p>
+                {% endif %}
                 {% if bill.place_of_supply %}<p>Place of Supply: {{ bill.place_of_supply }}</p>{% endif %}
             </div>
 
             <div class="address-box">
                 <div class="heading">Billing Address:</div>
-                <p>{{ customer.name }}</p>
-                {% if customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}</p>{% endif %}
-                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
+                {% if config.show_customer_name != False %}<p>{{ customer.name }}</p>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<p>Address: {{ customer.address }}</p>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False or config.show_customer_pincode != False %}
+                <p>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}</p>
+                {% endif %}
+                {% if config.show_customer_gstin != False and customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
             </div>
         </div>
 

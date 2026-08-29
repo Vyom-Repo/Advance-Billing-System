@@ -368,16 +368,20 @@
 
             <div class="info-box">
                 <b>Customer Details:</b>
-                <p>{{ customer.name }}</p>
-                {% if customer.address %}<p>{{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}</p>{% endif %}
-                {% if customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
+                {% if config.show_customer_name != False %}<p>{{ customer.name }}</p>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<p>{{ customer.address }}</p>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False %}
+                <p>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}</p>
+                {% endif %}
+                {% if config.show_customer_gstin != False and customer.gstin %}<p>GSTIN: {{ customer.gstin }}</p>{% endif %}
             </div>
 
             <div class="info-box">
                 <b>Billing Address:</b>
-                {% if customer.address %}<p>{{ customer.address }}</p>{% endif %}
-                {% if customer.city %}<p>{{ customer.city }}, {{ customer.state }}</p>{% endif %}
+                {% if config.show_customer_address != False and customer.address %}<p>{{ customer.address }}</p>{% endif %}
+                {% if config.show_customer_city != False or config.show_customer_state != False %}
+                <p>{% if config.show_customer_city != False and customer.city %}{{ customer.city }}{% endif %}{% if config.show_customer_city != False and customer.city and config.show_customer_state != False and customer.state %}, {% endif %}{% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}</p>
+                {% endif %}
                 {% if bill.place_of_supply %}<br><b>Place of Supply:</b><p>{{ bill.place_of_supply }}</p>{% endif %}
             </div>
         </div>

@@ -379,19 +379,19 @@
                 <div class="billing-box">
                     <div class="section-title">Customer Details:</div>
                     <div class="small">
-                        {{ customer.name }}<br>
-                        {% if customer.phone %}Ph: {{ customer.phone }}{% endif %}
-                        {% if customer.gstin %}<br>GSTIN: {{ customer.gstin }}{% endif %}
+                        {% if config.show_customer_name != False %}{{ customer.name }}<br>{% endif %}
+                        {% if customer.phone %}Ph: {{ customer.phone }}<br>{% endif %}
+                        {% if config.show_customer_gstin != False and customer.gstin %}GSTIN: {{ customer.gstin }}<br>{% endif %}
                     </div>
                 </div>
 
                 <div class="billing-box">
                     <div class="section-title">Billing Address:</div>
                     <div class="small">
-                        {{ customer.address }}<br>
-                        {{ customer.city }}<br>
-                        {{ customer.state }}{% if customer.pincode %}, {{ customer.pincode }}{% endif %}
-                        {% if bill.place_of_supply %}<br>Place of Supply: {{ bill.place_of_supply }}{% endif %}
+                        {% if config.show_customer_address != False and customer.address %}{{ customer.address }}<br>{% endif %}
+                        {% if config.show_customer_city != False and customer.city %}{{ customer.city }}<br>{% endif %}
+                        {% if config.show_customer_state != False and customer.state %}{{ customer.state }}{% endif %}{% if config.show_customer_pincode != False and customer.pincode %}, {{ customer.pincode }}{% endif %}<br>
+                        {% if bill.place_of_supply %}Place of Supply: {{ bill.place_of_supply }}{% endif %}
                     </div>
                 </div>
             </div>
