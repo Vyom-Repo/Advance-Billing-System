@@ -57,6 +57,7 @@ django-csp==3.8                 # Content Security Policy headers
 # =============================================================================
 # Utilities
 # =============================================================================
+openpyxl==3.1.5                 # Excel spreadsheet processing (backup, export, restore)
 Pillow==10.4.0                  # Image processing (logo, letterhead uploads)
 python-decouple==3.8            # Additional env var support (for manage.py ENV detection)
 weasyprint==63.0                # Professional PDF generation
