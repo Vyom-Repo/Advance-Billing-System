@@ -51,6 +51,8 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
+DATABASES["default"]["OPTIONS"] = DATABASES["default"].get("OPTIONS", {})
+DATABASES["default"]["OPTIONS"]["connect_timeout"] = 10
 
 # =============================================================================
 # SECURITY (enforced in production)
@@ -143,6 +145,8 @@ CACHES = {
         "LOCATION": _redis_url,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
         },
     }
 }
