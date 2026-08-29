@@ -1,7 +1,10 @@
 """apps/billing/views.py — Invoice Application Layer Views (Phase 09)"""
 import json
 import datetime
+import logging
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -680,7 +683,7 @@ class InvoicePreviewFormCalculationView(InvoiceOrganizationMixin, View):
                     customer=invoice.customer
                 )
         except Exception as e:
-            print("Exception resolving POS:", e)
+            logger.warning("Exception resolving POS: %s", e)
             pass
             
         # Fallback for place_of_supply if frontend provides it explicitly

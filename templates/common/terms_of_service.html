@@ -1,0 +1,851 @@
+{% extends "base/base.html" %}
+{% load static common_tags %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+<style>
+    /* CRITICAL TYPOGRAPHY REQUIREMENT FOR LEGAL POLICY BODY CONTENT */
+    .legal-body p,
+    .legal-body li,
+    .legal-body div,
+    .legal-body span:not(.legal-section-badge),
+    .legal-body table td,
+    .legal-body table th,
+    .legal-callout p,
+    .legal-callout li,
+    .legal-disclaimer-box p,
+    .legal-disclaimer-box li {
+        font-family: 'Lora', Georgia, serif !important;
+        font-weight: 400 !important;
+        font-style: italic !important;
+    }
+    .legal-body strong,
+    .legal-body b {
+        font-weight: 700 !important;
+        font-style: italic !important;
+    }
+
+    .legal-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: var(--space-12) var(--space-4) var(--space-20) var(--space-4);
+    }
+    .legal-card {
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-2xl);
+        padding: var(--space-10);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+    .legal-header {
+        margin-bottom: var(--space-10);
+        padding-bottom: var(--space-8);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .legal-title {
+        font-size: var(--text-4xl);
+        font-family: 'Lora', Georgia, serif;
+        font-weight: 700;
+        color: var(--color-text-primary, #ffffff) !important;
+        margin-top: var(--space-3);
+        margin-bottom: var(--space-3);
+    }
+    .legal-subtitle {
+        font-size: var(--text-lg);
+        color: var(--color-text-secondary, #cbd5e1) !important;
+        line-height: 1.6;
+        margin-bottom: var(--space-4);
+    }
+    .legal-meta {
+        font-size: var(--text-sm);
+        color: var(--color-text-muted, #94a3b8) !important;
+        display: flex;
+        gap: var(--space-6);
+        flex-wrap: wrap;
+    }
+    .legal-toc {
+        background: var(--color-bg-base);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        margin-bottom: var(--space-10);
+    }
+    .legal-toc-title {
+        font-size: var(--text-md);
+        font-weight: 700;
+        color: var(--color-text-primary, #ffffff) !important;
+        margin-bottom: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    .legal-toc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-2) var(--space-4);
+        font-size: var(--text-sm);
+        margin: 0;
+        padding-left: var(--space-5);
+    }
+    .legal-toc-grid a {
+        color: var(--color-accent, #FF7A00) !important;
+        text-decoration: none;
+    }
+    .legal-toc-grid a:hover {
+        text-decoration: underline;
+    }
+    .legal-section {
+        margin-bottom: var(--space-10);
+        scroll-margin-top: 100px;
+    }
+    .legal-section-title {
+        font-size: var(--text-xl);
+        font-weight: 700;
+        font-family: var(--font-family-base, system-ui, sans-serif);
+        color: var(--color-text-primary, #ffffff) !important;
+        margin-bottom: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+    .legal-section-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 6px;
+        border-radius: var(--radius-full);
+        background: var(--color-accent-subtle, rgba(255, 122, 0, 0.15));
+        color: var(--color-accent, #FF7A00) !important;
+        font-size: var(--text-xs);
+        font-weight: 700;
+        font-family: var(--font-family-base, system-ui, sans-serif);
+        flex-shrink: 0;
+    }
+    .legal-body p {
+        color: var(--color-text-secondary, #cbd5e1) !important;
+        line-height: 1.75;
+        margin-bottom: var(--space-4);
+        font-size: var(--text-base);
+    }
+    .legal-body ul, .legal-body ol {
+        margin-bottom: var(--space-4);
+        padding-left: var(--space-6);
+        color: var(--color-text-secondary, #cbd5e1) !important;
+        line-height: 1.75;
+    }
+    .legal-body li {
+        margin-bottom: var(--space-2);
+        color: var(--color-text-secondary, #cbd5e1) !important;
+    }
+    .legal-disclaimer-box {
+        background: rgba(255, 122, 0, 0.08);
+        border: 1px solid var(--color-brand-saffron, #FF7A00);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        margin: var(--space-6) 0;
+    }
+    .legal-disclaimer-box h3 {
+        font-size: var(--text-md);
+        font-weight: 700;
+        font-family: var(--font-family-base, system-ui, sans-serif);
+        color: var(--color-brand-saffron, #FF7A00) !important;
+        margin-bottom: var(--space-3);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    .legal-callout {
+        background: var(--color-bg-base);
+        border-left: 4px solid var(--color-accent, #FF7A00);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding: var(--space-4) var(--space-6);
+        margin: var(--space-6) 0;
+    }
+    .legal-nav-footer {
+        margin-top: var(--space-12);
+        padding-top: var(--space-8);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+    }
+    .legal-nav-link {
+        color: var(--color-accent, #FF7A00) !important;
+        text-decoration: underline;
+        font-size: var(--text-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+</style>
+{% endblock extra_css %}
+
+{% block layout %}
+<div class="legal-container">
+    <div class="legal-card">
+        
+        <!-- HEADER -->
+        <div class="legal-header">
+            <div style="display: flex; align-items: center; gap: var(--space-3); color: var(--color-accent, #FF7A00); font-weight: 600; font-size: var(--text-sm);">
+                <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                <span>TERMS OF SERVICE AGREEMENT</span>
+            </div>
+            <h1 class="legal-title">Terms of Service</h1>
+            <p class="legal-subtitle">
+                These Terms of Service govern your access to and use of {{ APP_NAME }}. By accessing or using the Service, you acknowledge that you have read, understood, and agreed to be bound by these Terms.
+            </p>
+            <div class="legal-meta">
+                <span><strong>Effective Date:</strong> August 29, 2026</span>
+                <span>•</span>
+                <span><strong>Last Updated:</strong> August 29, 2026</span>
+                <span>•</span>
+                <span><strong>Jurisdiction:</strong> Republic of India</span>
+            </div>
+        </div>
+
+        <div class="legal-body">
+            
+            <!-- TABLE OF CONTENTS -->
+            <div class="legal-toc">
+                <div class="legal-toc-title">
+                    <i data-lucide="list" style="width: 18px; height: 18px; color: var(--color-brand-saffron, #FF7A00);"></i>
+                    <span>Table of Contents</span>
+                </div>
+                <ol class="legal-toc-grid">
+                    <li><a href="#section-1">1. Acceptance of Terms</a></li>
+                    <li><a href="#section-2">2. Definitions</a></li>
+                    <li><a href="#section-3">3. Legal Capacity & Authority</a></li>
+                    <li><a href="#section-4">4. Account Registration & Credentials</a></li>
+                    <li><a href="#section-5">5. Acceptable Use Policy</a></li>
+                    <li><a href="#section-6">6. Invoicing & Billing Disclaimer</a></li>
+                    <li><a href="#section-7">7. Dedicated GST & Tax Disclaimer</a></li>
+                    <li><a href="#section-8">8. No Government Acceptance Guarantee</a></li>
+                    <li><a href="#section-9">9. Automated Calculation Disclaimer</a></li>
+                    <li><a href="#section-10">10. Free Tier Services & Resource Limits</a></li>
+                    <li><a href="#section-11">11. Paid Services & Future Subscriptions</a></li>
+                    <li><a href="#section-12">12. Third-Party Service Providers</a></li>
+                    <li><a href="#section-13">13. Service Availability & Uptime</a></li>
+                    <li><a href="#section-14">14. Data Loss & Recovery Disclaimer</a></li>
+                    <li><a href="#section-15">15. Automated Weekly Backup Disclaimer</a></li>
+                    <li><a href="#section-16">16. Email Dispatch & Delivery Disclaimer</a></li>
+                    <li><a href="#section-17">17. PDF & Document Generation Output</a></li>
+                    <li><a href="#section-18">18. User Content & Data Ownership</a></li>
+                    <li><a href="#section-19">19. Privacy Policy Integration</a></li>
+                    <li><a href="#section-20">20. Personal Data & Customer Data</a></li>
+                    <li><a href="#section-21">21. Data Protection & DPDP Act</a></li>
+                    <li><a href="#section-22">22. Intellectual Property & Limited License</a></li>
+                    <li><a href="#section-23">23. Feedback & Suggestions</a></li>
+                    <li><a href="#section-24">24. Prohibited Technical Activities</a></li>
+                    <li><a href="#section-25">25. Security Safeguards & Risk Acknowledgment</a></li>
+                    <li><a href="#section-26">26. Limitation of Liability</a></li>
+                    <li><a href="#section-27">27. Disclaimer of Warranties</a></li>
+                    <li><a href="#section-28">28. Indemnification</a></li>
+                    <li><a href="#section-29">29. Account Suspension & Termination</a></li>
+                    <li><a href="#section-30">30. Account Deletion & Data Purging</a></li>
+                    <li><a href="#section-31">31. Modifications to Service & Features</a></li>
+                    <li><a href="#section-32">32. Changes to Terms of Service</a></li>
+                    <li><a href="#section-33">33. Force Majeure</a></li>
+                    <li><a href="#section-34">34. Government & Regulatory Tax Changes</a></li>
+                    <li><a href="#section-35">35. External Government Systems</a></li>
+                    <li><a href="#section-36">36. Third-Party Links</a></li>
+                    <li><a href="#section-37">37. Governing Law & Jurisdiction</a></li>
+                    <li><a href="#section-38">38. Dispute Resolution</a></li>
+                    <li><a href="#section-39">39. Severability</a></li>
+                    <li><a href="#section-40">40. Non-Waiver</a></li>
+                    <li><a href="#section-41">41. Assignment</a></li>
+                    <li><a href="#section-42">42. Entire Agreement</a></li>
+                    <li><a href="#section-43">43. Legal Contact & Grievance Info</a></li>
+                </ol>
+            </div>
+
+            <!-- 1. ACCEPTANCE OF TERMS -->
+            <div class="legal-section" id="section-1">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">1</span>
+                    Acceptance of Terms
+                </h2>
+                <p>
+                    By creating an account, registering for, accessing, or using <strong>{{ APP_NAME }}</strong> ("Platform", "Service", "we", "us", or "our"), you agree to be bound by these Terms of Service ("Terms") and our <a href="{% url 'privacy_policy' %}" style="color: var(--color-accent, #FF7A00); text-decoration: underline;">Privacy Policy</a> (as stated upon registration: <em>"By creating an account, you agree to our Terms of Service and Privacy Policy"</em>).
+                </p>
+                <p>
+                    If you do not agree to these Terms, you must immediately cease accessing and using the Platform. Continued access or use of the Service following the posting of updated Terms constitutes your binding acceptance of such changes.
+                </p>
+            </div>
+
+            <!-- 2. DEFINITIONS -->
+            <div class="legal-section" id="section-2">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">2</span>
+                    Comprehensive Definitions
+                </h2>
+                <p>Throughout these Terms, the following capitalized terms have the specified meanings:</p>
+                <ul>
+                    <li><strong>"Advance Billing" / "Platform" / "Service":</strong> Refers to the cloud-based SaaS billing, invoicing, client management, product cataloging, tax computation, and backup software application operated by us.</li>
+                    <li><strong>"User" / "You" / "Your":</strong> Refers to any individual, proprietor, freelancer, authorized corporate representative, or business entity accessing or using the Service.</li>
+                    <li><strong>"Account" / "Organization":</strong> Refers to the authenticated tenant environment created by a User to manage business profiles, directories, catalog items, and invoices.</li>
+                    <li><strong>"Customer Data" / "Directory Data":</strong> Refers to business details, customer/vendor names, addresses, GSTINs, phone numbers, and invoice line items entered by a User into the Platform.</li>
+                    <li><strong>"Free Services":</strong> Refers to standard billing, invoicing, PDF rendering, email dispatch, and backup features provided without monetary fee under our free operational plan.</li>
+                    <li><strong>"Paid Services" / "Subscription":</strong> Refers to any optional premium features, elevated resource limits, or paid billing tiers that may be introduced by the Service.</li>
+                    <li><strong>"Invoice Records":</strong> Refers to digital data records, tax calculations, HSN/SAC codes, and rendered PDF invoice documents generated through the Platform.</li>
+                    <li><strong>"Third-Party Infrastructure":</strong> Refers to external cloud hosting, database, email, media storage, cache, cron execution, and monitoring providers (such as Render, Supabase, Brevo, Cloudinary, Redis, cron-job.org, and UptimeRobot).</li>
+                </ul>
+            </div>
+
+            <!-- 3. LEGAL CAPACITY & AUTHORITY -->
+            <div class="legal-section" id="section-3">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">3</span>
+                    Legal Capacity & Authority
+                </h2>
+                <p>
+                    You represent and warrant that you are at least 18 years of age and legally competent to enter into a binding legal contract under the <strong>Indian Contract Act, 1872</strong>. If you register or use the Service on behalf of a sole proprietorship, partnership, limited liability partnership (LLP), private limited company, or corporate entity, you represent and warrant that you possess full legal authority to bind that entity to these Terms.
+                </p>
+            </div>
+
+            <!-- 4. ACCOUNT REGISTRATION & SECURITY -->
+            <div class="legal-section" id="section-4">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">4</span>
+                    Account Registration & Security
+                </h2>
+                <p>
+                    Users must provide accurate, current, and complete registration information during signup. You are solely responsible for maintaining the confidentiality of your account credentials, passwords, and authentication tokens.
+                </p>
+                <p>
+                    You accept full responsibility for all activities, invoice dispatches, catalog edits, and data deletions performed under your account, except to the extent caused directly by our legally actionable gross negligence or intentional misconduct. You must immediately notify our Grievance Officer of any suspected unauthorized access or account compromise.
+                </p>
+            </div>
+
+            <!-- 5. ACCEPTABLE USE POLICY -->
+            <div class="legal-section" id="section-5">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">5</span>
+                    Acceptable Use Policy
+                </h2>
+                <p>You agree not to use Advance Billing to engage in any unlawful or prohibited activity. Specifically, you shall NOT:</p>
+                <ul>
+                    <li>Generate fake, fraudulent, or deceptive invoices, receipts, or billing documents.</li>
+                    <li>Misrepresent commercial transactions or facilitate tax evasion, GST fraud, or money laundering.</li>
+                    <li>Impersonate another person, sole proprietor, corporate entity, or registered GSTIN holder.</li>
+                    <li>Upload, transmit, or distribute viruses, Trojan horses, worms, or malicious code.</li>
+                    <li>Attempt unauthorized access to other organization accounts, multi-tenant databases, or server infrastructure.</li>
+                    <li>Reverse engineer, decompile, disassemble, or extract source code from the Application except where permitted by non-waivable applicable law.</li>
+                    <li>Scrape, mine, or harvest data excessively from the Service or abuse application programming interfaces (APIs).</li>
+                    <li>Bypass, disable, or circumvent socket timeouts, security checks, rate limits, or access controls.</li>
+                    <li>Use the email dispatch feature to send unsolicited commercial emails, spam, or phishing communications.</li>
+                </ul>
+            </div>
+
+            <!-- 6. INVOICING & BILLING DISCLAIMER -->
+            <div class="legal-section" id="section-6">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">6</span>
+                    Invoicing & Billing Software Tool Disclaimer
+                </h2>
+                <div class="legal-disclaimer-box">
+                    <h3><i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i> IMPORTANT LEGAL DISCLAIMER</h3>
+                    <p>
+                        Advance Billing is strictly a software technology tool for calculating, organizing, displaying, exporting, and emailing business billing data. The Service does NOT constitute tax advice, accounting advice, legal advice, financial advice, or GST advisory services.
+                    </p>
+                    <p>
+                        Users maintain exclusive responsibility for verifying all invoice line items, pricing, quantities, discounts, tax rates (CGST, SGST, IGST), HSN/SAC classifications, GSTIN validity, State of Origin, Place of Supply rules, e-invoicing compliance, and statutory tax return filings.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 7. DEDICATED GST DISCLAIMER -->
+            <div class="legal-section" id="section-7">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">7</span>
+                    Dedicated Goods & Services Tax (GST) Disclaimer
+                </h2>
+                <p>
+                    Indian GST laws, notification rules, tax slabs, and HSN/SAC codes are subject to frequent statutory revision by the Central Board of Indirect Taxes and Customs (CBIC) and State GST Departments.
+                </p>
+                <p>
+                    Advance Billing does not warrant that automated tax splits or document formats will automatically satisfy every statutory requirement under the Central Goods and Services Tax Act, 2017. Users should independently consult a qualified Chartered Accountant (CA), tax practitioner, or legal professional prior to issuing commercial invoices or filing tax returns.
+                </p>
+            </div>
+
+            <!-- 8. NO GOVERNMENT ACCEPTANCE GUARANTEE -->
+            <div class="legal-section" id="section-8">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">8</span>
+                    No Guarantee of Government or Portal Acceptance
+                </h2>
+                <p>
+                    Advance Billing makes no guarantee or warranty that generated PDF invoices, JSON exports, or billing records will be accepted without dispute by GST authorities, the Goods and Services Tax Network (GSTN) portal, Invoice Registration Portals (IRP), E-Way Bill portals, tax auditors, or commercial counterparties.
+                </p>
+            </div>
+
+            <!-- 9. AUTOMATED CALCULATION DISCLAIMER -->
+            <div class="legal-section" id="section-9">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">9</span>
+                    Automated Calculation Disclaimer
+                </h2>
+                <p>
+                    Although the Platform performs automated mathematical operations (such as line item multiplication, percentage tax calculations, subtotal additions, and currency rounding), Users must independently verify all sub-totals, tax splits, and grand totals prior to dispatch or submission.
+                </p>
+            </div>
+
+            <!-- 10. FREE TIER SERVICES & RESOURCE LIMITS -->
+            <div class="legal-section" id="section-10">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">10</span>
+                    Free Tier Services & Operational Resource Limits
+                </h2>
+                <p>
+                    Advance Billing currently provides billing, PDF generation, email dispatch, and backup features under a Free Service operational model. Free access is provided as a convenience without creating a permanent contractual entitlement.
+                </p>
+                <p>
+                    Free Services remain subject to operational resource caps, including rate limits, storage quotas, PDF rendering caps, email dispatch limits, and scheduled backup frequencies. We reserve the right to modify, adjust, suspend, or discontinue Free Tier features or introduce Paid Subscription tiers upon notice.
+                </p>
+            </div>
+
+            <!-- 11. PAID SERVICES & FUTURE SUBSCRIPTIONS -->
+            <div class="legal-section" id="section-11">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">11</span>
+                    Paid Services & Future Subscriptions
+                </h2>
+                <p>
+                    If Paid Subscription plans or premium features are introduced, pricing, billing intervals, payment gateway processing, tax additions, renewal terms, and cancellation policies will be presented prior to subscription purchase. Unless required by applicable law or specific plan terms, paid subscription fees are non-refundable.
+                </p>
+            </div>
+
+            <!-- 12. THIRD-PARTY SERVICE PROVIDERS -->
+            <div class="legal-section" id="section-12">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">12</span>
+                    Third-Party Infrastructure & Service Providers
+                </h2>
+                <p>
+                    The Service relies on specialized third-party cloud infrastructure providers for application hosting, database storage, email delivery, media storage, caching, cron execution, and monitoring:
+                </p>
+                <ul>
+                    <li><strong>Render (Render Services Inc.):</strong> Cloud application server hosting and process execution.</li>
+                    <li><strong>Supabase (Supabase Inc. / PostgreSQL):</strong> Managed relational database storage.</li>
+                    <li><strong>Brevo (Sendinblue GmbH):</strong> Transactional email delivery operating over secure SMTP (Port 2525).</li>
+                    <li><strong>Cloudinary (Cloudinary Ltd.):</strong> Cloud media asset hosting for company logos and letterheads.</li>
+                    <li><strong>Redis:</strong> In-memory data store for session management and rate limiting.</li>
+                    <li><strong>cron-job.org:</strong> External scheduler invoking automated weekly backup triggers.</li>
+                    <li><strong>UptimeRobot:</strong> Public application uptime and health monitoring.</li>
+                </ul>
+                <p>
+                    Each infrastructure provider is engaged under technical safeguards and contractual data protection terms. Advance Billing is not responsible for outages, delays, transmission failures, or security incidents originating solely within third-party infrastructure beyond our reasonable control.
+                </p>
+            </div>
+
+            <!-- 13. SERVICE AVAILABILITY & UPTIME -->
+            <div class="legal-section" id="section-13">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">13</span>
+                    Service Availability & Uptime Disclaimer
+                </h2>
+                <p>
+                    Advance Billing is provided on an "AS IS" and "AS AVAILABLE" basis. We do not guarantee uninterrupted, 100% continuous service availability or specific uptime Service Level Agreements (SLAs).
+                </p>
+                <p>
+                    Service availability may be affected by routine system maintenance, software deployments, database updates, cloud hosting disruptions, network outages, email server delays, or force majeure events.
+                </p>
+            </div>
+
+            <!-- 14. DATA LOSS & RECOVERY DISCLAIMER -->
+            <div class="legal-section" id="section-14">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">14</span>
+                    Data Loss & Record-Keeping Disclaimer
+                </h2>
+                <p>
+                    While we maintain multi-tenant query isolation and database security practices, no electronic storage system can guarantee complete immunity from hardware failure, data corruption, or catastrophic loss.
+                </p>
+                <p>
+                    Advance Billing is not an archiving repository or substitute for statutory record-keeping. Users must maintain independent local offline copies of all critical invoices, customer directories, and tax records.
+                </p>
+            </div>
+
+            <!-- 15. AUTOMATED WEEKLY BACKUP DISCLAIMER -->
+            <div class="legal-section" id="section-15">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">15</span>
+                    Automated Weekly Backup Feature Disclaimer
+                </h2>
+                <p>
+                    The automated weekly backup feature (generating JSON and Excel organization data exports sent via email) is provided solely as an operational convenience for business continuity.
+                </p>
+                <p>
+                    Backup delivery depends on email server availability, SMTP relays, recipient mailbox storage, and network connectivity. The automated backup feature does not guarantee instant recoverability in every disaster scenario, and users should download and inspect their backup files regularly.
+                </p>
+            </div>
+
+            <!-- 16. EMAIL DISPATCH & DELIVERY DISCLAIMER -->
+            <div class="legal-section" id="section-16">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">16</span>
+                    Email Dispatch & Delivery Disclaimer
+                </h2>
+                <p>
+                    Invoice dispatches and transactional notification emails are routed through external mail server relays (Brevo SMTP over Port 2525).
+                </p>
+                <p>
+                    We cannot guarantee instant delivery, inbox placement, or freedom from recipient spam folder filtering. Users are responsible for ensuring that recipient email addresses are valid and properly entered.
+                </p>
+            </div>
+
+            <!-- 17. PDF & DOCUMENT GENERATION OUTPUT -->
+            <div class="legal-section" id="section-17">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">17</span>
+                    PDF & Document Generation Output Review
+                </h2>
+                <p>
+                    Rendered PDF invoices and reports are automated software outputs based on User data entries. Users are responsible for reviewing document formatting, business logos, payment details, tax totals, and statutory notes prior to sending invoices to clients or tax authorities.
+                </p>
+            </div>
+
+            <!-- 18. USER CONTENT & DATA OWNERSHIP -->
+            <div class="legal-section" id="section-18">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">18</span>
+                    User Content & Business Data Ownership
+                </h2>
+                <p>
+                    Users retain all ownership, title, and intellectual property rights in their business profiles, directory records, catalog items, and invoice data entered into the Platform.
+                </p>
+                <p>
+                    By uploading or creating data within Advance Billing, you grant us a worldwide, non-exclusive, royalty-free, limited license to host, store, process, display, format, transmit, and backup your data solely to operate and provide the Service to you.
+                </p>
+            </div>
+
+            <!-- 19. PRIVACY POLICY INTEGRATION -->
+            <div class="legal-section" id="section-19">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">19</span>
+                    Privacy Policy Integration
+                </h2>
+                <p>
+                    Our collection, storage, processing, and protection of personal data and technical metadata is governed by our <a href="{% url 'privacy_policy' %}" style="color: var(--color-accent, #FF7A00); text-decoration: underline;">Privacy Policy</a>, which is explicitly incorporated into these Terms by reference.
+                </p>
+            </div>
+
+            <!-- 20. PERSONAL DATA & CUSTOMER DATA RESPONSIBILITIES -->
+            <div class="legal-section" id="section-20">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">20</span>
+                    Personal Data & Customer Data Responsibilities
+                </h2>
+                <p>
+                    Where Users enter personal data of third-party customers or vendors into the Platform, the User acts as the <strong>Data Fiduciary</strong> (or Data Controller) under the Digital Personal Data Protection Act, 2023. Users represent that they possess a lawful basis and necessary consents to collect, enter, and process customer details through the Platform.
+                </p>
+            </div>
+
+            <!-- 21. DATA PROTECTION & DPDP ACT ALIGNMENT -->
+            <div class="legal-section" id="section-21">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">21</span>
+                    Data Protection & Statutory Compliance
+                </h2>
+                <p>
+                    Both parties agree to comply with applicable statutory obligations under the Digital Personal Data Protection Act, 2023, the Information Technology Act, 2000, and applicable rules. Advance Billing processes personal data in accordance with our stated Privacy Policy safeguards and data principal rights.
+                </p>
+            </div>
+
+            <!-- 22. INTELLECTUAL PROPERTY & LIMITED LICENSE -->
+            <div class="legal-section" id="section-22">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">22</span>
+                    Intellectual Property & Limited License
+                </h2>
+                <p>
+                    All rights, title, and interest in and to the Platform—including application software, source code, database architecture, UI/UX designs, CSS styles, brand assets, logos, and documentation—remain the exclusive property of Advance Billing and its developer.
+                </p>
+                <p>
+                    Subject to compliance with these Terms, we grant you a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to access and use the Service for your internal business operations.
+                </p>
+            </div>
+
+            <!-- 23. FEEDBACK & SUGGESTIONS -->
+            <div class="legal-section" id="section-23">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">23</span>
+                    Feedback & Unsolicited Suggestions
+                </h2>
+                <p>
+                    If you voluntarily submit feedback, feature requests, product suggestions, or bug reports to us, you grant us an unrestricted, perpetual, irrevocable, royalty-free license to use, implement, modify, and commercialize such feedback without obligation or compensation to you.
+                </p>
+            </div>
+
+            <!-- 24. PROHIBITED TECHNICAL ACTIVITIES -->
+            <div class="legal-section" id="section-24">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">24</span>
+                    Prohibited Technical Activities & Responsible Disclosure
+                </h2>
+                <p>
+                    Users shall not perform automated credential stuffing, brute-force password guessing, SQL injection, cross-site scripting (XSS), denial-of-service (DoS) attacks, or rate-limit circumvention.
+                </p>
+                <p>
+                    If you discover a potential security vulnerability, we encourage responsible disclosure by contacting our Grievance Officer directly prior to public disclosure.
+                </p>
+            </div>
+
+            <!-- 25. SECURITY SAFEGUARDS & RISK ACKNOWLEDGMENT -->
+            <div class="legal-section" id="section-25">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">25</span>
+                    Security Safeguards & Risk Acknowledgment
+                </h2>
+                <p>
+                    We employ industry-standard technical controls—including HTTPS / TLS 1.3 transit encryption, PBKDF2 / Argon2 password hashing, and multi-tenant query isolation. However, Users acknowledge that no cloud application can be guaranteed 100% immune from internet cybersecurity risks.
+                </p>
+            </div>
+
+            <!-- 26. LIMITATION OF LIABILITY -->
+            <div class="legal-section" id="section-26">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">26</span>
+                    Limitation of Liability
+                </h2>
+                <p>
+                    To the maximum extent permitted by applicable Indian law, Advance Billing and its developer shall not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages—including lost profits, lost revenues, loss of business data, business interruption, GST penalties, tax assessment disallowances, or third-party outages—arising out of or related to your use of or inability to use the Service.
+                </p>
+                <p>
+                    Nothing in these Terms excludes or limits liability for gross negligence, willful misconduct, or obligations mandated under non-waivable statutory law.
+                </p>
+            </div>
+
+            <!-- 27. DISCLAIMER OF WARRANTIES -->
+            <div class="legal-section" id="section-27">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">27</span>
+                    Disclaimer of Warranties
+                </h2>
+                <p>
+                    To the maximum extent permitted by applicable law, the Service is provided "AS IS" and "AS AVAILABLE" without warranties of any kind, whether express, implied, statutory, or otherwise—including implied warranties of merchantability, fitness for a particular purpose, non-infringement, accuracy of automated calculations, or error-free operation.
+                </p>
+            </div>
+
+            <!-- 28. INDEMNIFICATION -->
+            <div class="legal-section" id="section-28">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">28</span>
+                    Indemnification
+                </h2>
+                <p>
+                    You agree to defend, indemnify, and hold harmless Advance Billing, its operator, developer, and infrastructure partners from and against any third-party claims, liabilities, damages, losses, penalties, or expenses (including reasonable legal fees) arising from:
+                </p>
+                <ul>
+                    <li>Your breach of these Terms or the Acceptable Use Policy.</li>
+                    <li>Fraudulent, inaccurate, or illegal invoices or billing data created under your account.</li>
+                    <li>Your failure to comply with applicable GST, accounting, tax, or data protection laws.</li>
+                    <li>Infringement of third-party intellectual property or privacy rights within your User Content.</li>
+                </ul>
+            </div>
+
+            <!-- 29. ACCOUNT SUSPENSION & TERMINATION -->
+            <div class="legal-section" id="section-29">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">29</span>
+                    Account Suspension & Termination
+                </h2>
+                <p>
+                    We reserve the right to suspend or terminate your account access immediately upon notice if you violate these Terms, engage in fraudulent activity, abuse application resources, cause security threats, or fail to comply with legal requirements.
+                </p>
+                <p>
+                    Upon termination, your right to access the Service ceases immediately. You remain responsible for exporting your business records prior to termination.
+                </p>
+            </div>
+
+            <!-- 30. ACCOUNT DELETION & DATA PURGING -->
+            <div class="legal-section" id="section-30">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">30</span>
+                    Account Deletion & Data Purging Timelines
+                </h2>
+                <p>
+                    Users may request organization account deletion through the account Danger Zone settings or by contacting our Grievance Officer.
+                </p>
+                <p>
+                    Upon confirmed account closure, active production database records are permanently purged within 30 days. Encrypted backup archives rotate and overwrite within a 90-day lifecycle. Mandatory statutory tax records are retained strictly as required by the Central Goods and Services Tax Act, 2017.
+                </p>
+            </div>
+
+            <!-- 31. MODIFICATIONS TO SERVICE & FEATURES -->
+            <div class="legal-section" id="section-31">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">31</span>
+                    Modifications to Service & Features
+                </h2>
+                <p>
+                    We reserve the right to add, update, modify, or discontinue features, UI components, API limits, or operational tools at any time to enhance security, compliance, or system performance.
+                </p>
+            </div>
+
+            <!-- 32. CHANGES TO TERMS OF SERVICE -->
+            <div class="legal-section" id="section-32">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">32</span>
+                    Changes to Terms of Service
+                </h2>
+                <p>
+                    We may revise these Terms periodically. The "Last Updated" date indicates when revisions take effect. Where revisions materially alter your rights or obligations, we will provide notice via registered email or a prominent in-app notification prior to the changes taking effect.
+                </p>
+            </div>
+
+            <!-- 33. FORCE MAJEURE -->
+            <div class="legal-section" id="section-33">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">33</span>
+                    Force Majeure
+                </h2>
+                <p>
+                    Neither party shall be liable for service delays or performance failures resulting from causes beyond reasonable control, including natural disasters, floods, fires, earthquakes, civil unrest, acts of war, government orders, telecommunication failures, global cloud outages, or widespread cyberattacks.
+                </p>
+            </div>
+
+            <!-- 34. GOVERNMENT & REGULATORY TAX CHANGES -->
+            <div class="legal-section" id="section-34">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">34</span>
+                    Government & Statutory Regulatory Changes
+                </h2>
+                <p>
+                    Statutory tax laws, GST notifications, and government compliance rules change frequently. Advance Billing does not guarantee zero-day automated compatibility with every statutory update. Users remain responsible for verifying current legal tax requirements.
+                </p>
+            </div>
+
+            <!-- 35. EXTERNAL GOVERNMENT SYSTEMS -->
+            <div class="legal-section" id="section-35">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">35</span>
+                    External Government Portals & Systems
+                </h2>
+                <p>
+                    Advance Billing is an independent software application and is not affiliated with, endorsed by, or operated by the Central Board of Indirect Taxes and Customs (CBIC), GSTN, or any government portal. We are not responsible for government portal downtime, server errors, or submission rejections.
+                </p>
+            </div>
+
+            <!-- 36. THIRD-PARTY LINKS -->
+            <div class="legal-section" id="section-36">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">36</span>
+                    Third-Party Links & External Websites
+                </h2>
+                <p>
+                    The Platform may contain links to third-party websites or services. We do not control or endorse third-party content, and your access to external sites is subject to their independent terms and privacy policies.
+                </p>
+            </div>
+
+            <!-- 37. GOVERNING LAW & JURISDICTION -->
+            <div class="legal-section" id="section-37">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">37</span>
+                    Governing Law & Jurisdiction
+                </h2>
+                <p>
+                    These Terms and any dispute arising out of or related to your use of the Service shall be governed by, construed, and enforced strictly in accordance with the laws of the <strong>Republic of India</strong>, without giving effect to conflicts of law principles.
+                </p>
+                <p>
+                    Subject to informal dispute resolution procedures, both parties submit to the exclusive jurisdiction of the competent courts located in <strong>Gujarat, India</strong>.
+                </p>
+            </div>
+
+            <!-- 38. DISPUTE RESOLUTION -->
+            <div class="legal-section" id="section-38">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">38</span>
+                    Informal Dispute Resolution
+                </h2>
+                <p>
+                    In the event of any controversy, claim, or dispute, the parties agree to first attempt in good faith to resolve the matter informally by contacting our Grievance Officer. If unresolved within thirty (30) days of written notice, either party may initiate formal legal proceedings in a court of competent jurisdiction.
+                </p>
+            </div>
+
+            <!-- 39. SEVERABILITY -->
+            <div class="legal-section" id="section-39">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">39</span>
+                    Severability
+                </h2>
+                <p>
+                    If any provision of these Terms is held to be invalid, illegal, or unenforceable by a court of competent jurisdiction, such provision shall be enforced to the maximum extent permissible, and the remaining provisions shall continue in full force and effect.
+                </p>
+            </div>
+
+            <!-- 40. NON-WAIVER -->
+            <div class="legal-section" id="section-40">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">40</span>
+                    Non-Waiver
+                </h2>
+                <p>
+                    Our failure to exercise or enforce any right or provision of these Terms shall not constitute a waiver of such right or provision in that or any future instance.
+                </p>
+            </div>
+
+            <!-- 41. ASSIGNMENT -->
+            <div class="legal-section" id="section-41">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">41</span>
+                    Assignment
+                </h2>
+                <p>
+                    You may not assign, transfer, or delegate your rights or obligations under these Terms without our prior written consent. We may freely assign our rights and obligations in connection with a merger, acquisition, corporate reorganization, or sale of assets.
+                </p>
+            </div>
+
+            <!-- 42. ENTIRE AGREEMENT -->
+            <div class="legal-section" id="section-42">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">42</span>
+                    Entire Agreement
+                </h2>
+                <p>
+                    These Terms of Service, together with the <a href="{% url 'privacy_policy' %}" style="color: var(--color-accent, #FF7A00); text-decoration: underline;">Privacy Policy</a> and any official legal notices published on the Platform, constitute the complete and exclusive agreement between you and Advance Billing regarding the Service.
+                </p>
+            </div>
+
+            <!-- 43. LEGAL CONTACT & GRIEVANCE INFO -->
+            <div class="legal-section" id="section-43">
+                <h2 class="legal-section-title">
+                    <span class="legal-section-badge">43</span>
+                    Legal Contact Information & Grievance Redressal
+                </h2>
+                <p>
+                    For legal notices, terms inquiries, or grievance redressal regarding these Terms, please contact our Grievance Officer:
+                </p>
+                <div style="background: var(--color-bg-base); padding: var(--space-4) var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border); font-size: var(--text-sm); font-style: normal !important;">
+                    <strong>Grievance & Privacy Officer:</strong> Vyom Prajapati<br>
+                    <strong>Application:</strong> {{ APP_NAME }}<br>
+                    <strong>Contact Email:</strong> <a href="mailto:advancebillingbyvyom@gmail.com" style="color: var(--color-accent, #FF7A00); text-decoration: underline;">advancebillingbyvyom@gmail.com</a><br>
+                    <strong>Jurisdiction Location:</strong> Gujarat, India
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="legal-nav-footer">
+            <a href="{% url 'privacy_policy' %}" class="legal-nav-link">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                <span>Privacy Policy</span>
+            </a>
+            <a href="{% url 'landing' %}" class="legal-nav-link">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                <span>Return to {{ APP_NAME }} Home</span>
+            </a>
+            <a href="{% url 'terms_of_service' %}" class="legal-nav-link" style="font-weight: 600;">
+                <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+                <span>Terms of Service</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock layout %}

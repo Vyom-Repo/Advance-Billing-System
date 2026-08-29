@@ -79,6 +79,42 @@ class LandingView(TemplateView):
         return context
 
 
+class PrivacyPolicyView(TemplateView):
+    """
+    Public-facing Privacy Policy page.
+    Accessible without authentication.
+    """
+
+    template_name = "common/privacy_policy.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["page_title"] = f"Privacy Policy — {settings.APP_NAME}"
+        context["meta_description"] = (
+            f"Privacy Policy for {settings.APP_NAME}. Learn how we collect, process, "
+            "store, and protect your business data under applicable Indian laws including the DPDP Act, 2023."
+        )
+        return context
+
+
+class TermsOfServiceView(TemplateView):
+    """
+    Public-facing Terms of Service page.
+    Accessible without authentication.
+    """
+
+    template_name = "common/terms_of_service.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["page_title"] = f"Terms of Service — {settings.APP_NAME}"
+        context["meta_description"] = (
+            f"Terms of Service for {settings.APP_NAME}. Understand your rights, responsibilities, "
+            "GST disclaimers, free tier availability, and service terms."
+        )
+        return context
+
+
 # =============================================================================
 # COMING SOON
 # =============================================================================
