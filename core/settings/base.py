@@ -77,6 +77,9 @@ env = environ.Env(
     # Render
     RENDER_EXTERNAL_HOSTNAME=(str, ""),
 
+    # External Cron Trigger Secret
+    WEEKLY_BACKUP_CRON_SECRET=(str, ""),
+
     # Internal
     DJANGO_ENV=(str, "development"),
 )
@@ -91,6 +94,7 @@ if env_file.exists():
 # =============================================================================
 
 SECRET_KEY = env("SECRET_KEY")
+WEEKLY_BACKUP_CRON_SECRET = env("WEEKLY_BACKUP_CRON_SECRET")
 
 # Validate SECRET_KEY is present — it is non-negotiable
 if not SECRET_KEY:

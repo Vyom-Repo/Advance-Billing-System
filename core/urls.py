@@ -39,11 +39,14 @@ from django.views.generic import RedirectView
 handler404 = "apps.common.views.error_404"
 handler500 = "apps.common.views.error_500"
 
+from apps.settings_app.views import WeeklyBackupCronView
+
 urlpatterns = [
     # =========================================================================
     path("admin/", admin.site.urls),
     path("admin-portal/", include("apps.admin_portal.urls", namespace="admin_portal")),
     path("demo/", include("apps.demo.urls", namespace="demo")),
+    path("internal/cron/weekly-backup/", WeeklyBackupCronView.as_view(), name="cron_weekly_backup"),
 
     # =========================================================================
     # Public Landing Pages

@@ -4,6 +4,10 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import hmac
 import sys
 import django
 from django.conf import settings
@@ -1280,3 +1284,50 @@ class SettingsUpgradeView(BillingLoginRequiredMixin, PageTitleMixin, View):
         )
 
         return redirect("settings_app:upgrade")
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class WeeklyBackupCronView(View):
+    """
+    Production-safe external-cron trigger endpoint for automated weekly data backups.
+    Target: POST /internal/cron/weekly-backup/
+    Protected via HTTP Header: X-Cron-Secret
+    Reuses OrganizationBackupService with strict 6-day idempotency protection.
+    """
+
+    def post(self, request, *args, **kwargs):
+        configured_secret = getattr(settings, "WEEKLY_BACKUP_CRON_SECRET", "")
+        if not configured_secret:
+            return JsonResponse({"error": "Forbidden"}, status=403)
+
+        provided_secret = request.headers.get("X-Cron-Secret", "")
+        if not provided_secret or not hmac.compare_digest(provided_secret, configured_secret):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+
+        from apps.organization.models import Organization
+        from apps.settings_app.models import OrganizationBackupSetting
+        from apps.settings_app.services.backup_service import OrganizationBackupService
+
+        enabled_settings = OrganizationBackupSetting.objects.filter(weekly_backup_enabled=True)
+        org_ids = enabled_settings.values_list("organization_id", flat=True)
+        orgs = Organization.objects.filter(id__in=org_ids)
+
+        processed = 0
+        successful = 0
+        failed = 0
+
+        for org in orgs:
+            processed += 1
+            success, _ = OrganizationBackupService.send_weekly_backup_email(org, force=False)
+            if success:
+                successful += 1
+            else:
+                failed += 1
+
+        return JsonResponse({
+            "status": "success",
+            "processed": processed,
+            "successful": successful,
+            "failed": failed,
+        })
+
