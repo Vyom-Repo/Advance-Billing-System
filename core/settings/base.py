@@ -136,6 +136,9 @@ THIRD_PARTY_APPS = [
     "csp",
 ]
 
+# Rate limiting failure mode: fail open if cache backend is unavailable
+RATELIMIT_FAIL_OPEN = True
+
 LOCAL_APPS = [
     "apps.common",
     "apps.authentication",
