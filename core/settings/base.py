@@ -48,7 +48,7 @@ env = environ.Env(
     # Email
     EMAIL_BACKEND=(str, "django.core.mail.backends.console.EmailBackend"),
     EMAIL_HOST=(str, ""),
-    EMAIL_PORT=(int, 587),
+    EMAIL_PORT=(int, 2525),
     EMAIL_USE_TLS=(bool, True),
     EMAIL_USE_SSL=(bool, False),
     EMAIL_TIMEOUT=(int, 10),
@@ -290,10 +290,10 @@ CLOUDINARY_STORAGE = {
 
 EMAIL_BACKEND = env("EMAIL_BACKEND")
 EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_PORT = env("EMAIL_PORT")
-EMAIL_USE_TLS = env("EMAIL_USE_TLS")
-EMAIL_USE_SSL = env("EMAIL_USE_SSL")
-EMAIL_TIMEOUT = env("EMAIL_TIMEOUT")
+EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")

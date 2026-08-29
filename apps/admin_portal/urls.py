@@ -9,5 +9,4 @@ urlpatterns = [
     path("", views.AdminDashboardView.as_view(), name="dashboard"),
     path("requests/<int:pk>/approve/", views.AdminApproveRequestView.as_view(), name="approve_request"),
     path("requests/<int:pk>/reject/", views.AdminRejectRequestView.as_view(), name="reject_request"),
-    path("diagnostics/smtp/", views.SmtpDiagnosticView.as_view(), name="smtp_diagnostic"),
 ]
