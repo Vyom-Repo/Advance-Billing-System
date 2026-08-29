@@ -455,13 +455,30 @@ def _to_float_or_none(value) -> "float | None":
 
 
 def _file_url(field) -> "str | None":
-    """Convert a Django ImageField/FileField to a file:// URL for WeasyPrint."""
+    """
+    Convert a Django ImageField/FileField to a valid URL for WeasyPrint.
+    Returns HTTP(S) URL for remote storage (Cloudinary) or file:// URL for local disk storage.
+    """
     if not field:
         return None
+
+    # 1. Check for remote storage URL (Cloudinary / S3 / HTTP / HTTPS)
     try:
-        return f"file://{field.path}"
+        url = getattr(field, "url", None)
+        if url and (url.startswith("http://") or url.startswith("https://")):
+            return url
     except Exception:
-        return None
+        pass
+
+    # 2. Check for local filesystem path (FileSystemStorage)
+    try:
+        path = getattr(field, "path", None)
+        if path and os.path.exists(path):
+            return f"file://{path}"
+    except Exception:
+        pass
+
+    return None
 
 
 def _currency_symbol(code: str) -> str:

@@ -98,7 +98,8 @@ class _BoundedInvoiceEmailExecutor:
 
                 if invoice is not None:
                     org_id = invoice.organization_id if invoice.organization else None
-                    success, msg = InvoiceEmailService.send_invoice_email(invoice, trigger=trigger)
+                    owner = invoice.organization.owner if (invoice.organization and invoice.organization.owner) else None
+                    success, msg = InvoiceEmailService.send_invoice_email(invoice, trigger=trigger, user=owner)
                     if success:
                         logger.info("Invoice email job completed for invoice ID %s (org ID %s)", invoice_id, org_id)
                     else:
@@ -151,43 +152,10 @@ class InvoiceEmailService:
     @classmethod
     def generate_pdf_bytes(cls, invoice: Invoice, user=None) -> bytes:
         """
-        Renders invoice PDF bytes using the EXACT production rendering pipeline
+        Renders invoice PDF bytes using the EXACT canonical rendering pipeline
         used by Download and Preview functionality.
         """
-        if user is None and invoice.organization:
-            user = getattr(invoice.organization, "owner", None)
-
-        # 1. Adapt ORM instance to canonical dictionaries
-        invoice_dict, customer_dict, items_list, company_dict = invoice_to_pdf_dicts(invoice)
-
-        # 2. Serialize canonical bill_data
-        bill_data = serialize_bill_for_render(
-            invoice=invoice_dict,
-            customer=customer_dict,
-            items=items_list,
-            company=company_dict,
-            org=invoice.organization,
-        )
-
-        # 3. Resolve PDF configuration
-        config = InvoicePreviewService.resolve_render_config(user=user)
-
-        # 4. Build printable layout frame geometry
-        layout_frame = PrintableFrameBuilder.build_frame(invoice.organization, config)
-
-        # 5. Resolve template file path
-        template_file_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
-
-        # 6. Render PDF bytes via WeasyPrint
-        pdf_bytes = InvoicePreviewService.render_bill_pdf(
-            bill_data=bill_data,
-            config=config,
-            template_file_path=template_file_path,
-            layout_frame=layout_frame,
-            org=invoice.organization,
-        )
-
-        return pdf_bytes
+        return InvoicePreviewService.render_invoice_to_pdf(invoice, user=user)
 
     @classmethod
     def get_recipient_email(cls, invoice: Invoice) -> str:

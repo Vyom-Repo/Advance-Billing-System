@@ -430,7 +430,7 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
 
         try:
             from apps.invoices.services.invoice_preview_service import InvoicePreviewService
-            from apps.invoices.services.bill_serializer import serialize_bill_for_render
+            from apps.invoices.services.bill_serializer import serialize_bill_for_render, _file_url
             from apps.common.services.sample_data_service import SampleDataService
             from apps.common.services.organization_service import OrganizationService
             from apps.common.services.layout_engine import PrintableFrameBuilder
@@ -460,9 +460,9 @@ class SettingsInvoiceDesignPreviewAPIView(BillingLoginRequiredMixin, View):
                     "gstin": org_data["gstin"],
                     "email": org_data["email"],
                     "phone": org_data["phone"],
-                    "logo_url": f"file://{logo.path}" if logo and hasattr(logo, "path") and os.path.exists(logo.path) else None,
-                    "signature_url": f"file://{sig.path}" if sig and hasattr(sig, "path") and os.path.exists(sig.path) else None,
-                    "letterhead_url": f"file://{lh.path}" if lh and hasattr(lh, "path") and os.path.exists(lh.path) else None,
+                    "logo_url": _file_url(logo),
+                    "signature_url": _file_url(sig),
+                    "letterhead_url": _file_url(lh),
                     "signature_mode": org_data.get("signature_mode") or "none",
                     "authorized_signatory_name": org_data.get("authorized_signatory_name") or "",
                     "show_computer_generated_disclaimer": org_data.get("show_computer_generated_disclaimer", False),
@@ -523,7 +523,7 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
             return HttpResponse("WeasyPrint is not installed or configured correctly.", status=500)
 
         from apps.invoices.services.invoice_preview_service import InvoicePreviewService
-        from apps.invoices.services.bill_serializer import serialize_bill_for_render
+        from apps.invoices.services.bill_serializer import serialize_bill_for_render, _file_url
         from apps.common.services.sample_data_service import SampleDataService
         from apps.common.services.organization_service import OrganizationService
         from apps.common.services.layout_engine import PrintableFrameBuilder
@@ -560,9 +560,9 @@ class SettingsInvoiceDesignDownloadView(BillingLoginRequiredMixin, View):
                 "gstin": org_data["gstin"],
                 "email": org_data["email"],
                 "phone": org_data["phone"],
-                "logo_url": f"file://{logo.path}" if logo and hasattr(logo, "path") and os.path.exists(logo.path) else None,
-                "signature_url": f"file://{sig.path}" if sig and hasattr(sig, "path") and os.path.exists(sig.path) else None,
-                "letterhead_url": f"file://{lh.path}" if lh and hasattr(lh, "path") and os.path.exists(lh.path) else None,
+                "logo_url": _file_url(logo),
+                "signature_url": _file_url(sig),
+                "letterhead_url": _file_url(lh),
                 "signature_mode": org_data.get("signature_mode") or "none",
                 "authorized_signatory_name": org_data.get("authorized_signatory_name") or "",
                 "show_computer_generated_disclaimer": org_data.get("show_computer_generated_disclaimer", False),

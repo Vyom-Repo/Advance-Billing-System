@@ -21,7 +21,7 @@ from apps.common.services.organization_service import OrganizationService
 from apps.common.services.sample_data_service import SampleDataService
 from apps.common.services.layout_engine import PrintableFrameBuilder
 from apps.settings_app.models import DocumentPreference
-from apps.invoices.services.bill_serializer import serialize_bill_for_render
+from apps.invoices.services.bill_serializer import serialize_bill_for_render, _file_url
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +204,44 @@ class InvoicePreviewService:
         return config
 
     # ------------------------------------------------------------------
+    # render_invoice_to_pdf (Canonical ORM pipeline)
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def render_invoice_to_pdf(cls, invoice, user=None) -> bytes:
+        """
+        Canonical high-level entry point for rendering an Invoice ORM object to PDF bytes.
+        Ensures exact 100% rendering parity between Portal PDF view/download and Email attachments.
+        """
+        from apps.billing.services.pdf_adapter import invoice_to_pdf_dicts
+        from apps.invoices.services.bill_serializer import serialize_bill_for_render
+        from apps.common.services.layout_engine import PrintableFrameBuilder
+
+        org = getattr(invoice, "organization", None)
+        if user is None and org:
+            user = getattr(org, "owner", None)
+
+        invoice_dict, customer_dict, items_list, company_dict = invoice_to_pdf_dicts(invoice)
+        bill_data = serialize_bill_for_render(
+            invoice=invoice_dict,
+            customer=customer_dict,
+            items=items_list,
+            company=company_dict,
+            org=org,
+        )
+        config = cls.resolve_render_config(user=user)
+        layout_frame = PrintableFrameBuilder.build_frame(org, config)
+        template_file_path = cls.resolve_template_path(config.get("template_name"))
+
+        return cls.render_bill_pdf(
+            bill_data=bill_data,
+            config=config,
+            template_file_path=template_file_path,
+            layout_frame=layout_frame,
+            org=org,
+        )
+
+    # ------------------------------------------------------------------
     # render_bill_pdf
     # ------------------------------------------------------------------
 
@@ -347,9 +385,9 @@ class InvoicePreviewService:
                     "gstin": org_data["gstin"],
                     "email": org_data["email"],
                     "phone": org_data["phone"],
-                    "logo_url": f"file://{org_data['logo'].path}" if org_data.get("logo") else None,
-                    "signature_url": f"file://{org_data['signature'].path}" if org_data.get("signature") else None,
-                    "letterhead_url": f"file://{org_data['letterhead'].path}" if org_data.get("letterhead") else None,
+                    "logo_url": _file_url(org_data.get("logo")),
+                    "signature_url": _file_url(org_data.get("signature")),
+                    "letterhead_url": _file_url(org_data.get("letterhead")),
                 }
                 if org_data["default_bank"]:
                     company["bank_name"] = org_data["default_bank"].bank_name

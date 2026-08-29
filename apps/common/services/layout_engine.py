@@ -45,11 +45,13 @@ class PrintableFrameBuilder:
 
         if print_on_lh and org:
             lh_file = getattr(org, "letterhead", None)
-            if lh_file and hasattr(lh_file, "path"):
+            if lh_file:
                 try:
-                    if os.path.exists(lh_file.path):
+                    from apps.invoices.services.bill_serializer import _file_url  # noqa: PLC0415
+                    resolved_url = _file_url(lh_file)
+                    if resolved_url:
                         has_lh = True
-                        bg_url = pathlib.Path(lh_file.path).as_uri()
+                        bg_url = resolved_url
                         header_offset = None
                         footer_offset = None
                         if isinstance(prefs, dict):

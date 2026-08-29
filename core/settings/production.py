@@ -90,15 +90,34 @@ _cloudinary_cloud = env("CLOUDINARY_CLOUD_NAME")
 _cloudinary_key = env("CLOUDINARY_API_KEY")
 _cloudinary_secret = env("CLOUDINARY_API_SECRET")
 
-if all([_cloudinary_cloud, _cloudinary_key, _cloudinary_secret]):
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": _cloudinary_cloud,
-        "API_KEY": _cloudinary_key,
-        "API_SECRET": _cloudinary_secret,
-    }
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-else:
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+if not all([_cloudinary_cloud, _cloudinary_key, _cloudinary_secret]):
+    missing = [
+        name for name, val in [
+            ("CLOUDINARY_CLOUD_NAME", _cloudinary_cloud),
+            ("CLOUDINARY_API_KEY", _cloudinary_key),
+            ("CLOUDINARY_API_SECRET", _cloudinary_secret),
+        ] if not val
+    ]
+    raise ImproperlyConfigured(
+        f"Cloudinary media storage configuration missing in production. "
+        f"The following environment variables must be set: {', '.join(missing)}. "
+        f"Render's filesystem is ephemeral; persistent media storage requires Cloudinary."
+    )
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": _cloudinary_cloud,
+    "API_KEY": _cloudinary_key,
+    "API_SECRET": _cloudinary_secret,
+}
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # =============================================================================
 # STATIC FILES (WhiteNoise in production)

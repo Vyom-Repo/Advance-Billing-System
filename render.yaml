@@ -24,7 +24,11 @@ services:
         value: ".onrender.com"
       - key: RENDER
         value: "True"
-      - key: CLOUDINARY_URL
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
         sync: false
       - key: BREVO_API_KEY
         sync: false

@@ -604,37 +604,10 @@ class InvoicePreviewView(InvoiceOrganizationMixin, View):
 
         invoice = self.get_org_invoice(uuid)
         
-        # 1. Adapt ORM to standard dicts
-        invoice_dict, customer_dict, items_list, company_dict = invoice_to_pdf_dicts(invoice)
-        
-        # 2. Serialize canonical bill_data
-        bill_data = serialize_bill_for_render(
-            invoice=invoice_dict,
-            customer=customer_dict,
-            items=items_list,
-            company=company_dict,
-            org=invoice.organization
-        )
-        
-        # 3. Resolve PDF config (defaults to user template configuration)
-        config = InvoicePreviewService.resolve_render_config(
-            user=request.user
-        )
-        
-        # 4. Build layout frame geometry
-        layout_frame = PrintableFrameBuilder.build_frame(invoice.organization, config)
-        
-        # 5. Resolve template path
-        template_file_path = InvoicePreviewService.resolve_template_path(config.get("template_name"))
-        
-        # 6. Render PDF bytes
         try:
-            pdf_bytes = InvoicePreviewService.render_bill_pdf(
-                bill_data=bill_data,
-                config=config,
-                template_file_path=template_file_path,
-                layout_frame=layout_frame,
-                org=invoice.organization
+            pdf_bytes = InvoicePreviewService.render_invoice_to_pdf(
+                invoice=invoice,
+                user=request.user
             )
         except PDFCapacityExceededError:
             return HttpResponse(

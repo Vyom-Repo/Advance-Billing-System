@@ -35,6 +35,7 @@ def validate_image_dimensions_and_format(file_obj):
     # First perform size check
     validate_image_file_size(file_obj)
 
+    image = None
     try:
         if hasattr(file_obj, "seek"):
             file_obj.seek(0)
@@ -62,4 +63,7 @@ def validate_image_dimensions_and_format(file_obj):
         raise ValidationError("The uploaded image file is corrupt or invalid.")
     finally:
         if hasattr(file_obj, "seek"):
-            file_obj.seek(0)
+            try:
+                file_obj.seek(0)
+            except Exception:
+                pass

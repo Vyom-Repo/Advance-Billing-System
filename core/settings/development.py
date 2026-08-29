@@ -73,8 +73,37 @@ SECURE_SSL_REDIRECT = False
 # =============================================================================
 # STATIC & MEDIA
 # =============================================================================
-# Use local filesystem for media in development.
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+# Use local filesystem for media in development by default.
+# If Cloudinary credentials are provided in .env, activate Cloudinary for local testing.
+_cloudinary_cloud = env("CLOUDINARY_CLOUD_NAME", default="")
+_cloudinary_key = env("CLOUDINARY_API_KEY", default="")
+_cloudinary_secret = env("CLOUDINARY_API_SECRET", default="")
+
+if all([_cloudinary_cloud, _cloudinary_key, _cloudinary_secret]):
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": _cloudinary_cloud,
+        "API_KEY": _cloudinary_key,
+        "API_SECRET": _cloudinary_secret,
+    }
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # =============================================================================
 # CACHE

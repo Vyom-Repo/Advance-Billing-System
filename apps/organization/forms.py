@@ -2,6 +2,7 @@
 apps/organization/forms.py
 """
 from django import forms
+from django.core.files.uploadedfile import UploadedFile
 from .models import Organization
 from .services import LocalGSTValidator
 
@@ -51,7 +52,7 @@ class OrganizationSetupForm(forms.ModelForm):
 
     def clean_logo(self):
         logo = self.cleaned_data.get("logo")
-        if logo and hasattr(logo, "file"):
+        if isinstance(logo, UploadedFile):
             from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
             validate_image_dimensions_and_format(logo)
         return logo
@@ -105,21 +106,21 @@ class OrganizationUpdateForm(OrganizationSetupForm):
 
     def clean_letterhead(self):
         letterhead = self.cleaned_data.get("letterhead")
-        if letterhead and hasattr(letterhead, "file"):
+        if isinstance(letterhead, UploadedFile):
             from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
             validate_image_dimensions_and_format(letterhead)
         return letterhead
 
     def clean_signature(self):
         signature = self.cleaned_data.get("signature")
-        if signature and hasattr(signature, "file"):
+        if isinstance(signature, UploadedFile):
             from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
             validate_image_dimensions_and_format(signature)
         return signature
 
     def clean_qr_code(self):
         qr_code = self.cleaned_data.get("qr_code")
-        if qr_code and hasattr(qr_code, "file"):
+        if isinstance(qr_code, UploadedFile):
             from apps.common.validators import validate_image_dimensions_and_format  # noqa: PLC0415
             validate_image_dimensions_and_format(qr_code)
         return qr_code
