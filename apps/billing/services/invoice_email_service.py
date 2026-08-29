@@ -274,6 +274,15 @@ class InvoiceEmailService:
             if getattr(org.owner, "username", "") == "demo_user" or (user and getattr(user, "username", "") == "demo_user"):
                 logger.info("Demo Mode: Simulated email sending for invoice %s", inv_num)
             else:
+                logger.info(
+                    "Effective SMTP config: host=%s port=%s use_tls=%s use_ssl=%s timeout=%s backend=%s",
+                    getattr(settings, "EMAIL_HOST", ""),
+                    getattr(settings, "EMAIL_PORT", ""),
+                    getattr(settings, "EMAIL_USE_TLS", ""),
+                    getattr(settings, "EMAIL_USE_SSL", ""),
+                    getattr(settings, "EMAIL_TIMEOUT", ""),
+                    getattr(settings, "EMAIL_BACKEND", ""),
+                )
                 logger.info("Starting SMTP send for invoice %s using EMAIL_BACKEND: %s", inv_num, getattr(settings, "EMAIL_BACKEND", ""))
                 send_res = email.send(fail_silently=False)
                 logger.info("SMTP send completed for invoice %s (result=%s)", inv_num, send_res)
