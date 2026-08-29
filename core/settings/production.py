@@ -76,6 +76,7 @@ SECURE_BROWSER_XSS_FILTER = True         # Deprecated but harmless
 # =============================================================================
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_TIMEOUT = env("EMAIL_TIMEOUT", default=10)
 
 if not all([env("EMAIL_HOST"), env("EMAIL_HOST_USER"), env("EMAIL_HOST_PASSWORD")]):
     raise ImproperlyConfigured(

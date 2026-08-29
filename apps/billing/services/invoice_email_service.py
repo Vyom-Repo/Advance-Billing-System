@@ -274,8 +274,9 @@ class InvoiceEmailService:
             if getattr(org.owner, "username", "") == "demo_user" or (user and getattr(user, "username", "") == "demo_user"):
                 logger.info("Demo Mode: Simulated email sending for invoice %s", inv_num)
             else:
-                logger.info("Dispatching invoice %s email to owner %s using EMAIL_BACKEND: %s", inv_num, recipient_email, getattr(settings, "EMAIL_BACKEND", ""))
-                email.send(fail_silently=False)
+                logger.info("Starting SMTP send for invoice %s using EMAIL_BACKEND: %s", inv_num, getattr(settings, "EMAIL_BACKEND", ""))
+                send_res = email.send(fail_silently=False)
+                logger.info("SMTP send completed for invoice %s (result=%s)", inv_num, send_res)
 
             # 5. Audit Success Update
             invoice.email_sent = True
@@ -299,7 +300,7 @@ class InvoiceEmailService:
             return True, "Invoice copy emailed successfully to the organization owner."
 
         except Exception as e:
-            logger.error("Failed to send email for Invoice %s to owner %s: %s", inv_num, recipient_email, str(e), exc_info=True)
+            logger.error("SMTP send failed for invoice %s: %s — %s", inv_num, type(e).__name__, str(e), exc_info=True)
             invoice.email_last_status = EmailStatus.FAILED
             invoice.email_last_error = str(e)
             invoice.email_recipient = recipient_email
