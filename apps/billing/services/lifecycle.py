@@ -190,13 +190,48 @@ def issue_invoice(invoice: Invoice) -> Invoice:
 def cancel_invoice(invoice: Invoice) -> Invoice:
     """
     Transitions an Issued invoice to Cancelled status.
-    The invoice remains in the database for historical retention.
+    Frees up the original invoice number by assigning a unique -CANCELLED suffix to the invoice record,
+    allowing the original invoice number to be reused. If the cancelled invoice was the most recently
+    issued one for the organization, the sequence starting_number in InvoicePreference is decremented.
     """
     if invoice.status != InvoiceStatus.ISSUED:
         raise ValidationError("Only issued invoices can be cancelled.")
-    
+
+    original_num = invoice.invoice_number
+    if original_num:
+        cancelled_num = f"{original_num}-CANCELLED"
+        if Invoice.objects.filter(
+            organization=invoice.organization, invoice_number=cancelled_num
+        ).exclude(pk=invoice.pk).exists():
+            cancelled_num = f"{original_num}-CANCELLED-{invoice.pk}"
+        invoice.invoice_number = cancelled_num
+
     invoice.status = InvoiceStatus.CANCELLED
-    invoice.save(update_fields=['status'])
+    invoice.save(update_fields=['invoice_number', 'status'])
+
+    # Check and decrement InvoicePreference starting_number if the cancelled invoice was the latest issued
+    try:
+        pref = InvoicePreference.objects.select_for_update().get(user=invoice.organization.owner)
+        prefix = (pref.invoice_prefix or "").strip().upper()
+        fy_str = "2026-27" if pref.include_financial_year else ""
+        prev_seq = pref.starting_number - 1
+
+        if prev_seq >= 1:
+            num_str = str(prev_seq).zfill(4)
+            parts = []
+            if prefix:
+                parts.append(prefix)
+            if fy_str:
+                parts.append(fy_str)
+            parts.append(num_str)
+            expected_prev_num = "-".join(parts)
+
+            if original_num == expected_prev_num:
+                pref.starting_number = prev_seq
+                pref.save(update_fields=['starting_number'])
+    except InvoicePreference.DoesNotExist:
+        pass
+
     return invoice
 
 @transaction.atomic

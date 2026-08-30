@@ -156,8 +156,55 @@ class InvoiceLifecycleTests(TestCase):
         inv.save()
         for line in inv.lines.all(): line.save()
         issue_invoice(inv)
+        orig_num = inv.invoice_number
         cancel_invoice(inv)
         self.assertEqual(inv.status, InvoiceStatus.CANCELLED)
+        self.assertEqual(inv.invoice_number, f"{orig_num}-CANCELLED")
+
+    def test_cancel_frees_number_and_allows_reissue(self):
+        inv1 = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
+        prepare_invoice_snapshots(inv1)
+        inv1.save()
+        issue_invoice(inv1)
+        orig_num = inv1.invoice_number
+
+        # Cancel inv1
+        cancel_invoice(inv1)
+        self.assertEqual(inv1.status, InvoiceStatus.CANCELLED)
+        self.assertEqual(inv1.invoice_number, f"{orig_num}-CANCELLED")
+
+        # Create & issue inv2 - should reuse orig_num
+        inv2 = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
+        prepare_invoice_snapshots(inv2)
+        inv2.save()
+        issue_invoice(inv2)
+        self.assertEqual(inv2.invoice_number, orig_num)
+
+    def test_repeated_cancel_and_reissue(self):
+        # 1st attempt
+        inv1 = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
+        prepare_invoice_snapshots(inv1)
+        inv1.save()
+        issue_invoice(inv1)
+        num = inv1.invoice_number
+        cancel_invoice(inv1)
+        self.assertEqual(inv1.invoice_number, f"{num}-CANCELLED")
+
+        # 2nd attempt
+        inv2 = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
+        prepare_invoice_snapshots(inv2)
+        inv2.save()
+        issue_invoice(inv2)
+        self.assertEqual(inv2.invoice_number, num)
+        cancel_invoice(inv2)
+        self.assertEqual(inv2.invoice_number, f"{num}-CANCELLED-{inv2.pk}")
+
+        # 3rd attempt
+        inv3 = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
+        prepare_invoice_snapshots(inv3)
+        inv3.save()
+        issue_invoice(inv3)
+        self.assertEqual(inv3.invoice_number, num)
 
     def test_delete_cancelled_forbidden(self):
         inv = Invoice.objects.create(organization=self.org, customer=self.customer1, invoice_date=datetime.date.today())
