@@ -937,7 +937,7 @@
                         <td class="text-center">{{ item.hsn|default:"-" }}</td>
                         {% endif %}
                         <td class="text-right">{{ bill.currency_symbol }}{{ item.rate }}</td>
-                        <td class="text-center">{{ item.quantity }} {% if item.unit %}<span style="font-size: 7pt;">{{ item.unit }}</span>{% endif %}</td>
+                        <td class="text-center">{{ item.quantity|floatformat:-3 }} {% if item.unit %}<span style="font-size: 7pt;">{{ item.unit }}</span>{% endif %}</td>
                         <td class="text-right">{{ bill.currency_symbol }}{{ item.taxable_value }}</td>
                         {% if config.show_gst_summary %}
                         <td class="text-right">

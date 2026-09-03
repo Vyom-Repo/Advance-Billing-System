@@ -739,7 +739,7 @@
                         </td>
                         {% if config.show_hsn_sac %}<td class="col-hsn">{{ item.hsn|default:"—" }}</td>{% endif %}
                         <td class="col-tax">{{ item.tax_pct|floatformat:0 }}%</td>
-                        <td class="col-qty">{{ item.quantity|floatformat:0 }} {% if item.unit %}{{ item.unit }}{% else %}NOS{% endif %}</td>
+                        <td class="col-qty">{{ item.quantity|floatformat:-3 }} {% if item.unit %}{{ item.unit }}{% else %}NOS{% endif %}</td>
                         <td class="col-rate">{{ item.rate|floatformat:2|intcomma }}</td>
                         <td class="col-amount">{{ item.amount|floatformat:2|intcomma }}</td>
                     </tr>

@@ -129,3 +129,32 @@ class ProfessionalTemplateTestCase(TestCase):
         """Ensure compact template is completely untouched and intact."""
         html = render_to_string("pdf/compact_template.html", {})
         self.assertGreater(len(html), 100)
+
+    def test_decimal_quantity_rendering_not_rounded(self):
+        """Ensure quantities like 212.760 do not get rounded to 212.8 in professional or compact templates."""
+        invoice = {
+            "number": "INV-1003",
+            "subtotal": 2127.60,
+            "tax_total": 0,
+            "grand_total": 2127.60,
+        }
+        items = [
+            {"name": "Bulk Material", "hsn": "1234", "quantity": 212.76, "unit": "KGS", "rate": 10.0, "amount": 2127.60}
+        ]
+        canonical = serialize_bill_for_render(invoice, {}, items, {})
+        context = {
+            **canonical,
+            "config": {"show_hsn_sac": True},
+            "layout_frame": {},
+        }
+
+        # Professional template check
+        prof_html = render_to_string("pdf/professional_template.html", context)
+        self.assertIn("212.760 KGS", prof_html)
+        self.assertNotIn("212.8", prof_html)
+
+        # Compact template check
+        compact_html = render_to_string("pdf/compact_template.html", context)
+        self.assertIn("212.760 KGS", compact_html)
+        self.assertNotIn("213", compact_html)
+

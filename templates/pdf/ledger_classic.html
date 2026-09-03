@@ -411,7 +411,7 @@
                         {% if item.description %}<div style="font-size: 7px; color: #444; white-space: pre-line;">{{ item.description|linebreaksbr }}</div>{% endif %}
                     </td>
                     {% if config.show_hsn_sac %}<td class="text-center tabular-nums">{{ item.hsn }}</td>{% endif %}
-                    <td class="text-center tabular-nums">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="text-center tabular-nums">{{ item.quantity|floatformat:-3 }} {{ item.unit }}</td>
                     <td class="text-right tabular-nums">{{ item.rate }}</td>
                     <td class="text-right tabular-nums"><b>{{ item.amount }}</b></td>
                 </tr>

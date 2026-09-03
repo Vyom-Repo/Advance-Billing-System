@@ -223,7 +223,7 @@
                     </td>
                     {% if config.show_hsn_sac %}<td class="center">{{ item.hsn }}</td>{% endif %}
                     <td class="right">{{ bill.currency_symbol }}{{ item.rate }}</td>
-                    <td class="center">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="center">{{ item.quantity|floatformat:-3 }} {{ item.unit }}</td>
                     <td class="right">{{ bill.currency_symbol }}{{ item.taxable_value }}</td>
                     <td class="right">{{ bill.currency_symbol }}{{ item.tax_amount }}</td>
                 </tr>

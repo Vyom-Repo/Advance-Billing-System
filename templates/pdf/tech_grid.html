@@ -425,7 +425,7 @@
 
                     <div class="item-right">
                         <div class="item-qty-rate">
-                            {{ item.quantity }} {{ item.unit }} &times; {{ bill.currency_symbol }}{{ item.rate }}
+                            {{ item.quantity|floatformat:-3 }} {{ item.unit }} &times; {{ bill.currency_symbol }}{{ item.rate }}
                         </div>
                         <div class="item-amount-val">
                             {{ bill.currency_symbol }}{{ item.amount }}

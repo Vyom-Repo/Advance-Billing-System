@@ -1010,7 +1010,7 @@
                     </td>
                     <td class="col-hsn">{% if item.hsn %}{{ item.hsn }}{% else %}-{% endif %}</td>
                     <td class="col-qty">
-                        {{ item.quantity|floatformat:1 }}{% if item.unit %} {{ item.unit }}{% endif %}
+                        {{ item.quantity|floatformat:-3 }}{% if item.unit %} {{ item.unit }}{% endif %}
                     </td>
                     <td class="col-rate">{{ bill.currency_symbol }}{{ item.rate|floatformat:2|intcomma }}</td>
                     <td class="col-amount amount">{{ bill.currency_symbol }}{{ item.pretax_amount|floatformat:2|intcomma }}</td>

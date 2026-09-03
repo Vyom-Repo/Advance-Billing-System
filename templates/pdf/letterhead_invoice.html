@@ -368,7 +368,7 @@
                                     {% if item.description %}<br><span style="font-size: 8px; color: #555555; white-space: pre-line;">{{ item.description|linebreaksbr }}</span>{% endif %}
                                 </td>
                                 {% if config.show_hsn_sac %}<td class="text-center">{{ item.hsn|default:"-" }}</td>{% endif %}
-                                <td class="text-center">{{ item.quantity }} {{ item.unit }}</td>
+                                <td class="text-center">{{ item.quantity|floatformat:-3 }} {{ item.unit }}</td>
                                 <td class="text-right">{{ bill.currency_symbol }}{{ item.rate }}</td>
                                 {% if config.show_gst_summary %}<td class="text-right">{{ item.tax_pct }}%</td>{% endif %}
                                 <td class="text-right"><strong>{{ bill.currency_symbol }}{{ item.amount }}</strong></td>

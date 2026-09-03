@@ -475,7 +475,7 @@
                                 {% if config.show_hsn_sac %}
                                 <td>{{ item.hsn|default:"-" }}</td>
                                 {% endif %}
-                                <td class="num-cell">{{ item.quantity }} {{ item.unit|default:"" }}</td>
+                                <td class="num-cell">{{ item.quantity|floatformat:-3 }} {{ item.unit|default:"" }}</td>
                                 <td class="num-cell">{{ item.rate }}</td>
                                 {% if config.show_gst_summary %}
                                 <td class="num-cell">{{ item.tax_pct|default:"0" }}%</td>
