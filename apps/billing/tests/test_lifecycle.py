@@ -234,3 +234,36 @@ class InvoiceLifecycleTests(TestCase):
         inv = Invoice.objects.create(organization=self.org, invoice_date=datetime.date.today())
         with self.assertRaises(ValidationError):
             cancel_invoice(inv)
+
+    def test_migration_recycles_legacy_cancelled_invoices(self):
+        import importlib
+        migration_module = importlib.import_module("apps.billing.migrations.0006_recycle_existing_cancelled_invoices")
+        recycle_cancelled_invoices = migration_module.recycle_cancelled_invoices
+        from unittest.mock import MagicMock
+
+        # Create a legacy cancelled invoice without -CANCELLED suffix
+        legacy_inv = Invoice.objects.create(
+            organization=self.org,
+            customer=self.customer1,
+            invoice_number="INV-0099",
+            status=InvoiceStatus.CANCELLED,
+            invoice_date=datetime.date.today()
+        )
+        self.pref.starting_number = 100
+        self.pref.save()
+
+        # Run migration function
+        mock_apps = MagicMock()
+        mock_apps.get_model.side_effect = lambda app, model: {
+            ('billing', 'Invoice'): Invoice,
+            ('settings_app', 'InvoicePreference'): InvoicePreference,
+            ('organization', 'Organization'): Organization,
+        }[(app, model)]
+
+        recycle_cancelled_invoices(mock_apps, None)
+
+        legacy_inv.refresh_from_db()
+        self.assertEqual(legacy_inv.invoice_number, "INV-0099-CANCELLED")
+
+        self.pref.refresh_from_db()
+        self.assertEqual(self.pref.starting_number, 1)
